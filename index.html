@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- StrategicSitemapper  v35 -->
+<!-- StrategicSitemapper  v38 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -782,18 +782,20 @@ header{height:56px;background:var(--md-surface);border-bottom:1px solid var(--md
 .tr-tab:hover{color:var(--md-on-surface)}
 .tr-content{flex:1;overflow:auto}
 .tr-phase-panel{padding-bottom:40px}
-.tr-summary-card{background:var(--md-surface);border:1px solid var(--md-outline-variant);border-radius:12px;padding:22px 26px;margin:20px 24px;box-shadow:var(--el-1)}
+.tr-summary-card{background:var(--md-surface);border:1px solid var(--md-outline-variant);border-radius:12px;padding:22px 26px;margin:20px 12px;box-shadow:var(--el-1)}
 .tr-phase-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
 .tr-chip{padding:3px 10px;border-radius:10px;font-size:9px;font-weight:700}
 .tr-chip-live{background:#c8e6d2;color:#0f5223}
 .tr-chip-staged{background:#e6f0e8;color:#3d6b45}
 .tr-chip-ip{background:#fef3e0;color:#b06000}
 .tr-chip-ns{background:#f0ebe2;color:#7c6e62}
-.tr-rows-card{background:var(--md-surface);border:1px solid var(--md-outline-variant);border-radius:12px;margin:0 24px;overflow:hidden}
-.tr-row-hdr{display:flex;align-items:center;padding:8px 16px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--text3);background:var(--md-surface-container);border-bottom:1px solid var(--md-outline-variant)}
-.tr-row{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid var(--md-outline-variant);cursor:pointer;transition:background .12s;gap:10px}
+.tr-rows-card{background:var(--md-surface);border:1px solid var(--md-outline-variant);border-radius:12px;margin:0 12px;overflow:hidden}
+.tr-row-hdr{display:flex;align-items:center;padding:8px 16px 8px 14px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--text3);background:var(--md-surface-container);border-bottom:1px solid var(--md-outline-variant)}
+.tr-row{display:flex;flex-direction:column;align-items:stretch;border-bottom:1px solid var(--md-outline-variant);transition:background .12s}
 .tr-row:last-child{border-bottom:none}
 .tr-row:hover{background:var(--md-surface-variant)}
+.tr-row-inner{display:flex;align-items:center;gap:10px;padding:8px 16px 8px 0}
+.tr-row-edit{background:var(--md-surface-container)!important}
 .tr-decom-block{border:1.5px solid #f0c0c0;border-radius:10px;margin:8px 16px;overflow:hidden}
 .tr-decom-old{display:flex;align-items:center;gap:10px;padding:9px 14px;background:#fff8f8}
 .tr-decom-arrow{display:flex;align-items:center;gap:10px;padding:9px 14px;background:var(--md-surface-container);border-top:1px solid #f0c0c0;cursor:pointer;transition:background .12s}
@@ -1668,6 +1670,9 @@ async function loadFromSheets() {
         newSlugStatus: r.newSlugStatus||'', newSlugChecked: r.newSlugChecked||null,
         cms: r.cms||'Sitecore', owner: r.owner||'Marketing',
         status: r.status||'Not started', signOff: r.signOff==='TRUE'||r.signOff===true,
+        cmsCreated: r.cmsCreated==='TRUE'||r.cmsCreated===true,
+        contentCreated: r.contentCreated==='TRUE'||r.contentCreated===true,
+        redirectCreated: r.redirectCreated==='TRUE'||r.redirectCreated===true,
         accessible:      r.accessible==='TRUE'||r.accessible===true,
         seoOptimised:    r.seoOptimised==='TRUE'||r.seoOptimised===true,
         psiPerformance:   r.psiPerformance  !==undefined&&r.psiPerformance  !==''?Number(r.psiPerformance)  :null,
@@ -1933,6 +1938,9 @@ async function dbUpsertNode(node) {
       badgeImg:    node.badgeImg    || '',
       badgeLabel:  node.badgeLabel  || '',
       variantOf:   node.variantOf  || '',
+      cmsCreated:      node.cmsCreated      ? 'TRUE' : 'FALSE',
+      contentCreated:  node.contentCreated  ? 'TRUE' : 'FALSE',
+      redirectCreated: node.redirectCreated ? 'TRUE' : 'FALSE',
       diff:        '',
     };
     await sheetPost({ action:'upsertNode', row });
@@ -4682,20 +4690,26 @@ function renderNeTab(tab){
 
   if(tab==='transformation'){
     if(!n){body.innerHTML='<div style="color:var(--text3);font-size:12px;padding:20px">Save the node first.</div>';return}
-    const allSt=Object.keys(STATUS);
+    // URL change detection & auto-fill
+    const _neCanon=n.variantOf?gn(n.variantOf):null;
+    const _neOld=(_neCanon?.slug||'').trim(), _neNew=(n.newSlug||n.slug||'').trim();
+    const _neUc=(_neCanon&&_neOld&&_neNew&&_neOld!==_neNew)?{oldUrl:_neOld,newUrl:_neNew}:null;
+    if(_neUc){
+      if(!n.redirectFrom){n.redirectFrom=_neUc.oldUrl;dbUpsertNode(n);}
+      if(_neCanon&&!_neCanon.redirectTo){_neCanon.redirectTo=_neUc.newUrl;dbUpsertNode(_neCanon);}
+    }
+    const allSt=Object.keys(STATUS).filter(s=>s!=='CMS complete'&&s!=='Content Written');
     const TPIPE2=[
-      {key:'Not started',     label:'Not Started',     statuses:['Not started']},
-      {key:'In progress',     label:'In Progress',     statuses:['In progress','Wireframe complete']},
-      {key:'CMS complete',    label:'CMS Created',     statuses:['CMS complete']},
-      {key:'Content Written', label:'Content Created', statuses:['Content Written']},
-      {key:'Staged',          label:'Staged',          statuses:['Staged','Ready for launch','Signed Off']},
-      {key:'Live',            label:'Live',            statuses:['Live']},
+      {key:'Not started', label:'Not Started', statuses:['Not started']},
+      {key:'In progress', label:'In Progress',  statuses:['In progress','Wireframe complete']},
+      {key:'Staged',      label:'Staged',        statuses:['Staged','Ready for launch','Signed Off']},
+      {key:'Live',        label:'Live',          statuses:['Live']},
     ];
     const curPipeIdx2=TPIPE2.findIndex(p=>p.statuses.includes(n.status));
     body.innerHTML=`
       <div class="ne-section">
         <div class="ne-section-title">Progress stage — click to set</div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:8px">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:10px">
           ${TPIPE2.map((p,i)=>{
             const active=p.statuses.includes(n.status);
             const done=i<curPipeIdx2;
@@ -4707,7 +4721,33 @@ function renderNeTab(tab){
             </div>`;
           }).join('')}
         </div>
-        <div style="font-size:10px;color:var(--text3);margin-bottom:4px">Current status: <strong style="color:var(--md-on-surface)">${n.status||'—'}</strong></div>
+        <div style="font-size:9px;color:var(--text3);margin-bottom:6px;font-weight:500;letter-spacing:.03em">PARALLEL WORK — both needed before Staged</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">
+          <div onclick="upd('${id}','cmsCreated',!${!!n.cmsCreated});renderNeTab('transformation')"
+            style="padding:8px 10px;border-radius:8px;border:1.5px solid ${n.cmsCreated?'#2a5c6a':'var(--md-outline-variant)'};background:${n.cmsCreated?'#e0edf5':'var(--md-surface-container)'};cursor:pointer;display:flex;align-items:center;gap:7px">
+            <span class="material-icons-round" style="font-size:14px;color:${n.cmsCreated?'#2a5c6a':'var(--text3)'}">${n.cmsCreated?'check_box':'check_box_outline_blank'}</span>
+            <div><div style="font-size:10px;font-weight:700;color:${n.cmsCreated?'#2a5c6a':'var(--text2)'}">CMS Created</div><div style="font-size:8px;color:var(--text3)">CMS build complete</div></div>
+          </div>
+          <div onclick="upd('${id}','contentCreated',!${!!n.contentCreated});renderNeTab('transformation')"
+            style="padding:8px 10px;border-radius:8px;border:1.5px solid ${n.contentCreated?'#2e4f7a':'var(--md-outline-variant)'};background:${n.contentCreated?'#e8eef8':'var(--md-surface-container)'};cursor:pointer;display:flex;align-items:center;gap:7px">
+            <span class="material-icons-round" style="font-size:14px;color:${n.contentCreated?'#2e4f7a':'var(--text3)'}">${n.contentCreated?'check_box':'check_box_outline_blank'}</span>
+            <div><div style="font-size:10px;font-weight:700;color:${n.contentCreated?'#2e4f7a':'var(--text2)'}">Content Created</div><div style="font-size:8px;color:var(--text3)">Content authored &amp; approved</div></div>
+          </div>
+        </div>
+        ${_neUc?`<div style="background:#f5f0ff;border:1px solid #c8b8ef;border-radius:10px;padding:10px 12px;margin-bottom:10px">
+          <div style="font-size:9px;font-weight:700;color:#5a3d7a;letter-spacing:.05em;margin-bottom:6px;display:flex;align-items:center;gap:5px"><span class="material-icons-round" style="font-size:12px">swap_horiz</span>URL CHANGE DETECTED — REDIRECT REQUIRED</div>
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">
+            <span style="font-size:9px;color:#9c2020;font-family:var(--font-mono)">${escH(_neUc.oldUrl)}</span>
+            <span style="font-size:11px;color:#5a3d7a">→</span>
+            <span style="font-size:9px;color:#137333;font-family:var(--font-mono)">${escH(_neUc.newUrl)}</span>
+          </div>
+          <div onclick="upd('${id}','redirectCreated',!${!!n.redirectCreated});renderNeTab('transformation')"
+            style="padding:8px 10px;border-radius:8px;border:1.5px solid ${n.redirectCreated?'#5a3d7a':'var(--md-outline-variant)'};background:${n.redirectCreated?'#ede8f8':'var(--md-surface-container)'};cursor:pointer;display:flex;align-items:center;gap:7px">
+            <span class="material-icons-round" style="font-size:14px;color:${n.redirectCreated?'#5a3d7a':'var(--text3)'}">${n.redirectCreated?'check_box':'check_box_outline_blank'}</span>
+            <div><div style="font-size:10px;font-weight:700;color:${n.redirectCreated?'#5a3d7a':'var(--text2)'}">Redirect Created</div><div style="font-size:8px;color:var(--text3)">Old URL redirects to new URL in server / CMS</div></div>
+          </div>
+        </div>`:''}
+        <div style="font-size:10px;color:var(--text3);margin-bottom:4px">Detailed status: <strong style="color:var(--md-on-surface)">${n.status||'—'}</strong></div>
         <select class="dinput dselect" onchange="upd('${id}','status',this.value);refreshNeHeader('${id}');renderNeTab('transformation');renderCanvas()">
           ${allSt.map(s=>`<option value="${s}"${n.status===s?' selected':''}>${s}</option>`).join('')}
         </select>
@@ -6397,6 +6437,7 @@ function renderAuditView(){
 
 /* ─── TRANSFORMATION REPORT ─────────────────────────────────────────────── */
 let _trActivePhase=null;
+let _trEditMode=false;
 
 function _trSwitchTab(tabId){
   _trActivePhase=tabId;
@@ -6422,6 +6463,11 @@ function renderTransformationReport(){
   const variants=allPages.filter(n=>n.variantOf);
   const canonicals=allPages.filter(n=>!n.variantOf);
   const transformingIds=new Set(variants.map(v=>v.variantOf));
+  // "New in phase" = canonical pages whose phase is not the very first phase in the project
+  // (i.e. pages being introduced for the first time in Phase 1 or later)
+  const originPhaseId=PHASES[0]?.id;
+  const newInPhase=canonicals.filter(n=>n.phase&&n.phase!==originPhaseId);
+  newInPhase.forEach(n=>transformingIds.add(n.id));
   const unchanged=canonicals.filter(n=>!transformingIds.has(n.id));
 
   // ── Pipeline stage definitions ──
@@ -6434,39 +6480,101 @@ function renderTransformationReport(){
     {label:'Live',            col:'#0f5223',bg:'#c8e6d2'},
   ];
   const SMAP={'Not started':0,'In progress':1,'Wireframe complete':1,'CMS complete':2,'Content Written':3,'Staged':4,'Ready for launch':4,'Signed Off':4,'Live':5};
-  const stageOf=s=>SMAP[s]??0;
-
-  // ── Per-node pipeline visualization ──
-  const pipeViz=si=>{
-    const col=PIPE[si].col;
-    const fillPct=Math.round(si/(PIPE.length-1)*100);
-    return `<div style="position:relative;padding:0 2px">
-      <div style="position:relative;height:22px">
-        <div style="position:absolute;left:0;right:0;top:9px;height:4px;background:#e5e2de;border-radius:2px"></div>
-        <div style="position:absolute;left:0;right:${100-fillPct}%;top:9px;height:4px;background:${col};border-radius:2px"></div>
-        ${PIPE.map((s,i)=>{
-          const done=i<=si;const active=i===si;
-          const pct=Math.round(i/(PIPE.length-1)*100);
-          return `<div title="${s.label}" style="position:absolute;left:${pct}%;top:50%;transform:translate(-50%,-50%);width:${active?20:13}px;height:${active?20:13}px;border-radius:50%;background:${done?s.col:'#fff'};border:2px solid ${done?s.col:'#d0ccc7'};${active?`box-shadow:0 0 0 5px ${s.col}28;`:''}z-index:1"></div>`;
-        }).join('')}
-      </div>
-      <div style="display:flex;margin-top:3px">
-        ${PIPE.map((s,i)=>{
-          const done=i<=si;const active=i===si;
-          return `<div style="flex:1;text-align:center;font-size:8px;color:${done?s.col:'#c5c0bb'};font-weight:${active?700:done?600:400};line-height:1.2;padding:0 1px">${s.label}</div>`;
-        }).join('')}
-      </div>
-    </div>`;
+  // stageOf accepts either a status string (backward compat) or a node object (uses booleans)
+  const stageOf=n=>{
+    const s=typeof n==='string'?n:(n.status||'Not started');
+    const base=SMAP[s]??0;
+    if(typeof n==='object'&&base<=1){
+      if(n.cmsCreated&&n.contentCreated) return 3;
+      if(n.cmsCreated||n.contentCreated) return 2;
+    }
+    return base;
   };
 
-  // ── Redirect warning ──
+  // ── URL change detection ──
+  // Returns {oldUrl, newUrl} when canonical slug ≠ variant's new URL, else null.
+  const hasUrlChange=v=>{
+    if(!v.variantOf)return null;
+    const canon=gn(v.variantOf);if(!canon)return null;
+    const oldUrl=(canon.slug||'').trim();
+    const newUrl=(v.newSlug||v.slug||'').trim();
+    if(!oldUrl||!newUrl||oldUrl===newUrl)return null;
+    return{oldUrl,newUrl};
+  };
+
+  // Auto-fill redirectFrom/redirectTo when a URL change is detected and fields are blank.
+  const autoFillRedirects=v=>{
+    const uc=hasUrlChange(v);if(!uc)return;
+    let dirty=false;
+    if(!v.redirectFrom){v.redirectFrom=uc.oldUrl;dirty=true;}
+    const canon=gn(v.variantOf);
+    if(canon&&!canon.redirectTo){canon.redirectTo=uc.newUrl;dbUpsertNode(canon);}
+    if(dirty)dbUpsertNode(v);
+  };
+
+  // ── SVG branching pipeline: NS → IP ─┬─ CMS ─┐
+  //                                       └─ CTN ─┴── Staged [→ Redirect] → Live
+  const C={ns:'#9c8b78',ip:'#b06000',cms:'#2a5c6a',ct:'#2e4f7a',st:'#3d6b45',rd:'#5a3d7a',lv:'#0f5223',off:'#e5e2de',offDot:'#d0ccc7'};
+  // pipeViz(node, stageOfIndex, urlChangeObj_or_null)
+  const pipeViz=(n,si,uc=null)=>{
+    const cms=!!n.cmsCreated, ct=!!n.contentCreated;
+    const hasRd=!!uc, rdDone=!!n.redirectCreated;
+    const em=_trEditMode, id=n.id;
+    const cy=29, r=6, rA=8;
+    // Layout shifts to fit Redirect dot when URL changes
+    let nsX,ipX,cmsX,ctX,stX,rdX,lvX,forkX,mergeX,cmsY,ctY,fSz;
+    if(hasRd){
+      nsX=18;ipX=86;cmsX=224;ctX=224;stX=318;rdX=400;lvX=484;
+      forkX=114;mergeX=294;cmsY=12;ctY=46;fSz=7;
+    }else{
+      nsX=22;ipX=108;cmsX=258;ctX=258;stX=380;rdX=0;lvX=476;
+      forkX=148;mergeX=348;cmsY=11;ctY=47;fSz=8;
+    }
+    const ipDone=si>=1,csDone=cms,cdDone=ct,stDone=si>=4,lvDone=si>=5;
+    const actNs=si===0,actIp=si>=1&&si<4,actSt=si>=4&&si<5&&(!hasRd||rdDone),actRd=hasRd&&si>=4&&!rdDone,actLv=si>=5;
+    const dot=(x,y,done,act,col,lbl,labY,fn)=>{
+      const ra=act?rA:r;
+      const fill=done||act?col:'#fff', stk=done||act?col:C.offDot;
+      const fw=act?'700':done?'600':'400', tc=done||act?col:'#c5c0bb';
+      const cl=em&&fn?` onclick="${fn}" style="cursor:pointer"`:'';
+      return `<g${cl}><circle cx="${x}" cy="${y}" r="${ra}" fill="${fill}" stroke="${stk}" stroke-width="2"/>${act?`<circle cx="${x}" cy="${y}" r="${ra+4}" fill="${col}" fill-opacity="0.12" stroke="none"/>`:''}
+<text x="${x}" y="${labY}" text-anchor="middle" font-size="${fSz}" font-weight="${fw}" fill="${tc}" font-family="system-ui,sans-serif">${lbl}</text></g>`;
+    };
+    const ln=(x1,y1,x2,y2,dn,col)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${dn?col:C.off}" stroke-width="2" stroke-linecap="round"/>`;
+    const pt=(d,dn,col)=>`<path d="${d}" stroke="${dn?col:C.off}" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+    const R=r,lb=cy+R+12;
+    const ckNs=`upd('${id}','status','Not started');renderTransformationReport()`;
+    const ckIp=`upd('${id}','status','In progress');renderTransformationReport()`;
+    const ckCms=`upd('${id}','cmsCreated',${!cms});renderTransformationReport()`;
+    const ckCt=`upd('${id}','contentCreated',${!ct});renderTransformationReport()`;
+    const ckSt=`upd('${id}','status','Staged');renderTransformationReport()`;
+    const ckRd=`upd('${id}','redirectCreated',${!rdDone});renderTransformationReport()`;
+    const ckLv=`upd('${id}','status','Live');renderTransformationReport()`;
+    return `<svg width="100%" height="58" viewBox="0 0 500 58" xmlns="http://www.w3.org/2000/svg" style="display:block;overflow:visible">
+      ${ln(nsX+R,cy,ipX-R,cy,ipDone,C.ns)}
+      ${pt(`M ${ipX+R} ${cy} C ${forkX} ${cy} ${forkX} ${cmsY} ${forkX+20} ${cmsY} H ${cmsX-R}`,ipDone,C.ip)}
+      ${pt(`M ${ipX+R} ${cy} C ${forkX} ${cy} ${forkX} ${ctY} ${forkX+20} ${ctY} H ${ctX-R}`,ipDone,C.ip)}
+      ${pt(`M ${cmsX+R} ${cmsY} H ${mergeX-20} C ${mergeX} ${cmsY} ${mergeX} ${cy} ${stX-R} ${cy}`,csDone,C.cms)}
+      ${pt(`M ${ctX+R} ${ctY} H ${mergeX-20} C ${mergeX} ${ctY} ${mergeX} ${cy} ${stX-R} ${cy}`,cdDone,C.ct)}
+      ${hasRd
+        ? `${ln(stX+R,cy,rdX-R,cy,stDone,C.st)}${ln(rdX+R,cy,lvX-R,cy,rdDone,C.rd)}`
+        : ln(stX+R,cy,lvX-R,cy,lvDone,C.st)}
+      ${dot(nsX,cy,true,actNs,C.ns,'Not Started',lb,ckNs)}
+      ${dot(ipX,cy,ipDone,actIp,C.ip,'In Progress',lb,ckIp)}
+      ${dot(cmsX,cmsY,csDone,false,C.cms,'CMS Created',cmsY-R-4,ckCms)}
+      ${dot(ctX,ctY,cdDone,false,C.ct,'Content Created',ctY+R+12,ckCt)}
+      ${dot(stX,cy,stDone,actSt,C.st,'Staged',lb,ckSt)}
+      ${hasRd?dot(rdX,cy,rdDone,actRd,C.rd,'Redirect',lb,ckRd):''}
+      ${dot(lvX,cy,lvDone,actLv,C.lv,'Live',lb,ckLv)}
+    </svg>`;
+  };
+
+  // ── Redirect warning (kept for decom rows that don't use hasUrlChange) ──
   const redirectWarn=v=>{
     if(v.status!=='Live')return null;
-    const canon=gn(v.variantOf);if(!canon)return null;
-    const oldUrl=canon.slug,newUrl=v.newSlug||v.slug;
-    if(!oldUrl||!newUrl||oldUrl===newUrl)return null;
-    if(canon.redirectTo||v.redirectFrom)return null;
-    return `Old URL (${oldUrl}) needs a redirect to new URL (${newUrl})`;
+    const uc=hasUrlChange(v);if(!uc)return null;
+    if(v.redirectFrom||v.redirectCreated)return null;
+    return `Old URL (${uc.oldUrl}) needs a redirect to new URL (${uc.newUrl})`;
   };
 
   // ── Find redirect target node by URL ──
@@ -6480,8 +6588,8 @@ function renderTransformationReport(){
   const totalNS=variants.filter(v=>!v.status||v.status==='Not started').length;
   const overallPct=totalVariants>0?Math.round(totalLive/totalVariants*100):0;
 
-  // ── Phases with variants ──
-  const activePhases=PHASES.filter(ph=>variants.some(v=>v.phase===ph.id));
+  // ── Phases with variants OR new-in-phase canonical pages ──
+  const activePhases=PHASES.filter(ph=>variants.some(v=>v.phase===ph.id)||newInPhase.some(n=>n.phase===ph.id));
 
   // Initialise active tab
   if(!_trActivePhase||(!activePhases.find(p=>p.id===_trActivePhase)&&_trActivePhase!=='unchanged')){
@@ -6492,7 +6600,10 @@ function renderTransformationReport(){
   const phPctMap={};
   activePhases.forEach(ph=>{
     const phV=variants.filter(v=>v.phase===ph.id);
-    phPctMap[ph.id]=phV.length>0?Math.round(variants.filter(v=>v.phase===ph.id&&v.status==='Live').length/phV.length*100):0;
+    const phN=newInPhase.filter(n=>n.phase===ph.id);
+    const total=phV.length+phN.length;
+    const live=phV.filter(v=>v.status==='Live').length+phN.filter(n=>n.status==='Live').length;
+    phPctMap[ph.id]=total>0?Math.round(live/total*100):0;
   });
 
   // ── Build HTML ──
@@ -6503,7 +6614,7 @@ function renderTransformationReport(){
     <div style="display:flex;align-items:center;justify-content:space-between;gap:24px">
       <div>
         <div class="tr-exec-title">Transformation Report</div>
-        <div class="tr-exec-sub">${activePhases.length} phase${activePhases.length!==1?'s':''} · ${totalVariants} transformation${totalVariants!==1?'s':''} in scope · ${unchanged.length} pages unchanged</div>
+        <div class="tr-exec-sub">${activePhases.length} phase${activePhases.length!==1?'s':''} · ${totalVariants} transformation${totalVariants!==1?'s':''} · ${newInPhase.length} new page${newInPhase.length!==1?'s':''} introduced · ${unchanged.length} pages unchanged</div>
       </div>
       <div style="display:flex;align-items:center;gap:20px">
         <div style="text-align:right">
@@ -6511,6 +6622,10 @@ function renderTransformationReport(){
           <div style="font-size:10px;color:var(--text3)">${totalLive} of ${totalVariants} live overall</div>
         </div>
         <button onclick="renderTransformationReport()" style="height:32px;padding:0 14px;border-radius:8px;border:1px solid var(--md-outline-variant);background:var(--md-surface);font-size:11px;cursor:pointer;display:flex;align-items:center;gap:5px;color:var(--text2);flex-shrink:0"><span class="material-icons-round" style="font-size:14px">refresh</span>Refresh</button>
+        ${_trEditMode
+          ? `<button onclick="_trEditMode=false;renderTransformationReport()" style="height:32px;padding:0 16px;border-radius:8px;border:none;background:#137333;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;color:#fff;flex-shrink:0"><span class="material-icons-round" style="font-size:14px">check</span>Save &amp; Exit Edit</button>`
+          : `<button onclick="_trEditMode=true;renderTransformationReport()" style="height:32px;padding:0 14px;border-radius:8px;border:1px solid var(--brand-primary);background:var(--md-surface);font-size:11px;cursor:pointer;display:flex;align-items:center;gap:5px;color:var(--brand-primary);flex-shrink:0"><span class="material-icons-round" style="font-size:14px">edit</span>Edit Mode</button>`
+        }
       </div>
     </div>
     <!-- Overall progress bar -->
@@ -6559,10 +6674,12 @@ function renderTransformationReport(){
   activePhases.forEach(ph=>{
     const isActive=_trActivePhase===ph.id;
     const phV=variants.filter(v=>v.phase===ph.id);
-    const phLive=phV.filter(v=>v.status==='Live').length;
-    const phStaged=phV.filter(v=>['Staged','Ready for launch','Signed Off'].includes(v.status)).length;
-    const phIP=phV.filter(v=>['In progress','Wireframe complete','CMS complete','Content Written'].includes(v.status)).length;
-    const phNS=phV.filter(v=>!v.status||v.status==='Not started').length;
+    const phN=newInPhase.filter(n=>n.phase===ph.id);
+    const allPh=[...phV,...phN];
+    const phLive=allPh.filter(n=>n.status==='Live').length;
+    const phStaged=allPh.filter(n=>['Staged','Ready for launch','Signed Off'].includes(n.status)).length;
+    const phIP=allPh.filter(n=>['In progress','Wireframe complete','CMS complete','Content Written'].includes(n.status)).length;
+    const phNS=allPh.filter(n=>!n.status||n.status==='Not started').length;
     const phPct=phPctMap[ph.id];
     const warnCount=phV.filter(v=>redirectWarn(v)).length;
 
@@ -6591,7 +6708,7 @@ function renderTransformationReport(){
         </div>
         <div style="text-align:right;flex-shrink:0">
           <div style="font-size:48px;font-weight:800;color:${phPct===100?'#0f5223':ph.colour};line-height:1">${phPct}%</div>
-          <div style="font-size:10px;color:var(--text3);margin-top:3px">${phLive} of ${phV.length} pages live</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:3px">${phLive} of ${allPh.length} pages live</div>
         </div>
       </div>
       <!-- Phase progress bar — large and prominent -->
@@ -6610,16 +6727,18 @@ function renderTransformationReport(){
     // Node rows card
     html+=`<div class="tr-rows-card">
       <div class="tr-row-hdr">
-        <div style="flex:2;min-width:0">Page Name</div>
-        <div style="flex:5;min-width:0;padding:0 12px">Progress Through Stages</div>
-        <div style="flex:0 0 140px">Status</div>
-        <div style="flex:0 0 60px"></div>
+        <div style="flex:2;min-width:0">Page Name${_trEditMode?'<span style="font-size:8px;color:var(--brand-primary);margin-left:8px;font-weight:400">click dots to update</span>':''}</div>
+        <div style="flex:9;min-width:0;padding:0 12px">Progress Through Stages</div>
+        <div style="flex:0 0 130px;text-align:right">Status</div>
       </div>`;
 
     sorted.forEach(v=>{
       const canon=gn(v.variantOf)||v;
-      const si=stageOf(v.status);
-      const stage=PIPE[si];
+      const si=stageOf(v);
+      const stObj=STATUS[v.status]||STATUS['Not started'];
+      const stage=PIPE[Math.min(si,5)];
+      const uc=hasUrlChange(v);
+      autoFillRedirects(v);
       const rw=redirectWarn(v);
       const isDecom=canon.decommissioned;
 
@@ -6640,8 +6759,8 @@ function renderTransformationReport(){
           </div>
           <!-- Redirect target / replacement row -->
           <div class="tr-decom-arrow" onclick="openTray('${v.id}')">
-            <span class="material-icons-round" style="font-size:14px;color:#3d6b45;flex-shrink:0;margin-left:10px;margin-right:2px">subdirectory_arrow_right</span>
-            <div style="width:3px;height:30px;border-radius:2px;background:${stage.col};flex-shrink:0;margin-right:10px"></div>
+            <span class="material-icons-round" style="font-size:14px;color:#3d6b45;flex-shrink:0;margin:0 4px 0 10px">subdirectory_arrow_right</span>
+            <div style="width:3px;align-self:stretch;border-radius:2px;background:${stage.col};flex-shrink:0;margin-right:8px"></div>
             <div style="flex:2;min-width:0">
               <div style="font-size:12px;font-weight:600;color:var(--md-on-surface);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escH(v.title||canon.title)}</div>
               <div style="font-size:9px;color:var(--text3)">
@@ -6650,42 +6769,82 @@ function renderTransformationReport(){
                 ${!redirectUrl?`<span style="color:#c5221f">No redirect URL set on deprecated page</span>`:''}
               </div>
             </div>
-            <div style="flex:5;min-width:0;padding:0 12px">${pipeViz(si)}</div>
-            <div style="flex:0 0 140px">
-              <span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:10px;background:${stage.bg};color:${stage.col};font-size:9px;font-weight:700;white-space:nowrap">
-                ${si===5?`<span class="material-icons-round" style="font-size:10px">check_circle</span>`:''}
-                ${stage.label}
+            <div style="flex:9;min-width:0;padding:0 8px">${pipeViz(v,si,uc)}</div>
+            <div style="flex:0 0 130px;display:flex;align-items:center;justify-content:flex-end;gap:4px">
+              <span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:10px;background:${stObj.bg};color:${stObj.fg};font-size:9px;font-weight:700;white-space:nowrap">
+                ${si>=4?`<span class="material-icons-round" style="font-size:10px">check_circle</span>`:''}
+                ${v.status||'Not started'}
               </span>
-              ${rw?`<span class="material-icons-round" style="font-size:14px;color:#c5221f;vertical-align:middle;margin-left:3px" title="${escH(rw)}">warning</span>`:''}
-            </div>
-            <div style="flex:0 0 60px;display:flex;justify-content:flex-end">
-              <button onclick="event.stopPropagation();openEditNode('${v.id}')" style="border:1px solid var(--md-outline-variant);background:var(--md-surface);border-radius:6px;padding:3px 9px;font-size:10px;cursor:pointer;color:var(--text2)">Edit</button>
+              ${rw?`<span class="material-icons-round" style="font-size:14px;color:#c5221f" title="${escH(rw)}">warning</span>`:''}
             </div>
           </div>
         </div>`;
       } else {
         // ── Normal row ──
-        html+=`<div class="tr-row" onclick="openTray('${v.id}')">
-          <div style="width:4px;height:36px;border-radius:2px;background:${stage.col};flex-shrink:0;margin-right:12px"></div>
-          <div style="flex:2;min-width:0">
-            <div style="font-size:12px;font-weight:600;color:var(--md-on-surface);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escH(canon.title||v.title)}</div>
-            ${v.owner?`<div style="font-size:9px;color:var(--text3)">${escH(v.owner)}</div>`:''}
+        html+=`<div class="tr-row${_trEditMode?' tr-row-edit':''}" ${_trEditMode?'':'onclick="openTray(\''+v.id+'\')"'} style="cursor:${_trEditMode?'default':'pointer'}">
+          <div class="tr-row-inner">
+            <div style="width:4px;min-height:40px;align-self:stretch;border-radius:2px;background:${stage.col};flex-shrink:0"></div>
+            <div style="flex:2;min-width:0">
+              <div style="font-size:12px;font-weight:600;color:var(--md-on-surface);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escH(canon.title||v.title)}</div>
+              ${v.owner?`<div style="font-size:9px;color:var(--text3)">${escH(v.owner)}</div>`:''}
+              ${!_trEditMode&&v.notes?`<div style="font-size:9px;color:#b06000;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escH(v.notes)}">⚠ ${escH(v.notes)}</div>`:''}
+            </div>
+            <div style="flex:9;min-width:0;padding:0 8px">${pipeViz(v,si,uc)}</div>
+            <div style="flex:0 0 130px;display:flex;align-items:center;justify-content:flex-end;gap:4px">
+              <span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:10px;background:${stObj.bg};color:${stObj.fg};font-size:9px;font-weight:700;white-space:nowrap">
+                ${si>=4?`<span class="material-icons-round" style="font-size:10px">check_circle</span>`:''}
+                ${v.status||'Not started'}
+              </span>
+              ${v.signOff?`<span title="Signed off" class="material-icons-round" style="font-size:13px;color:#137333">verified</span>`:''}
+              ${rw?`<span class="material-icons-round" style="font-size:14px;color:#c5221f" title="${escH(rw)}">warning</span>`:''}
+            </div>
           </div>
-          <div style="flex:5;min-width:0;padding:0 12px">${pipeViz(si)}</div>
-          <div style="flex:0 0 140px">
-            <span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:10px;background:${stage.bg};color:${stage.col};font-size:9px;font-weight:700;white-space:nowrap">
-              ${si===5?`<span class="material-icons-round" style="font-size:10px">check_circle</span>`:''}
-              ${stage.label}
-            </span>
-            ${v.signOff?`<span title="Signed off" class="material-icons-round" style="font-size:13px;color:#137333;vertical-align:middle;margin-left:3px">verified</span>`:''}
-            ${rw?`<span class="material-icons-round" style="font-size:14px;color:#c5221f;vertical-align:middle;margin-left:3px" title="${escH(rw)}">warning</span>`:''}
-          </div>
-          <div style="flex:0 0 60px;display:flex;justify-content:flex-end">
-            <button onclick="event.stopPropagation();openEditNode('${v.id}')" style="border:1px solid var(--md-outline-variant);background:var(--md-surface);border-radius:6px;padding:3px 9px;font-size:10px;cursor:pointer;color:var(--text2)">Edit</button>
-          </div>
+          ${uc?`<div style="padding:4px 16px 2px 14px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            <span class="material-icons-round" style="font-size:12px;color:#5a3d7a;flex-shrink:0">swap_horiz</span>
+            <span style="font-size:9px;color:#9c2020;font-family:var(--font-mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px" title="${escH(uc.oldUrl)}">${escH(uc.oldUrl)}</span>
+            <span style="font-size:9px;color:#9c8b78">→</span>
+            <span style="font-size:9px;color:#137333;font-family:var(--font-mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px" title="${escH(uc.newUrl)}">${escH(uc.newUrl)}</span>
+          </div>`:''}
+          ${_trEditMode?`<div style="padding:4px 16px 10px 14px">
+            <textarea data-nid="${v.id}" data-orig="${escH(v.notes||'')}" placeholder="Blocking notes / comments…" rows="2" onblur="const t=this;if(t.value!==t.dataset.orig){t.dataset.orig=t.value;upd(t.dataset.nid,'notes',t.value)}" style="width:100%;box-sizing:border-box;font-size:10px;padding:6px 8px;border:1px solid var(--md-outline-variant);border-radius:6px;resize:vertical;color:var(--md-on-surface);background:var(--md-surface-container);font-family:inherit;line-height:1.4">${escH(v.notes||'')}</textarea>
+          </div>`:''}
         </div>`;
       }
     });
+
+    // ── New-in-phase canonical pages ──
+    if(phN.length){
+      if(sorted.length) html+=`<div style="margin:16px 0 8px;padding:0 2px;display:flex;align-items:center;gap:8px"><div style="flex:1;height:1px;background:var(--md-outline-variant)"></div><span style="font-size:9px;font-weight:700;color:#137333;letter-spacing:.06em;white-space:nowrap;padding:0 6px">NEW PAGES INTRODUCED IN THIS PHASE</span><div style="flex:1;height:1px;background:var(--md-outline-variant)"></div></div>`;
+      [...phN].sort((a,b)=>a.title.localeCompare(b.title)).forEach(n=>{
+        const si=stageOf(n);
+        const stObj=STATUS[n.status]||STATUS['Not started'];
+        const stage=PIPE[Math.min(si,5)];
+        html+=`<div class="tr-row${_trEditMode?' tr-row-edit':''}" ${_trEditMode?'':'onclick="openTray(\''+n.id+'\')"'} style="cursor:${_trEditMode?'default':'pointer'}">
+          <div class="tr-row-inner">
+            <div style="width:4px;min-height:40px;align-self:stretch;border-radius:2px;background:${stage.col};flex-shrink:0"></div>
+            <div style="flex:2;min-width:0">
+              <div style="font-size:12px;font-weight:600;color:var(--md-on-surface);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escH(n.title)}</div>
+              <div style="display:flex;align-items:center;gap:6px;margin-top:2px">
+                <span style="font-size:8px;font-weight:700;padding:1px 7px;border-radius:6px;background:#e6f4ea;color:#137333;letter-spacing:.04em">NEW</span>
+                ${n.owner?`<span style="font-size:9px;color:var(--text3)">${escH(n.owner)}</span>`:''}
+              </div>
+              ${!_trEditMode&&n.notes?`<div style="font-size:9px;color:#b06000;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escH(n.notes)}">⚠ ${escH(n.notes)}</div>`:''}
+            </div>
+            <div style="flex:9;min-width:0;padding:0 8px">${pipeViz(n,si)}</div>
+            <div style="flex:0 0 130px;display:flex;align-items:center;justify-content:flex-end;gap:4px">
+              <span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:10px;background:${stObj.bg};color:${stObj.fg};font-size:9px;font-weight:700;white-space:nowrap">
+                ${si>=4?`<span class="material-icons-round" style="font-size:10px">check_circle</span>`:''}
+                ${n.status||'Not started'}
+              </span>
+              ${n.signOff?`<span title="Signed off" class="material-icons-round" style="font-size:13px;color:#137333">verified</span>`:''}
+            </div>
+          </div>
+          ${_trEditMode?`<div style="padding:4px 16px 10px 14px">
+            <textarea data-nid="${n.id}" data-orig="${escH(n.notes||'')}" placeholder="Blocking notes / comments…" rows="2" onblur="const t=this;if(t.value!==t.dataset.orig){t.dataset.orig=t.value;upd(t.dataset.nid,'notes',t.value)}" style="width:100%;box-sizing:border-box;font-size:10px;padding:6px 8px;border:1px solid var(--md-outline-variant);border-radius:6px;resize:vertical;color:var(--md-on-surface);background:var(--md-surface-container);font-family:inherit;line-height:1.4">${escH(n.notes||'')}</textarea>
+          </div>`:''}
+        </div>`;
+      });
+    }
 
     html+=`</div>`; // end rows card
     html+=`</div>`; // end phase panel
@@ -9640,34 +9799,64 @@ function _renderTrayEditTab(tab, id, body){
   }
 
   if(tab==='transformation'){
-    // Simplified pipeline stages for display — maps stored status values to new labels
+    // URL change detection & auto-fill
+    const _tCanon=n.variantOf?gn(n.variantOf):null;
+    const _tOld=(_tCanon?.slug||'').trim(), _tNew=(n.newSlug||n.slug||'').trim();
+    const _tUc=(_tCanon&&_tOld&&_tNew&&_tOld!==_tNew)?{oldUrl:_tOld,newUrl:_tNew}:null;
+    if(_tUc){
+      if(!n.redirectFrom){n.redirectFrom=_tUc.oldUrl;dbUpsertNode(n);}
+      if(_tCanon&&!_tCanon.redirectTo){_tCanon.redirectTo=_tUc.newUrl;dbUpsertNode(_tCanon);}
+    }
     const TPIPE=[
-      {key:'Not started',      label:'Not Started',     statuses:['Not started']},
-      {key:'In progress',      label:'In Progress',     statuses:['In progress','Wireframe complete']},
-      {key:'CMS complete',     label:'CMS Created',     statuses:['CMS complete']},
-      {key:'Content Written',  label:'Content Created', statuses:['Content Written']},
-      {key:'Staged',           label:'Staged',          statuses:['Staged','Ready for launch','Signed Off']},
-      {key:'Live',             label:'Live',            statuses:['Live']},
+      {key:'Not started', label:'Not Started', statuses:['Not started']},
+      {key:'In progress', label:'In Progress',  statuses:['In progress','Wireframe complete']},
+      {key:'Staged',      label:'Staged',        statuses:['Staged','Ready for launch','Signed Off']},
+      {key:'Live',        label:'Live',          statuses:['Live']},
     ];
-    const allStatuses=Object.keys(STATUS);
-    const ci=allStatuses.indexOf(n.status);
+    const allStatuses=Object.keys(STATUS).filter(s=>s!=='CMS complete'&&s!=='Content Written');
     const curPipeIdx=TPIPE.findIndex(p=>p.statuses.includes(n.status));
-    body.innerHTML=`<div class="ne-section"><div class="ne-section-title">Progress stage — click a stage to update</div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px">
+    const _ref=`'transformation','${id}',eid('tray-body')`;
+    body.innerHTML=`<div class="ne-section"><div class="ne-section-title">Progress stage — click to set</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px">
         ${TPIPE.map((p,i)=>{
           const active=p.statuses.includes(n.status);
           const done=i<curPipeIdx;
           const st=STATUS[p.key]||{fg:'#9c8b78',bg:'#f0ebe2'};
-          return`<div onclick="upd('${id}','status','${p.key}');_renderTrayEditTab('transformation','${id}',eid('tray-body'))"
+          return`<div onclick="upd('${id}','status','${p.key}');_renderTrayEditTab(${_ref})"
             style="padding:8px 10px;border-radius:8px;border:1.5px solid ${active?st.fg:'var(--md-outline-variant)'};background:${active?st.bg:'var(--md-surface-container)'};cursor:pointer;text-align:center;transition:border-color .15s">
             <div style="font-size:9px;font-weight:700;color:${active?st.fg:done?st.fg+'88':'var(--text3)'}">${p.label}</div>
             ${active?`<div style="width:6px;height:6px;border-radius:50%;background:${st.fg};margin:4px auto 0"></div>`:''}
           </div>`;
         }).join('')}
       </div>
-      <div style="font-size:10px;color:var(--text3);margin-bottom:10px">Current status: <strong style="color:var(--md-on-surface)">${n.status||'—'}</strong></div>
-      <div class="ne-section-title" style="margin-top:2px">Set precise status</div>
-      <select class="dinput dselect" onchange="upd('${id}','status',this.value);_renderTrayEditTab('transformation','${id}',eid('tray-body'))">
+      <div style="font-size:9px;color:var(--text3);margin-bottom:6px;font-weight:500;letter-spacing:.03em">PARALLEL WORK — both needed before Staged</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">
+        <div onclick="upd('${id}','cmsCreated',!${!!n.cmsCreated});_renderTrayEditTab(${_ref})"
+          style="padding:8px 10px;border-radius:8px;border:1.5px solid ${n.cmsCreated?'#2a5c6a':'var(--md-outline-variant)'};background:${n.cmsCreated?'#e0edf5':'var(--md-surface-container)'};cursor:pointer;display:flex;align-items:center;gap:6px">
+          <span class="material-icons-round" style="font-size:14px;color:${n.cmsCreated?'#2a5c6a':'var(--text3)'}">${n.cmsCreated?'check_box':'check_box_outline_blank'}</span>
+          <div><div style="font-size:10px;font-weight:700;color:${n.cmsCreated?'#2a5c6a':'var(--text2)'}">CMS Created</div><div style="font-size:8px;color:var(--text3)">Build complete</div></div>
+        </div>
+        <div onclick="upd('${id}','contentCreated',!${!!n.contentCreated});_renderTrayEditTab(${_ref})"
+          style="padding:8px 10px;border-radius:8px;border:1.5px solid ${n.contentCreated?'#2e4f7a':'var(--md-outline-variant)'};background:${n.contentCreated?'#e8eef8':'var(--md-surface-container)'};cursor:pointer;display:flex;align-items:center;gap:6px">
+          <span class="material-icons-round" style="font-size:14px;color:${n.contentCreated?'#2e4f7a':'var(--text3)'}">${n.contentCreated?'check_box':'check_box_outline_blank'}</span>
+          <div><div style="font-size:10px;font-weight:700;color:${n.contentCreated?'#2e4f7a':'var(--text2)'}">Content Created</div><div style="font-size:8px;color:var(--text3)">Authored &amp; approved</div></div>
+        </div>
+      </div>
+      ${_tUc?`<div style="background:#f5f0ff;border:1px solid #c8b8ef;border-radius:10px;padding:10px 12px;margin-bottom:10px">
+        <div style="font-size:9px;font-weight:700;color:#5a3d7a;letter-spacing:.05em;margin-bottom:6px;display:flex;align-items:center;gap:5px"><span class="material-icons-round" style="font-size:12px">swap_horiz</span>URL CHANGE — REDIRECT REQUIRED</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+          <span style="font-size:9px;color:#9c2020;font-family:var(--font-mono)">${escH(_tUc.oldUrl)}</span>
+          <span style="font-size:11px;color:#5a3d7a">→</span>
+          <span style="font-size:9px;color:#137333;font-family:var(--font-mono)">${escH(_tUc.newUrl)}</span>
+        </div>
+        <div onclick="upd('${id}','redirectCreated',!${!!n.redirectCreated});_renderTrayEditTab(${_ref})"
+          style="padding:8px 10px;border-radius:8px;border:1.5px solid ${n.redirectCreated?'#5a3d7a':'var(--md-outline-variant)'};background:${n.redirectCreated?'#ede8f8':'var(--md-surface-container)'};cursor:pointer;display:flex;align-items:center;gap:6px">
+          <span class="material-icons-round" style="font-size:14px;color:${n.redirectCreated?'#5a3d7a':'var(--text3)'}">${n.redirectCreated?'check_box':'check_box_outline_blank'}</span>
+          <div><div style="font-size:10px;font-weight:700;color:${n.redirectCreated?'#5a3d7a':'var(--text2)'}">Redirect Created</div><div style="font-size:8px;color:var(--text3)">Old URL redirects to new URL in server / CMS</div></div>
+        </div>
+      </div>`:''}
+      <div style="font-size:10px;color:var(--text3);margin-bottom:6px">Detailed status: <strong style="color:var(--md-on-surface)">${n.status||'—'}</strong></div>
+      <select class="dinput dselect" onchange="upd('${id}','status',this.value);_renderTrayEditTab(${_ref})">
         ${allStatuses.map(s=>`<option value="${s}"${n.status===s?' selected':''}>${s}</option>`).join('')}
       </select></div>
       <div class="ne-section"><div class="ne-section-title">Sign-off</div>

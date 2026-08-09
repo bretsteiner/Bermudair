@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- StrategicSitemapper  v38 -->
+<!-- StrategicSitemapper  v44 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -431,8 +431,14 @@ header{height:56px;background:var(--md-surface);border-bottom:1px solid var(--md
 .focus-prompt{font-size:13px;color:var(--text3);font-style:italic;text-align:center}
 
 /* Audit / Matrix view */
-.audit-view{padding:20px 24px;min-width:max-content;overflow:auto}
-.audit-table{border-collapse:collapse;font-size:11px;font-family:var(--font-body)}
+/* No padding on the scroll container itself — position:sticky measures its
+   offset from the *padding* edge of the nearest scrolling ancestor, so any
+   padding here would sit "inside" that boundary and let a sliver of the row
+   above bleed through above the stuck header as you scroll. The same visual
+   gap is recreated as margin on the table instead, which doesn't affect the
+   sticky calculation. */
+.audit-view{padding:0;min-width:max-content;overflow:auto}
+.audit-table{border-collapse:collapse;font-size:11px;font-family:var(--font-body);margin:20px 24px}
 .audit-table th{position:sticky;top:0;background:var(--md-surface-container);padding:8px 12px;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text2);border-bottom:2px solid var(--md-outline-variant);white-space:nowrap;z-index:5}
 .audit-table th:first-child{position:sticky;left:0;z-index:10;background:var(--md-surface-container)}
 .audit-table td{padding:6px 12px;border-bottom:1px solid var(--md-outline-variant);border-right:1px solid var(--md-outline-variant);white-space:nowrap;vertical-align:middle}
@@ -730,11 +736,26 @@ header{height:56px;background:var(--md-surface);border-bottom:1px solid var(--md
 .auth-eyebrow{font-size:11px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:var(--brand-accent);margin-bottom:8px}
 .auth-title{font-family:var(--font-display);font-size:25px;font-weight:800;letter-spacing:-.4px;color:var(--brand-primary);margin-bottom:8px}
 .auth-sub{font-size:13px;color:var(--text2);margin-bottom:24px;line-height:1.6}
-.auth-divider{display:flex;align-items:center;gap:10px;margin:16px 2px 14px;color:var(--text3)}
-.auth-divider::before,.auth-divider::after{content:"";flex:1;height:1px;background:var(--md-outline-variant)}
-.auth-divider span{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase}
-.auth-demo{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:11px 16px;border-radius:24px;border:1.5px solid var(--md-outline);background:var(--md-surface);color:var(--brand-primary);font-family:var(--font-body);font-size:13px;font-weight:600;cursor:pointer;transition:all .18s}
-.auth-demo:hover{border-color:var(--brand-primary);background:var(--brand-primary-light)}
+/* Start screen — same premium navy backdrop as the auth overlay, but a wide
+   two-column grouped grid of view tiles instead of a narrow login card. */
+.start-screen{position:fixed;inset:0;background:radial-gradient(rgba(255,255,255,.05) 1px,transparent 1px) 0 0/22px 22px,radial-gradient(1100px 720px at 50% -12%,#22406C 0%,#15294F 46%,#0E1C39 100%);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;z-index:998;padding:5vh 20px}
+.start-screen.hidden{display:none}
+.start-screen-inner{max-width:980px;width:94vw;text-align:center;margin:auto}
+.start-mark{width:56px;height:56px;display:block;margin:0 auto 16px;padding:10px;background:var(--brand-primary-light);border-radius:16px}
+.start-title{font-family:var(--font-display);font-size:26px;font-weight:800;letter-spacing:-.4px;color:#fff;margin-bottom:10px}
+.start-note{font-size:13.5px;color:rgba(255,255,255,.82);margin:0 auto 34px;max-width:640px;line-height:1.6}
+.start-columns{display:grid;grid-template-columns:1fr 1fr;gap:28px;text-align:left}
+@media (max-width:760px){.start-columns{grid-template-columns:1fr}}
+.start-group-title{font-size:11px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--brand-accent);margin-bottom:12px;padding-left:2px}
+.start-grid{display:flex;flex-direction:column;gap:12px}
+.start-tile{background:var(--md-surface);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:16px 18px;text-align:left;cursor:pointer;transition:all .18s;box-shadow:0 10px 30px rgba(8,17,36,.25);display:flex;align-items:center;gap:14px}
+.start-tile:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(8,17,36,.35);border-color:var(--brand-accent)}
+.start-tile-icon{flex-shrink:0;width:42px;height:42px;border-radius:12px;background:var(--brand-primary-light);color:var(--brand-primary);display:flex;align-items:center;justify-content:center}
+.start-tile-icon .material-icons-round{font-size:22px}
+.start-tile-body{flex:1;min-width:0}
+.start-tile-label{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--ink)}
+.start-tile-desc{margin-top:3px;font-size:11.5px;color:var(--text2);line-height:1.4}
+.start-tile-arrow{flex-shrink:0;color:var(--brand-accent);display:flex;align-items:center}
 /* Role badge */
 .role-badge{font-size:8px;font-weight:700;padding:1px 6px;border-radius:8px;text-transform:uppercase;letter-spacing:.4px;flex-shrink:0}
 .role-badge.admin{background:var(--brand-primary-light);color:var(--brand-primary)}
@@ -944,18 +965,18 @@ header{height:56px;background:var(--md-surface);border-bottom:1px solid var(--md
 /* Capped height + its own scrollbar — a project with many configured statuses
    (or the 4-bucket rollup on top) must not grow the exec header itself, which
    sits above .tr-content and doesn't scroll with the rest of the page. */
-.tr-barchart-scroll{max-height:340px;overflow-y:auto}
-.tr-barchart{display:flex;flex-direction:column;gap:13px;padding:20px 20px 22px;margin-top:8px;border-radius:14px;background:linear-gradient(165deg,#232730,#14171e);box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
-.tr-barchart-row{display:flex;align-items:center;gap:14px;cursor:pointer;padding:1px 2px;border-radius:8px;transition:transform .12s}
+.tr-barchart-scroll{max-height:260px;overflow-y:auto}
+.tr-barchart{display:flex;flex-direction:column;gap:8px;padding:14px 16px 16px;margin-top:8px;border-radius:12px;background:var(--paper);border:1px solid var(--border)}
+.tr-barchart-row{display:flex;align-items:center;gap:10px;cursor:pointer;padding:1px 2px;border-radius:8px;transition:transform .12s}
 .tr-barchart-row:hover{transform:translateX(2px)}
-.tr-barchart-row.active .tr-barchart-label{color:#fff}
-.tr-barchart-label{width:132px;flex-shrink:0;font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#a7acb8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;transition:color .12s}
-.tr-barchart-bar-area{position:relative;flex:1;padding-right:18px}
-.tr-barchart-track{position:relative;height:16px;background:rgba(255,255,255,.07);border-radius:var(--radius-full)}
-.tr-barchart-fill{position:relative;height:100%;min-width:16px;border-radius:var(--radius-full);transition:width .5s cubic-bezier(.22,1,.36,1);background:linear-gradient(180deg,color-mix(in srgb,var(--bar-col) 80%,white) 0%,var(--bar-col) 55%,color-mix(in srgb,var(--bar-col) 75%,black) 100%);box-shadow:inset 0 1px 1px rgba(255,255,255,.5),inset 0 -3px 4px rgba(0,0,0,.25)}
-.tr-barchart-bead{position:absolute;top:50%;right:0;transform:translate(50%,-50%);width:24px;height:24px;border-radius:50%;background:radial-gradient(circle at 32% 26%,#fff 0%,color-mix(in srgb,var(--bar-col) 55%,white) 18%,var(--bar-col) 52%,color-mix(in srgb,var(--bar-col) 55%,black) 100%);box-shadow:0 3px 6px rgba(0,0,0,.45),inset 0 -3px 4px rgba(0,0,0,.3)}
-.tr-barchart-val{width:60px;flex-shrink:0;font-size:12px;font-weight:800;color:#fff;white-space:nowrap;text-align:left}
-.tr-barchart-val-pct{display:block;font-size:9px;font-weight:600;color:#888d99;margin-top:1px}
+.tr-barchart-row.active .tr-barchart-label{color:var(--brand-primary)}
+.tr-barchart-label{width:120px;flex-shrink:0;font-size:9px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;transition:color .12s}
+.tr-barchart-bar-area{position:relative;flex:1;padding-right:14px}
+.tr-barchart-track{position:relative;height:10px;background:var(--md-surface-variant);border-radius:var(--radius-full)}
+.tr-barchart-fill{position:relative;height:100%;min-width:10px;border-radius:var(--radius-full);transition:width .5s cubic-bezier(.22,1,.36,1);background:linear-gradient(180deg,color-mix(in srgb,var(--bar-col) 80%,white) 0%,var(--bar-col) 55%,color-mix(in srgb,var(--bar-col) 75%,black) 100%);box-shadow:inset 0 1px 1px rgba(255,255,255,.35),inset 0 -2px 3px rgba(0,0,0,.15)}
+.tr-barchart-bead{position:absolute;top:50%;right:0;transform:translate(50%,-50%);width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 32% 26%,#fff 0%,color-mix(in srgb,var(--bar-col) 55%,white) 18%,var(--bar-col) 52%,color-mix(in srgb,var(--bar-col) 55%,black) 100%);box-shadow:0 2px 4px rgba(0,0,0,.25),inset 0 -2px 3px rgba(0,0,0,.2)}
+.tr-barchart-val{width:52px;flex-shrink:0;font-size:11px;font-weight:800;color:var(--ink);white-space:nowrap;text-align:left}
+.tr-barchart-val-pct{display:block;font-size:9px;font-weight:600;color:var(--text3);margin-top:1px}
 
 /* Header row — search pinned right. Phase selection itself now lives in the
    top-nav phase pills (shared `selectedPhases`, see togglePhase()) rather
@@ -970,6 +991,11 @@ header{height:56px;background:var(--md-surface);border-bottom:1px solid var(--md
 .tr-search-count{font-size:10px;color:var(--secondary);white-space:nowrap}
 .tr-content{flex:1;overflow:auto}
 .tr-phase-panel{padding-bottom:40px}
+.tr-empty-phase{display:flex;flex-direction:column;align-items:center;text-align:center;padding:70px 24px 50px;max-width:520px;margin:0 auto}
+.tr-empty-phase-icon{font-size:40px;color:var(--secondary);opacity:.5;margin-bottom:14px}
+.tr-empty-phase-title{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--ink);margin-bottom:6px}
+.tr-empty-phase-sub{font-size:12px;color:var(--text2);margin-bottom:22px}
+.tr-empty-phase-pills{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
 .tr-summary-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 26px;margin:20px 12px;box-shadow:var(--el-2)}
 .tr-summary-card-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap}
 .tr-summary-title{font-family:var(--font-display);font-size:20px;font-weight:700}
@@ -987,6 +1013,7 @@ header{height:56px;background:var(--md-surface);border-bottom:1px solid var(--md
 .tr-node-card-body{flex:1;min-width:0;padding:10px 14px;display:flex;flex-direction:column;gap:6px}
 .tr-node-card-title{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:0 1 auto;min-width:0}
 .tr-node-card-new-badge{font-size:8px;font-weight:700;padding:1px 7px;border-radius:6px;background:var(--wf-live-bg);color:var(--wf-live-fg);letter-spacing:.04em;flex-shrink:0}
+.tr-node-card-title-was{font-size:9px;font-weight:600;color:var(--secondary);background:var(--md-surface-container);padding:2px 8px;border-radius:8px;letter-spacing:.02em;white-space:nowrap;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;max-width:200px}
 /* A light-weight section label used throughout the card (URLs / Links / Notes) */
 .tr-sec-lbl{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--secondary);display:flex;align-items:center;gap:4px}
 .tr-node-card-badges{display:flex;gap:5px;flex-wrap:wrap}
@@ -1001,6 +1028,12 @@ a.tr-link-chip:hover{background:var(--brand-primary);color:#fff}
 .tr-pipeline{display:flex;flex-direction:column;gap:5px}
 .tr-seg-pill{display:flex;height:16px;border-radius:var(--radius-full);overflow:hidden;background:var(--border);gap:2px;width:100%}
 .tr-seg{flex:1;transition:background .2s}
+/* The "current status" ring is an inset box-shadow on a plain rectangular
+   segment; when that segment is first/last, the pill's own rounded-corner
+   clip (overflow:hidden above) cuts the ring off unevenly at that end.
+   Rounding the end segments to match fixes it. */
+.tr-seg:first-child{border-radius:var(--radius-full) 0 0 var(--radius-full)}
+.tr-seg:last-child{border-radius:0 var(--radius-full) var(--radius-full) 0}
 .tr-seg-pill.sm{height:9px}
 .tr-seg-labels{display:flex;gap:2px}
 .tr-seg-label{flex:1;text-align:center;font-size:8px;font-weight:600;color:var(--secondary);line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 1px}
@@ -1228,6 +1261,10 @@ a.pt-url-val:hover{text-decoration:underline}
 .settings-body{flex:1;overflow-y:auto;padding:20px 22px}
 .settings-section{margin-bottom:24px}
 .settings-section-title{font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);font-weight:600;margin-bottom:12px}
+.jira-status-box{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text2);padding:9px 12px;border:1px solid var(--md-outline-variant);border-radius:8px;background:var(--md-surface-container)}
+.jira-status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.jira-status-dot.jira-status-on{background:#1F7A40}
+.jira-status-dot.jira-status-off{background:#c5221f}
 .cfg-list{display:flex;flex-direction:column;gap:7px;margin-bottom:10px}
 .cfg-row{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--md-surface-variant);border:1px solid var(--md-outline-variant);border-radius:12px;transition:box-shadow .15s}
 .cfg-row:hover{box-shadow:var(--el-1)}
@@ -1308,18 +1345,46 @@ a.pt-url-val:hover{text-decoration:underline}
 .rm-empty-sub{font-size:12px;margin-bottom:16px}
 .rm-board{display:grid;gap:1px;background:var(--border);padding:1px;margin:12px}
 .rm-board-corner,.rm-board-header{background:var(--white);padding:10px 12px}
-.rm-board-header{position:sticky;top:0;z-index:5}
+.rm-board-corner,.rm-board-header{position:sticky;top:0;z-index:5}
+/* Corner cell doubles as the "current product" label — set from JS
+   (renderRoadmap()/_rmUpdateCornerLabel()), static in single-product mode,
+   scroll-tracking in "All" mode. */
+.rm-board-corner{font-family:var(--font-display);font-size:12px;font-weight:700;color:var(--brand-primary);display:flex;align-items:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rm-phase-head{font-family:var(--font-display);font-size:13px;font-weight:700}
-.rm-swimlane-label{display:flex;flex-direction:column;gap:6px;padding:12px;border-radius:0}
-.rm-swimlane-hd{display:flex;align-items:center;gap:8px}
-.rm-swimlane-dot{width:13px;height:13px;border-radius:4px;flex-shrink:0}
-.rm-swimlane-name{font-family:var(--font-display);font-size:12px;font-weight:700;color:var(--ink);overflow:hidden;text-overflow:ellipsis}
+/* "All" product view: one horizontal separator per product, spanning every
+   column (grid-column:1/-1 set inline) — a plain, non-sticky divider. As you
+   scroll past one, the corner cell above (sticky) takes over showing which
+   product you're currently in, so the separator itself doesn't need to stay
+   pinned — see _rmUpdateCornerLabel(). */
+.rm-product-sep{background:var(--brand-primary);color:#fff;font-family:var(--font-display);font-weight:700;font-size:13px;padding:9px 16px;letter-spacing:.02em}
+.rm-product-sep-empty{padding:10px 16px;font-size:11px;color:var(--text3);font-style:italic;background:var(--md-surface-container)}
+.rm-swimlane-label{padding:12px;border-radius:0}
+/* Sticky within the swimlane's own row: as you scroll through a tall list of
+   features, the Epic label follows down the page instead of scrolling out of
+   view, then stops once the row itself has scrolled past (bounded by its
+   .rm-swimlane-label parent, which spans the full grid-row height). */
+/* Solid (not tinted) background — this is the portion that stays visible
+   when the epic is collapsed, so it needs to read clearly as its own
+   labelled bar rather than blend into the lighter tinted row behind it. */
+.rm-swimlane-sticky{position:sticky;top:41px;display:flex;flex-direction:column;gap:6px;margin:-12px -12px 0 -12px;padding:10px 12px;box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.rm-swimlane-hd{display:flex;align-items:center;gap:6px}
+.rm-swimlane-chev{font-size:16px!important;color:#fff;flex-shrink:0}
+.rm-swimlane-name{font-family:var(--font-display);font-size:12px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis}
+.rm-swimlane-counts{display:flex;gap:5px}
 .rm-swimlane-actions{display:flex;gap:4px;margin-left:auto}
-.rm-swimlane-btn{background:none;border:none;color:var(--text3);cursor:pointer;padding:2px;border-radius:4px;display:flex}
-.rm-swimlane-btn:hover{color:var(--brand-primary);background:var(--md-surface-container)}
+.rm-swimlane-btn{background:none;border:none;color:#fff;cursor:pointer;padding:2px;border-radius:4px;display:flex;opacity:.85}
+.rm-swimlane-btn:hover{opacity:1;background:rgba(255,255,255,.22)}
+.rm-swimlane-sticky .rm-count-badge{background:rgba(255,255,255,.22);color:#fff}
+.rm-count-badge{display:inline-flex;align-items:center;gap:2px;font-size:9px;font-weight:700;color:var(--text2);background:var(--md-surface-container);border-radius:8px;padding:1px 6px;white-space:nowrap;flex-shrink:0}
+.rm-contains-ff-badge{display:inline-flex;align-items:center;gap:2px;font-size:9px;font-weight:700;color:var(--wf-wf-fg);background:none;border:1px solid var(--wf-wf-fg);border-radius:8px;padding:1px 6px;white-space:nowrap;flex-shrink:0}
 .rm-phase-cell{background:var(--white);padding:8px;display:flex;flex-direction:column;gap:6px;min-height:60px}
+.rm-phase-cell-collapsed{min-height:0;padding:0}
 .rm-cell-add{padding:6px 8px;border:1px dashed var(--md-outline-variant);border-radius:8px;font-size:10px;font-weight:600;color:var(--text3);cursor:pointer;text-align:center;transition:all .15s}
 .rm-cell-add:hover{border-color:var(--brand-primary);color:var(--brand-primary);background:var(--brand-primary-light)}
+/* Fast Follow section divider — same muted-purple family as the Fast Follow
+   pill, so the label and the section it marks read as the same concept. */
+.rm-fastfollow-divider{display:flex;align-items:center;gap:5px;margin-top:2px;padding-top:8px;border-top:1px dashed var(--wf-wf-fg);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--wf-wf-fg)}
+.rm-story-fastfollow-divider{display:flex;align-items:center;gap:4px;margin-top:2px;padding-top:5px;border-top:1px dashed var(--wf-wf-fg);font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--wf-wf-fg)}
 .rm-feature-card{display:flex;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--el-1)}
 .rm-feature-accent{width:4px;flex-shrink:0}
 .rm-feature-body{flex:1;min-width:0;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
@@ -1341,11 +1406,93 @@ a.pt-url-val:hover{text-decoration:underline}
 .rm-story-del:hover{color:#c5221f;background:#fce8e6}
 .rm-story-add-btn{font-size:9px;padding:2px 8px;border-radius:5px;border:1px dashed var(--brand-primary);background:none;color:var(--brand-primary);cursor:pointer;margin-top:2px;font-family:var(--font-body);align-self:flex-start}
 .rm-story-add-btn:hover{background:var(--brand-primary-light)}
-.rm-story-form{display:flex;gap:6px;align-items:center;margin-top:3px}
-.rm-story-form input[type="text"]{height:24px;border:1px solid var(--md-outline-variant);border-radius:5px;padding:0 8px;font-size:11px;font-family:var(--font-body);background:var(--md-surface);color:var(--md-on-surface);flex:1}
+.rm-story-form{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:3px}
+.rm-story-form input[type="text"]{height:24px;border:1px solid var(--md-outline-variant);border-radius:5px;padding:0 8px;font-size:11px;font-family:var(--font-body);background:var(--md-surface);color:var(--md-on-surface);flex:1 1 100%;min-width:0;box-sizing:border-box}
 .rm-story-form input[type="text"]:focus{outline:none;border-color:var(--brand-primary)}
 .rm-story-stretch-check{display:flex;align-items:center;gap:3px;font-size:10px;font-weight:600;color:var(--text2);white-space:nowrap;cursor:pointer;flex-shrink:0}
 .rm-stretch-pill{font-size:9px;font-weight:700;padding:2px 8px;border-radius:8px;white-space:nowrap;flex-shrink:0;color:var(--wf-wf-fg);background:var(--wf-wf-bg)}
+
+/* ─── REQUIREMENTS TRACKER ──────────────────────────────────────────────── */
+.req-wrap{display:flex;flex-direction:column;height:100%;min-width:0;flex:1;background:var(--canvas)}
+.req-header{display:flex;align-items:center;gap:12px;flex-shrink:0;padding:14px 20px;border-bottom:1px solid var(--border);background:var(--white)}
+.req-header-title{font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--ink);flex-shrink:0}
+.req-filter-select{height:34px;padding:0 10px;border-radius:8px;border:1px solid var(--md-outline-variant);background:var(--md-surface);color:var(--md-on-surface);font-family:var(--font-body);font-size:12px;cursor:pointer;flex-shrink:0}
+.req-search-wrap{position:relative;display:flex;align-items:center;margin-left:auto;flex-shrink:0}
+.req-search-icon{font-size:16px;color:var(--secondary);position:absolute;left:12px;pointer-events:none}
+.req-search-input{width:220px;height:34px;padding:0 28px 0 34px;border:1px solid var(--border);border-radius:var(--radius-full);background:var(--paper);font-family:var(--font-body);font-size:12px;color:var(--ink);transition:all .2s}
+.req-search-input:focus{outline:none;border-color:var(--brand-primary);background:var(--white);box-shadow:var(--ring-navy,0 0 0 3px rgba(21,41,79,.1))}
+.req-search-clear{position:absolute;right:10px;width:18px;height:18px;border:none;background:var(--md-surface-container);border-radius:50%;color:var(--secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;line-height:1}
+.req-filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0;padding:10px 20px;border-bottom:1px solid var(--border);background:var(--paper)}
+/* No padding here — position:sticky measures its offset from the *padding*
+   edge of the nearest scrolling ancestor, so padding on the scroll container
+   itself sits "inside" that boundary and lets a sliver of the row above bleed
+   through above the stuck header as you scroll (confirmed visually). The
+   equivalent visual gap is recreated as margin on .req-table-scroll instead,
+   which doesn't affect the sticky calculation. */
+.req-content{flex:1;overflow:auto}
+/* No overflow set here at all — pairing overflow-x:auto with overflow-y:visible
+   gets silently normalized by the browser to overflow-y:auto (you can't mix
+   visible with non-visible per axis), which would make this div its own
+   scroll container and break `th{position:sticky}` below (it would stick
+   relative to THIS box instead of .req-content, and since this box itself
+   never needs to scroll — it just grows tall — the "stuck" header would
+   simply travel with the page instead of staying put). Leaving overflow
+   unset lets .req-content (which already scrolls both axes) be the one
+   and only scroll container, so the sticky header tracks its scroll. */
+.req-table-scroll{border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--el-1);margin:16px 20px}
+.req-content .rm-empty{margin:0 20px}
+.req-table{border-collapse:collapse;font-size:12px;width:100%;min-width:max-content;background:var(--white)}
+.req-table th{position:sticky;top:0;z-index:5;text-align:left;padding:9px 12px;background:var(--md-surface-container);color:var(--text2);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border);white-space:nowrap}
+.req-table td{padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:middle}
+.req-table tr:hover td{background:var(--paper)}
+.req-table tr:last-child td{border-bottom:none}
+.req-select,.req-text-input{width:100%;box-sizing:border-box;height:30px;padding:0 8px;border:1px solid var(--md-outline-variant);border-radius:6px;background:var(--md-surface);color:var(--md-on-surface);font-family:var(--font-body);font-size:11px}
+.req-select{cursor:pointer}
+.req-text-input:focus,.req-select:focus{outline:none;border-color:var(--brand-primary)}
+.req-status-select{font-weight:700;border-color:transparent}
+.req-code-badge{font-family:var(--font-mono,monospace);font-size:9px;font-weight:700;color:var(--text2);background:var(--md-surface-container);border-radius:5px;padding:1px 6px;display:inline-block;margin-bottom:4px;letter-spacing:.02em}
+.req-jira-badge{display:inline-flex;align-items:center;gap:3px;font-family:var(--font-mono,monospace);font-size:9px;font-weight:700;color:#0052CC;background:#DEEBFF;border:none;border-radius:5px;padding:1px 6px;margin:0 0 4px 4px;letter-spacing:.02em;cursor:pointer}
+.req-jira-badge:hover{background:#B3D4FF}
+/* Textarea, not a single-line input — the ask was for more of the requirement
+   text to be visible at once (width + wrapping), not bigger letters. */
+.req-text-input-main{height:80px;font-size:12px;padding:8px 10px;line-height:1.4;resize:vertical;font-family:var(--font-body)}
+.req-chain-row{display:flex;align-items:flex-start;gap:6px}
+.req-chain-row .req-chain-pills{margin-bottom:0}
+.req-chain-expand-btn{background:none;border:1px solid var(--md-outline-variant);border-radius:6px;color:var(--text3);cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;flex-shrink:0;width:22px;height:22px}
+.req-chain-expand-btn:hover{color:var(--brand-primary);border-color:var(--brand-primary);background:var(--brand-primary-light)}
+.req-chain-pills{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:5px}
+.req-chain-pill{font-size:9px;font-weight:600;padding:2px 7px;border-radius:8px;white-space:nowrap;border:1px solid var(--md-outline-variant);background:var(--md-surface-container);color:var(--text2)}
+.req-chain-pill-product{font-weight:700;color:var(--ink);background:var(--paper)}
+.req-chain-pill-feature{font-weight:700;border-style:solid}
+.req-chain-pill-missing{color:#c5221f;border-color:#c5221f66;background:#fce8e6}
+.req-reassign-select{font-size:10px;height:24px}
+.req-add-context{display:flex;gap:8px;flex-wrap:wrap}
+.req-add-context .req-select{width:auto;min-width:160px;flex:1}
+.req-add-entry{display:flex;gap:8px;align-items:center}
+.req-add-entry .req-text-input{flex:1}
+.req-add-entry .req-text-input:disabled,.req-add-context .req-select:disabled{background:var(--md-surface-container);cursor:not-allowed;color:var(--text3)}
+.req-add-target{font-size:11px;color:var(--text2)}
+.req-add-target strong{color:var(--ink)}
+/* Sticky footer bar — sits in the same visual slot the Layers menu occupies
+   on other views (that bar is hidden here, see switchView()). A flex-shrink:0
+   child at the end of .req-wrap's column layout pins it to the bottom of the
+   view without resorting to position:fixed/viewport math. */
+.req-add-bar{flex-shrink:0;border-top:1px solid var(--border);background:var(--white);box-shadow:0 -2px 8px rgba(0,0,0,.06)}
+.req-add-bar-hd{display:flex;align-items:center;gap:8px;padding:12px 20px;cursor:pointer;min-height:20px}
+.req-add-bar-chev{font-size:18px!important;color:var(--text3);flex-shrink:0}
+.req-add-bar-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text2)}
+.req-add-bar-count{font-size:10px;color:var(--text3);margin-left:auto}
+.req-add-bar-body{padding:0 20px 14px 20px;display:flex;flex-direction:column;gap:8px}
+/* Redirect Tracker — reuses .req-wrap/.req-header/.req-content/.req-table
+   chrome verbatim; these are the genuinely new pieces. */
+.rdr-url-cell{white-space:nowrap;display:flex;align-items:center;gap:6px;font-size:11px}
+.rdr-status-badge{display:inline-block;font-size:10px;font-weight:700;padding:3px 9px;border-radius:8px;white-space:nowrap}
+.rdr-status-badge.ok{background:var(--wf-live-bg);color:var(--wf-live-fg)}
+.rdr-status-badge.warn{background:#fef9e7;color:#7a5a1e}
+.rdr-status-badge.err{background:#fce8e6;color:#c5221f}
+.rdr-status-badge.neutral{background:var(--md-surface-container);color:var(--text3)}
+.rdr-verify-btn{width:28px;height:28px;border:1px solid var(--md-outline-variant);border-radius:8px;background:var(--md-surface);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.rdr-verify-btn:hover{color:var(--brand-primary);border-color:var(--brand-primary);background:var(--brand-primary-light)}
 </style>
 </head>
 <body>
@@ -1365,12 +1512,20 @@ a.pt-url-val:hover{text-decoration:underline}
     <div class="auth-title">Strategic Sitemapper</div>
     <div class="auth-sub">Sign in with your Google account to continue. Access is managed by your workspace admin.</div>
     <div id="googleSignInBtn" style="display:flex;justify-content:center"></div>
-    <div class="auth-divider"><span>or</span></div>
-    <button class="auth-demo" onclick="enterDemoMode()">Explore with sample data <span class="material-icons-round" style="font-size:17px">arrow_forward</span></button>
     <div id="authDeniedMsg" style="display:none;margin-top:18px;padding:12px 16px;background:var(--brand-accent-soft);border-radius:12px;text-align:left">
       <div style="font-size:12px;font-weight:700;color:#C2503F;margin-bottom:4px">Access not granted</div>
       <div style="font-size:11px;color:#9A5A4E;line-height:1.5"><span id="authDeniedEmail" style="font-family:var(--font-mono)"></span> has not been given access to this workspace. Please contact an admin to be added.</div>
     </div>
+  </div>
+</div>
+
+<!-- START SCREEN — shown once after sign-in, before landing in a view -->
+<div class="start-screen hidden" id="startScreen">
+  <div class="start-screen-inner">
+    <img class="start-mark" src="assets/logo/mark-navy.svg" alt="">
+    <div class="start-title">Strategic Sitemapper</div>
+    <div class="start-note" id="startNote"></div>
+    <div class="start-columns" id="startColumns"></div>
   </div>
 </div>
 
@@ -1389,11 +1544,14 @@ a.pt-url-val:hover{text-decoration:underline}
       <div class="stab active" id="stab-systems"   onclick="switchStab('systems')">Systems</div>
       <div class="stab"        id="stab-owners"    onclick="switchStab('owners')">Owners</div>
       <div class="stab"        id="stab-statuses"  onclick="switchStab('statuses')">Statuses</div>
+      <div class="stab"        id="stab-reqtypes"  onclick="switchStab('reqtypes')">Req. Types</div>
       <div class="stab"        id="stab-brand"     onclick="switchStab('brand')">Brand</div>
       <div class="stab"        id="stab-logo"      onclick="switchStab('logo')">Logo</div>
       <div class="stab"        id="stab-layout"    onclick="switchStab('layout')">Layout</div>
       <div class="stab"        id="stab-crawl"      onclick="switchStab('crawl')">Page Audit</div>
       <div class="stab"        id="stab-components" onclick="switchStab('components')">Components</div>
+      <div class="stab"        id="stab-jira"        onclick="switchStab('jira')">Jira</div>
+      <div class="stab"        id="stab-home"        onclick="switchStab('home')">Homepage</div>
     </div>
   </div>
   <div class="settings-body" id="settingsBody"></div>
@@ -1795,6 +1953,10 @@ a.pt-url-val:hover{text-decoration:underline}
     <div id="viewTransformation" style="display:none;flex:1;min-width:0;overflow:auto"></div>
     <!-- Product Roadmap view -->
     <div id="viewRoadmap" style="display:none;flex:1;min-width:0;overflow:auto"></div>
+    <!-- Requirements Tracker view -->
+    <div id="viewRequirements" style="display:none;flex:1;min-width:0;overflow:auto"></div>
+    <!-- Redirect Tracker view -->
+    <div id="viewRedirects" style="display:none;flex:1;min-width:0;overflow:auto"></div>
 
     <div class="layer-bar" id="layerBar" style="position:relative">
       <div id="ecoStatsSlot" style="display:none;position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--text3);background:var(--md-surface-container);border:1px solid var(--md-outline-variant);border-radius:8px;padding:3px 10px;pointer-events:none;white-space:nowrap"></div>
@@ -1924,12 +2086,25 @@ function applyRoleUI(){
 }
 
 // ── Google Identity Services ──────────────────────────────────────────────
+let _gsiInitRetries = 0;
 function initGoogleAuth() {
+  // #appLoader sits above the auth screen (z-index 9999 vs 999) — reveal the
+  // screen (and its demo-mode link) unconditionally rather than leaving the
+  // splash up while we wait on Google's script, which is loaded async/defer
+  // and may not have finished by the time window 'load' fires.
+  hideLoader();
   if (typeof google === 'undefined' || !google.accounts) {
-    console.warn('Google Identity Services not available');
-    // Still let the user see the sign-in screen (with the demo-mode link)
-    // rather than leaving the splash covering it indefinitely.
-    hideLoader();
+    // Retry for ~15s (30 x 500ms) instead of giving up after one check — on a
+    // slow connection, or with an extension that delays third-party scripts,
+    // the very first check can easily fire before Google's script is ready,
+    // which previously left the sign-in button permanently unrendered for
+    // that whole page load (looked like sign-in "just doesn't work").
+    if (_gsiInitRetries < 30) {
+      _gsiInitRetries++;
+      setTimeout(initGoogleAuth, 500);
+    } else {
+      console.warn('Google Identity Services not available after retrying');
+    }
     return;
   }
   google.accounts.id.initialize({
@@ -1942,10 +2117,6 @@ function initGoogleAuth() {
     document.getElementById('googleSignInBtn'),
     { theme: 'outline', size: 'large', width: 280, text: 'signin_with' }
   );
-  // #appLoader sits above the auth screen (z-index 9999 vs 999) so the splash
-  // must be explicitly dismissed once the sign-in button is ready — otherwise
-  // it just sits on top of the auth screen and the user never sees it.
-  hideLoader();
 }
 
 let _googleAuthHandled = false;
@@ -1955,10 +2126,18 @@ async function handleGoogleCredential(response) {
   const payload = JSON.parse(atob(response.credential.split('.')[1]));
   const email = payload.email;
 
-  // Fetch role table from Sheets before granting access
+  // Visible feedback while the role lookup is in flight — Apps Script Web
+  // Apps can take several seconds (cold start, and every request reopens the
+  // whole spreadsheet regardless of which tab it actually needs), so without
+  // this the screen just sits there looking frozen after clicking the button.
+  showLoader('Signing in…');
+
+  // Fetch role table from Sheets before granting access. 20s timeout so a
+  // stalled backend fails with a retryable error instead of hanging forever.
   let role = 'viewer'; // default — unknown users get viewer until table loaded
+  let lookupFailed = false;
   try {
-    const data = await sheetPost({ action: 'getRoles' });
+    const data = await sheetPost({ action: 'getRoles' }, 20000);
     if (data && data.roles) {
       ROLE_TABLE = data.roles; // { "alice@example.com": "admin", ... }
       role = ROLE_TABLE[email] || null;
@@ -1966,14 +2145,26 @@ async function handleGoogleCredential(response) {
   } catch(e) {
     console.warn('Could not load role table:', e);
     // If Sheets unavailable, deny access rather than default-allow
+    lookupFailed = true;
     role = null;
   }
 
   if (!role) {
-    // Email not in role table — show access denied
-    showToast('Access denied — your account has not been granted access. Contact an admin.');
-    document.getElementById('authDeniedMsg').style.display = '';
-    document.getElementById('authDeniedEmail').textContent = email;
+    // Reset the guard so the user can retry sign-in without a full page
+    // reload — previously this flag was never reset on failure, so any retry
+    // after the first failed attempt was silently ignored.
+    hideLoader();
+    _googleAuthHandled = false;
+    if (lookupFailed) {
+      // A network/timeout error, not a real access decision — say so plainly
+      // rather than telling them to "contact an admin" for what's actually a
+      // transient backend hiccup they can just retry.
+      showToast('Could not reach the Sheets backend — please try signing in again.');
+    } else {
+      showToast('Access denied — your account has not been granted access. Contact an admin.');
+      document.getElementById('authDeniedMsg').style.display = '';
+      document.getElementById('authDeniedEmail').textContent = email;
+    }
     return;
   }
 
@@ -1986,6 +2177,7 @@ async function handleGoogleCredential(response) {
   };
 
   hideAuthOverlay();
+  showStartScreen();
   renderUserPill();
   applyRoleUI();
   showToast(`Signed in as ${payload.name} (${role})`);
@@ -2008,6 +2200,40 @@ function signOut() {
 
 function hideAuthOverlay() { document.getElementById('authOverlay').classList.add('hidden'); }
 function showAuthOverlay() { document.getElementById('authOverlay').classList.remove('hidden'); }
+
+// Shown once right after sign-in (real or demo), before landing in a view.
+// loadFromSheets() keeps running underneath as normal — this just sits on
+// top until the user picks where to go, matching the auth overlay's pattern.
+function showStartScreen(){
+  const note=eid('startNote');
+  if(note) note.textContent=WELCOME_NOTE||'';
+  const cols=eid('startColumns');
+  if(cols){
+    cols.innerHTML=HOMEPAGE_GROUPS.map(group=>`
+      <div class="start-col">
+        <div class="start-group-title">${escH(group.title)}</div>
+        <div class="start-grid">${group.views.map(id=>{
+          const opt=VIEW_OPTIONS.find(o=>o.id===id);
+          if(!opt) return '';
+          const meta=HOMEPAGE_VIEW_META[id]||{};
+          return `
+          <div class="start-tile" onclick="enterAppView('${id}')">
+            <span class="start-tile-icon"><span class="material-icons-round">${escH(meta.icon||'arrow_forward')}</span></span>
+            <div class="start-tile-body">
+              <div class="start-tile-label">${escH(opt.label)}</div>
+              ${meta.desc?`<div class="start-tile-desc">${escH(meta.desc)}</div>`:''}
+            </div>
+            <span class="start-tile-arrow material-icons-round" style="font-size:18px">chevron_right</span>
+          </div>`;
+        }).join('')}</div>
+      </div>`).join('');
+  }
+  eid('startScreen').classList.remove('hidden');
+}
+function enterAppView(viewId){
+  eid('startScreen').classList.add('hidden');
+  switchView(viewId);
+}
 
 function renderUserPill() {
   const wrap = document.getElementById('userPillWrap');
@@ -2126,17 +2352,31 @@ async function rbacSaveToSheets(){
 // ── LOAD FROM SHEETS ──────────────────────────────────────────────────────
 // GAS doPost reads e.postData.contents. Sending as text/plain avoids a CORS
 // preflight that GAS cannot answer, keeping it a "simple request".
-async function sheetPost(body) {
-  const res = await fetch(API_URL, {
-    method: 'POST',
-    redirect: 'follow',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error(`POST HTTP ${res.status}`);
-  const json = await res.json();
-  if (json && json.error) throw new Error(json.error);
-  return json;
+async function sheetPost(body, timeoutMs) {
+  // timeoutMs is optional — every existing call site omits it and keeps the
+  // previous no-timeout behaviour; only time-sensitive callers (sign-in) pass
+  // one, since Apps Script Web Apps can otherwise hang indefinitely on a cold
+  // start with no feedback to the user at all.
+  const controller = timeoutMs ? new AbortController() : null;
+  const timer = timeoutMs ? setTimeout(()=>controller.abort(), timeoutMs) : null;
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(body),
+      ...(controller ? {signal: controller.signal} : {}),
+    });
+    if (!res.ok) throw new Error(`POST HTTP ${res.status}`);
+    const json = await res.json();
+    if (json && json.error) throw new Error(json.error);
+    return json;
+  } catch(e) {
+    if (e.name === 'AbortError') throw new Error('Request timed out — the Sheets backend took too long to respond.');
+    throw e;
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
 }
 
 async function loadFromSheets() {
@@ -2207,6 +2447,7 @@ async function loadFromSheets() {
         redirectToStatus: r.redirectToStatus||'', redirectToChecked: r.redirectToChecked||null,
         bgImg: r.bgImg||'', badgeImg: r.badgeImg||'', badgeLabel: r.badgeLabel||'',
         variantOf: r.variantOf||null,
+        roadmapProductId: r.roadmapProductId||'', roadmapFeatureId: r.roadmapFeatureId||'',
         decommissioned: r.decommissioned==='TRUE'||r.decommissioned===true,
         decommissionUrl: r.decommissionUrl||null,
         diff: {},
@@ -2290,10 +2531,10 @@ async function loadFromSheets() {
     // sheet returns a non-empty array, so a fully-emptied sheet leaves stale
     // in-memory data behind), always reassign here so deleting the very last
     // product/epic/feature/story and reloading correctly empties these arrays.
-    ROADMAP_PRODUCTS = (data.products||[]).map(r=>({id:String(r.id||''),name:r.name||'',desc:r.desc||'',order:Number(r.order)||0})).sort((a,b)=>a.order-b.order);
-    ROADMAP_EPICS    = (data.epics||[]).map(r=>({id:String(r.id||''),productId:String(r.productId||''),name:r.name||'',desc:r.desc||'',colour:r.colour||EPIC_COLOURS[0],order:Number(r.order)||0})).sort((a,b)=>a.order-b.order);
-    ROADMAP_FEATURES = (data.features||[]).map(r=>({id:String(r.id||''),epicId:String(r.epicId||''),phaseId:String(r.phaseId||''),name:r.name||'',desc:r.desc||'',icon:r.icon||ROADMAP_ICONS[0],status:r.status||'Planned',stretch:r.stretch==='TRUE'||r.stretch===true,order:Number(r.order)||0})).sort((a,b)=>a.order-b.order);
-    ROADMAP_STORIES  = (data.stories||[]).map(r=>({id:String(r.id||''),featureId:String(r.featureId||''),text:r.text||'',stretch:r.stretch==='TRUE'||r.stretch===true,order:Number(r.order)||0})).sort((a,b)=>a.order-b.order);
+    ROADMAP_PRODUCTS = (data.products||[]).map(r=>({id:String(r.id||''),name:r.name||'',desc:r.desc||'',order:Number(r.order)||0,jiraKey:r.jiraKey||''})).sort((a,b)=>a.order-b.order);
+    ROADMAP_EPICS    = (data.epics||[]).map(r=>({id:String(r.id||''),productId:String(r.productId||''),name:r.name||'',desc:r.desc||'',colour:r.colour||EPIC_COLOURS[0],order:Number(r.order)||0,jiraKey:r.jiraKey||''})).sort((a,b)=>a.order-b.order);
+    ROADMAP_FEATURES = (data.features||[]).map(r=>({id:String(r.id||''),epicId:String(r.epicId||''),phaseId:String(r.phaseId||''),name:r.name||'',desc:r.desc||'',icon:r.icon||ROADMAP_ICONS[0],status:r.status||'Planned',stretch:r.stretch==='TRUE'||r.stretch===true,order:Number(r.order)||0,jiraKey:r.jiraKey||''})).sort((a,b)=>a.order-b.order);
+    ROADMAP_STORIES  = (data.stories||[]).map(r=>({id:String(r.id||''),code:r.code||'',featureId:String(r.featureId||''),text:r.text||'',stretch:r.stretch==='TRUE'||r.stretch===true,type:r.type||'',devStatus:r.devStatus||'Not Started',testStatus:r.testStatus||'Not Started',owner:r.owner||'',source:r.source||'',order:Number(r.order)||0,jiraKey:r.jiraKey||''})).sort((a,b)=>a.order-b.order);
     if (_rmActiveProductId && !ROADMAP_PRODUCTS.find(p=>p.id===_rmActiveProductId)) _rmActiveProductId=null;
     if (!_rmActiveProductId && ROADMAP_PRODUCTS.length) _rmActiveProductId=ROADMAP_PRODUCTS[0].id;
 
@@ -2335,7 +2576,7 @@ async function loadFromSheets() {
     // Values for cms_ and status_ are JSON: {"fg":"#hex","bg":"#hex"} and optionally "lbl"
     // Values for owner_ are plain hex colour strings
     if (data.config && data.config.length) {
-      const newCMS = {}, newSTATUS = {}, newOWNER = {};
+      const newCMS = {}, newSTATUS = {}, newOWNER = {}, newREQTYPE = {}, newJIRAMAP = {}, newHOMEMETA = {};
       data.config.forEach(r => {
         const key = String(r.key || '').trim();
         const val = String(r.value || '').trim();
@@ -2358,6 +2599,22 @@ async function loadFromSheets() {
         } else if (key.startsWith('owner_')) {
           const name = key.slice(6);
           if (val) newOWNER[name] = val;
+        } else if (key.startsWith('reqtype_')) {
+          const name = key.slice(8);
+          if (val) newREQTYPE[name] = val;
+        } else if (key.startsWith('jira_map_')) {
+          const name = key.slice(9);
+          if (val) newJIRAMAP[name] = val;
+        } else if (key === 'home_welcome_note') {
+          WELCOME_NOTE = val;
+        } else if (key.startsWith('home_icon_')) {
+          const id = key.slice(10);
+          if (!newHOMEMETA[id]) newHOMEMETA[id] = {};
+          newHOMEMETA[id].icon = val;
+        } else if (key.startsWith('home_desc_')) {
+          const id = key.slice(10);
+          if (!newHOMEMETA[id]) newHOMEMETA[id] = {};
+          newHOMEMETA[id].desc = val;
         } else if (key === 'logo_url') {
           logoImgUrl = val;
         } else if (key === 'logo_text') {
@@ -2371,6 +2628,13 @@ async function loadFromSheets() {
       });
       if (Object.keys(newCMS).length)    CMS     = newCMS;
       if (Object.keys(newOWNER).length)  OWNER_C = newOWNER;
+      if (Object.keys(newREQTYPE).length) REQTYPE_C = newREQTYPE;
+      if (Object.keys(newJIRAMAP).length) JIRA_TYPE_MAP = Object.assign({}, JIRA_TYPE_MAP, newJIRAMAP);
+      if (Object.keys(newHOMEMETA).length) {
+        for (const id of Object.keys(newHOMEMETA)) {
+          HOMEPAGE_VIEW_META[id] = Object.assign({}, HOMEPAGE_VIEW_META[id]||{}, newHOMEMETA[id]);
+        }
+      }
       if (Object.keys(newSTATUS).length) {
         // The Config sheet's row order isn't necessarily the pipeline order the user
         // configured (saving a status updates its existing row in place rather than
@@ -2481,6 +2745,8 @@ async function dbUpsertNode(node) {
       badgeImg:    node.badgeImg    || '',
       badgeLabel:  node.badgeLabel  || '',
       variantOf:   node.variantOf  || '',
+      roadmapProductId: node.roadmapProductId || '',
+      roadmapFeatureId: node.roadmapFeatureId || '',
       cmsCreated:      node.cmsCreated      ? 'TRUE' : 'FALSE',
       contentCreated:  node.contentCreated  ? 'TRUE' : 'FALSE',
       redirectCreated: node.redirectCreated ? 'TRUE' : 'FALSE',
@@ -2540,13 +2806,82 @@ async function dbDeleteProjectDoc(id) {
   try { await sheetPost({ action:'deleteProjectDoc', id }); }
   catch(e) { console.error('dbDeleteProjectDoc:', e); showToast('Sheet write error: '+e.message); }
 }
-async function dbUpsertProduct(p){try{await sheetPost({action:'upsertProduct',row:{id:p.id,name:p.name||'',desc:p.desc||'',order:p.order||0}});}catch(e){console.error('dbUpsertProduct:',e);showToast('Sheet write error: '+e.message);}}
+async function dbUpsertProduct(p){try{await sheetPost({action:'upsertProduct',row:{id:p.id,name:p.name||'',desc:p.desc||'',order:p.order||0,jiraKey:p.jiraKey||''}});}catch(e){console.error('dbUpsertProduct:',e);showToast('Sheet write error: '+e.message);}}
 async function dbDeleteProduct(id){try{await sheetPost({action:'deleteProduct',id});}catch(e){console.error('dbDeleteProduct:',e);showToast('Sheet write error: '+e.message);}}
-async function dbUpsertEpic(ep){try{await sheetPost({action:'upsertEpic',row:{id:ep.id,productId:ep.productId,name:ep.name||'',desc:ep.desc||'',colour:ep.colour||EPIC_COLOURS[0],order:ep.order||0}});}catch(e){console.error('dbUpsertEpic:',e);showToast('Sheet write error: '+e.message);}}
+async function dbUpsertEpic(ep){try{await sheetPost({action:'upsertEpic',row:{id:ep.id,productId:ep.productId,name:ep.name||'',desc:ep.desc||'',colour:ep.colour||EPIC_COLOURS[0],order:ep.order||0,jiraKey:ep.jiraKey||''}});}catch(e){console.error('dbUpsertEpic:',e);showToast('Sheet write error: '+e.message);}}
 async function dbDeleteEpic(id){try{await sheetPost({action:'deleteEpic',id});}catch(e){console.error('dbDeleteEpic:',e);showToast('Sheet write error: '+e.message);}}
-async function dbUpsertFeature(f){try{await sheetPost({action:'upsertFeature',row:{id:f.id,epicId:f.epicId,phaseId:f.phaseId||'',name:f.name||'',desc:f.desc||'',icon:f.icon||ROADMAP_ICONS[0],status:f.status||'Planned',stretch:f.stretch?'TRUE':'FALSE',order:f.order||0}});}catch(e){console.error('dbUpsertFeature:',e);showToast('Sheet write error: '+e.message);}}
+async function dbUpsertFeature(f){try{await sheetPost({action:'upsertFeature',row:{id:f.id,epicId:f.epicId,phaseId:f.phaseId||'',name:f.name||'',desc:f.desc||'',icon:f.icon||ROADMAP_ICONS[0],status:f.status||'Planned',stretch:f.stretch?'TRUE':'FALSE',order:f.order||0,jiraKey:f.jiraKey||''}});}catch(e){console.error('dbUpsertFeature:',e);showToast('Sheet write error: '+e.message);}}
 async function dbDeleteFeature(id){try{await sheetPost({action:'deleteFeature',id});}catch(e){console.error('dbDeleteFeature:',e);showToast('Sheet write error: '+e.message);}}
-async function dbUpsertStory(s){try{await sheetPost({action:'upsertStory',row:{id:s.id,featureId:s.featureId,text:s.text||'',stretch:s.stretch?'TRUE':'FALSE',order:s.order||0}});}catch(e){console.error('dbUpsertStory:',e);showToast('Sheet write error: '+e.message);}}
+
+// ── Node variant → Roadmap Feature auto-tracking ──────────────────────────
+// A phase variant of a Node can be associated with a Roadmap Product (set via
+// the node tray's Overview tab — see updNodeRoadmapProduct()). Once
+// associated, it's mirrored onto that Product's board as a Feature, filed
+// under an auto-created, per-node-type Epic (e.g. "Page Variants") — one such
+// Epic per Product per node type, created on first use and reused after
+// that. The Feature's phase/name always track the variant's own phase/title.
+const NODE_VARIANT_EPIC_LABELS={
+  page:'Page Variants', form:'Form Variants', email:'Email Variants',
+  phone:'Phone Variants', sms:'SMS Variants', chatbot:'Chatbot Variants',
+  external:'External Variants', pdf:'PDF Variants',
+};
+const NODE_VARIANT_FEATURE_ICONS={
+  page:'description', form:'assignment', email:'mail', phone:'call',
+  sms:'sms', chatbot:'smart_toy', external:'open_in_new', pdf:'picture_as_pdf',
+};
+function _rmVariantEpicLabel(nodeType){ return NODE_VARIANT_EPIC_LABELS[nodeType]||'Node Variants'; }
+
+function _rmEnsureVariantEpic(productId, nodeType){
+  const label=_rmVariantEpicLabel(nodeType);
+  const existing=ROADMAP_EPICS.find(e=>e.productId===productId&&e.name===label);
+  if(existing) return existing.id;
+  const productEpics=ROADMAP_EPICS.filter(e=>e.productId===productId);
+  const ep={id:'EP'+Date.now(),productId,name:label,desc:'Auto-created — tracks '+label.toLowerCase()+' associated from the Sitemap.',colour:EPIC_COLOURS[productEpics.length%EPIC_COLOURS.length],order:productEpics.length};
+  ROADMAP_EPICS.push(ep);
+  dbUpsertEpic(ep);
+  return ep.id;
+}
+
+// Creates/updates/removes the Feature that mirrors a node variant onto the
+// Roadmap, based on its current roadmapProductId. Mutates `n` in place
+// (roadmapFeatureId) — the caller is responsible for persisting the node.
+function _rmSyncNodeVariantFeature(n){
+  const existingFeature=n.roadmapFeatureId?ROADMAP_FEATURES.find(f=>f.id===n.roadmapFeatureId):null;
+  if(!n.roadmapProductId){
+    if(existingFeature){
+      ROADMAP_FEATURES=ROADMAP_FEATURES.filter(f=>f.id!==existingFeature.id);
+      dbDeleteFeature(existingFeature.id);
+    }
+    n.roadmapFeatureId='';
+    return;
+  }
+  const epicId=_rmEnsureVariantEpic(n.roadmapProductId, n.nodeType);
+  const base=n.variantOf?gn(n.variantOf):null;
+  const name=n.title||(base?base.title:'')||'(untitled variant)';
+  const phLabel=(PHASES.find(ph=>ph.id===n.phase)||{}).name||n.phase;
+  const desc='Tracks the '+phLabel+' variant of "'+(base?base.title:name)+'".';
+  if(existingFeature){
+    existingFeature.epicId=epicId; existingFeature.phaseId=n.phase; existingFeature.name=name; existingFeature.desc=desc;
+    dbUpsertFeature(existingFeature);
+  } else {
+    const f={id:'FT'+Date.now(),epicId,phaseId:n.phase,name,desc,icon:NODE_VARIANT_FEATURE_ICONS[n.nodeType]||'description',status:'Planned',stretch:false,order:ROADMAP_FEATURES.filter(x=>x.epicId===epicId).length};
+    ROADMAP_FEATURES.push(f);
+    dbUpsertFeature(f);
+    n.roadmapFeatureId=f.id;
+  }
+}
+
+function updNodeRoadmapProduct(id, productId){
+  if(!canEdit()){showToast('View-only access — editing is disabled');return;}
+  const n=gn(id); if(!n) return;
+  n.roadmapProductId=productId;
+  _rmSyncNodeVariantFeature(n);
+  dbUpsertNode(n);
+  _rebuildNodeMap();
+  if(editingNodeId===id) renderNeTab(neTab);
+  showToast(productId?'Added to roadmap':'Removed from roadmap');
+}
+async function dbUpsertStory(s){try{await sheetPost({action:'upsertStory',row:{id:s.id,code:s.code||'',featureId:s.featureId,text:s.text||'',stretch:s.stretch?'TRUE':'FALSE',type:s.type||'',devStatus:s.devStatus||'Not Started',testStatus:s.testStatus||'Not Started',owner:s.owner||'',source:s.source||'',order:s.order||0,jiraKey:s.jiraKey||''}});}catch(e){console.error('dbUpsertStory:',e);showToast('Sheet write error: '+e.message);}}
 async function dbDeleteStory(id){try{await sheetPost({action:'deleteStory',id});}catch(e){console.error('dbDeleteStory:',e);showToast('Sheet write error: '+e.message);}}
 async function dbUpsertJourney(journey) {
   try {
@@ -2774,6 +3109,18 @@ function dsHealth(status,opts){
 }
 
 let OWNER_C={Marketing:'#B5683C',Product:'#2D4A6B',Engineering:'#2E7D6B',Legal:'#6B5394',Support:'#A23F4D'};
+// Requirement Types — same shape/pattern as OWNER_C (name -> single hex colour),
+// user-configurable via Settings, used by the Requirements Tracker view.
+let REQTYPE_C={'Functional Requirement':'#2D4A6B','Business Rule':'#6B5394','Regulatory Requirement':'#A23F4D'};
+// Development/Testing status — fixed enum (not user-configurable, unlike
+// REQTYPE_C), mirroring ROADMAP_STATUSES' role for Features.
+const REQ_STATUSES=['Not Started','In Progress','Blocked','Done'];
+const REQ_STATUS_COLOURS={
+  'Not Started':{fg:'var(--wf-ns-fg)',  bg:'var(--wf-ns-bg)'},
+  'In Progress':{fg:'var(--wf-ip-fg)',  bg:'var(--wf-ip-bg)'},
+  'Blocked':    {fg:'var(--rag-red-fg)',bg:'var(--rag-red-bg)'},
+  'Done':       {fg:'var(--wf-live-fg)',bg:'var(--wf-live-bg)'},
+};
 const TP_TYPES={
   page:     {icon:'🌐',label:'Web Page',    fg:'#2e4f7a',bg:'#e8eef8'},
   form:     {icon:'📋',label:'User Form',   fg:'#5a3d7a',bg:'#ede8f5'},
@@ -2823,7 +3170,7 @@ let PROJECT_DOCS=[];  // [{id, name, url}]               — project-level docum
 let ROADMAP_PRODUCTS=[]; // [{id,name,desc,order}]
 let ROADMAP_EPICS=[];    // [{id,productId,name,desc,colour,order}]
 let ROADMAP_FEATURES=[]; // [{id,epicId,phaseId,name,desc,icon,status,order}]
-let ROADMAP_STORIES=[];  // [{id,featureId,text,order}]
+let ROADMAP_STORIES=[];  // [{id,featureId,text,stretch,type,devStatus,testStatus,owner,source,order}] — also the Requirements Tracker's rows
 const EPIC_COLOURS=PH_COLOURS; // reuse the same swatch palette used for phases/journeys
 const ROADMAP_STATUSES=['Planned','In Progress','Done'];
 // Fixed, roadmap-only status pill colours — distinct from Settings > Statuses
@@ -2842,6 +3189,7 @@ let selFeatureIcon=ROADMAP_ICONS[0];
 let selFeatureStretch=false; // secondary/fast-follow flag, edited via the modal's toggle switch
 let _rmActiveProductId=null;   // which product's board is currently shown
 let _rmOpenFeatures=new Set(); // feature ids whose story-accordion is open
+let _rmClosedEpics=new Set(); // epic ids whose swimlane is collapsed — empty = all open by default
 let _rmEditingProductId=null, _rmEditingEpicId=null, _rmEditingFeatureId=null; // null = "add" mode
 let _rmEpicModalProductId=null;    // implicit product context for the Epic modal
 let _rmFeatureModalCtx={epicId:null, phaseId:null}; // implicit context + pre-fill for the Feature modal
@@ -3014,6 +3362,78 @@ function _debounce(fn, ms){
 // DB write (dbUpsertNode) still happens immediately for data integrity.
 const _deferredRender = _debounce(()=>{ renderCanvas(); renderMetrics(); }, 250);
 const gn = id => _nodeMap.get(id);
+
+// ── URL change detection — promoted out of renderTransformationReport() so
+// the Redirect Tracker view can reuse the exact same "what counts as a
+// redirect" logic instead of a second, driftable copy. ──
+// Returns {oldUrl, newUrl} when canonical slug ≠ variant's new URL, else null.
+const hasUrlChange=v=>{
+  if(!v.variantOf)return null;
+  const canon=gn(v.variantOf);if(!canon)return null;
+  const oldUrl=(canon.slug||'').trim();
+  const newUrl=(v.newSlug||v.slug||'').trim();
+  if(!oldUrl||!newUrl||oldUrl===newUrl)return null;
+  return{oldUrl,newUrl};
+};
+const autoFillRedirects=v=>{
+  const uc=hasUrlChange(v);if(!uc)return;
+  let dirty=false;
+  if(!v.redirectFrom){v.redirectFrom=uc.oldUrl;dirty=true;}
+  const canon=gn(v.variantOf);
+  if(canon&&!canon.redirectTo){canon.redirectTo=uc.newUrl;dbUpsertNode(canon);}
+  if(dirty)dbUpsertNode(v);
+};
+// ── Find redirect target node by URL ──
+const findByUrl=url=>url?NODES.find(n=>n.slug===url||n.newSlug===url):null;
+
+// ── Redirect Tracker row resolution — covers both populations: (1) phase
+// variants whose URL is changing, (2) decommissioned canonicals that never
+// went through the phase-variant workflow (invisible to Transformation
+// Report, which only iterates variants). ──
+function rdrResolve(n){
+  const canon=n.variantOf?gn(n.variantOf):n;
+  if(!canon) return null;
+  if(canon.decommissioned){
+    const oldUrl=(canon.slug||'').trim();
+    const newUrl=(canon.redirectTo||canon.decommissionUrl||'').trim();
+    if(!oldUrl) return null;
+    return {kind:'decommission', oldUrl, newUrl, canon, node:n};
+  }
+  if(n.variantOf){
+    const uc=hasUrlChange(n);
+    if(uc) return {kind:'redirect', oldUrl:uc.oldUrl, newUrl:uc.newUrl, canon, node:n};
+  }
+  return null;
+}
+function rdrCollectRows(){
+  const pages=NODES.filter(n=>n.nodeType==='page');
+  const variants=pages.filter(n=>n.variantOf);
+  const transformingIds=new Set(variants.map(v=>v.variantOf));
+  const rows=[];
+  variants.forEach(v=>{ const r=rdrResolve(v); if(r) rows.push({...r, phaseId:v.phase||'', rowNode:v}); });
+  pages.filter(n=>!n.variantOf&&n.decommissioned&&!transformingIds.has(n.id))
+       .forEach(n=>{ const r=rdrResolve(n); if(r) rows.push({...r, phaseId:n.phase||'', rowNode:n}); });
+  return rows;
+}
+
+// Session-only cache of live redirect-check results, keyed by node id:
+// {status:'verified'|'mismatch'|'not-redirecting'|'error'|'no-target', checkedAt}.
+// Deliberately NOT persisted anywhere — cleared on page reload, carried across
+// re-renders within the session so switching phases doesn't lose a result you
+// just checked.
+let RDR_VERIFY_CACHE={};
+async function rdrVerifyNow(rows){
+  const pairs=rows.map(r=>({id:r.node.id, oldUrl:r.oldUrl, newUrl:r.newUrl}));
+  if(!pairs.length) return;
+  try{
+    const res=await sheetPost({action:'verifyRedirects', pairs});
+    (res.results||[]).forEach(r=>{ RDR_VERIFY_CACHE[r.id]={status:r.status, checkedAt:r.checkedAt}; });
+  }catch(e){
+    showToast('Redirect check failed: '+e.message);
+  }
+  renderRedirectTracker();
+}
+
 const gpRoots=()=>NODES.filter(n=>!n.parentId&&n.nodeType==='page');
 const tpRoots=()=>NODES.filter(n=>!n.parentId&&n.nodeType!=='page');
 
@@ -3149,6 +3569,35 @@ function _cmtIndex(){
   Object.values(COMMENTS_BY_ENTITY).forEach(list=>list.sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt)));
 }
 
+// Disables a Comment/Reply/Save button the instant it's clicked (busy=true)
+// and restores it (busy=false) on failure — success paths don't need the
+// reset since the panel/report re-renders fresh, enabled buttons anyway.
+// Without this, a slow save round-trip reads as "nothing happened", and
+// clicking again creates a second (or third) copy of the same comment.
+function _cmtSetBtnBusy(btn, busy, busyLabel){
+  if(!btn) return;
+  if(busy){
+    btn.dataset.cmtOrigLabel = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = busyLabel || 'Saving…';
+  } else {
+    btn.disabled = false;
+    if(btn.dataset.cmtOrigLabel !== undefined) btn.textContent = btn.dataset.cmtOrigLabel;
+  }
+}
+
+// Splices a just-created comment straight into local state instead of a full
+// loadAllComments() reload. Needs the backend's addComment to return the full
+// new row (added alongside this) — an older, not-yet-redeployed backend only
+// returns {ok,id}, so this returns false in that case and the caller should
+// fall back to loadAllComments() same as before.
+function _cmtApplyNewComment(res){
+  if(!res || !res.row) return false;
+  COMMENTS_ALL.push(res.row);
+  _cmtIndex();
+  return true;
+}
+
 async function loadAllComments(){
   try{
     const url=`${API_URL}?action=getComments&_=${Date.now()}`;
@@ -3241,7 +3690,7 @@ function renderCommentsPanel(){
         ${isEditing?`
           <textarea class="cmt-edit-input" id="cmt-edit-${escH(c.id)}" rows="2">${escH(c.text)}</textarea>
           <div class="cmt-row-actions">
-            <button class="cmt-link-btn" onclick="_cmtSaveEdit('${escH(c.id)}')">Save</button>
+            <button class="cmt-link-btn" onclick="_cmtSaveEdit('${escH(c.id)}',this)">Save</button>
             <button class="cmt-link-btn" onclick="_cmtCancelEdit()">Cancel</button>
           </div>`
         :`
@@ -3256,7 +3705,7 @@ function renderCommentsPanel(){
           <div class="cmt-reply-form">
             <textarea class="cmt-edit-input" id="cmt-reply-input" rows="2" placeholder="Write a reply… use @email to mention"></textarea>
             <div class="cmt-row-actions">
-              <button class="cmt-link-btn" onclick="_cmtSubmitReply('${escH(c.id)}')">Reply</button>
+              <button class="cmt-link-btn" onclick="_cmtSubmitReply('${escH(c.id)}',this)">Reply</button>
               <button class="cmt-link-btn" onclick="_cmtCancelReply()">Cancel</button>
             </div>
           </div>`:''}
@@ -3274,59 +3723,69 @@ function renderCommentsPanel(){
     <div class="cmt-new-form">
       <textarea class="cmt-edit-input" id="cmt-new-input-${_cmtContainerId}" rows="2" placeholder="Add a comment… use @email to mention someone"></textarea>
       <div class="cmt-row-actions" style="justify-content:flex-end">
-        <button class="mbtn mbtn-save" style="width:auto;padding:6px 16px" onclick="_cmtSubmitNew()">Comment</button>
+        <button class="mbtn mbtn-save" style="width:auto;padding:6px 16px" onclick="_cmtSubmitNew(this)">Comment</button>
       </div>
     </div>`
     :`<div class="cmt-empty">Sign in to add a comment.</div>`}
   `;
 }
 
-async function _cmtSubmitNew(){
+async function _cmtSubmitNew(btn){
   const input=eid('cmt-new-input-'+_cmtContainerId);
   const text=(input.value||'').trim();
   if(!text) return;
-  await _cmtAdd(text,'');
+  _cmtSetBtnBusy(btn,true,'Saving…');
+  await _cmtAdd(text,'',btn);
 }
 
 function _cmtStartReply(id){ _cmtReplyTo=id; _cmtEditingId=null; renderCommentsPanel(); }
 function _cmtCancelReply(){ _cmtReplyTo=null; renderCommentsPanel(); }
-async function _cmtSubmitReply(parentId){
+async function _cmtSubmitReply(parentId,btn){
   const input=eid('cmt-reply-input');
   const text=(input.value||'').trim();
   if(!text) return;
   _cmtReplyTo=null;
-  await _cmtAdd(text,parentId);
+  _cmtSetBtnBusy(btn,true,'Saving…');
+  await _cmtAdd(text,parentId,btn);
 }
 
-async function _cmtAdd(text,parentId){
+async function _cmtAdd(text,parentId,btn){
   if(!gCurrentUser){showToast('Sign in to comment');return;}
   const {type,id}=_cmtCurrentEntity;
   try{
-    await sheetPost({action:'addComment',row:{
+    const res=await sheetPost({action:'addComment',row:{
       entityType:type, entityId:id, text, authorEmail:gCurrentUser.email,
       parentId:parentId||'', mentions:_extractMentions(text),
     }});
-    await loadAllComments();
+    // Splice the new comment straight into local state — falls back to a
+    // full reload only if the backend hasn't been redeployed with the row
+    // it now returns yet.
+    if(!_cmtApplyNewComment(res)) await loadAllComments();
     renderCommentsPanel();
     _cmtRefreshBadges();
   }catch(e){
     showToast('⚠️ Could not save comment: '+e.message);
+    _cmtSetBtnBusy(btn,false);
   }
 }
 
 function _cmtStartEdit(id){ _cmtEditingId=id; _cmtReplyTo=null; renderCommentsPanel(); }
 function _cmtCancelEdit(){ _cmtEditingId=null; renderCommentsPanel(); }
-async function _cmtSaveEdit(id){
+async function _cmtSaveEdit(id,btn){
   const input=eid('cmt-edit-'+id);
   const text=(input.value||'').trim();
   if(!text) return;
+  const mentions=_extractMentions(text);
+  _cmtSetBtnBusy(btn,true,'Saving…');
   try{
-    await sheetPost({action:'editComment',id,text,mentions:_extractMentions(text)});
+    await sheetPost({action:'editComment',id,text,mentions});
+    const c=COMMENTS_ALL.find(c=>c.id===id);
+    if(c){ c.text=text; c.mentions=mentions.join(','); c.editedAt=new Date().toISOString(); }
     _cmtEditingId=null;
-    await loadAllComments();
     renderCommentsPanel();
   }catch(e){
     showToast('⚠️ Could not save edit: '+e.message);
+    _cmtSetBtnBusy(btn,false);
   }
 }
 
@@ -3334,7 +3793,8 @@ async function _cmtDelete(id){
   if(!confirm('Delete this comment? Replies to it will become top-level comments.')) return;
   try{
     await sheetPost({action:'deleteComment',id});
-    await loadAllComments();
+    COMMENTS_ALL=COMMENTS_ALL.filter(c=>c.id!==id);
+    _cmtIndex();
     renderCommentsPanel();
     _cmtRefreshBadges();
   }catch(e){
@@ -3346,8 +3806,14 @@ async function _cmtDelete(id){
 // the same Comments data, so resolving here also updates the accordion and vice versa.
 async function _cmtToggleResolve(id,resolved){
   try{
-    await sheetPost({action:'resolveComment',id,resolved,resolvedByEmail:(gCurrentUser&&gCurrentUser.email)||''});
-    await loadAllComments();
+    const resolvedByEmail=(gCurrentUser&&gCurrentUser.email)||'';
+    await sheetPost({action:'resolveComment',id,resolved,resolvedByEmail});
+    const c=COMMENTS_ALL.find(c=>c.id===id);
+    if(c){
+      c.resolved=resolved?'TRUE':'FALSE';
+      c.resolvedAt=resolved?new Date().toISOString():'';
+      c.resolvedBy=resolved?resolvedByEmail:'';
+    }
     renderCommentsPanel();
     _cmtRefreshBadges();
   }catch(e){
@@ -3418,13 +3884,8 @@ function renderPhaseBar(){
   // Phase chips
   html+=PHASES.map(ph=>{
     const isActive=selectedPhases.has(ph.id);
-    // Completion = % of nodes in this phase that are signed off
-    const phNodes=NODES.filter(n=>n.phase===ph.id&&n.nodeType==='page');
-    const signedOff=phNodes.filter(n=>n.signOff).length;
-    const pct=phNodes.length?Math.round(signedOff/phNodes.length*100):0;
     return`<button class="phase-chip ${isActive?'active':''}" onclick="togglePhase('${ph.id}')">
       <div class="phase-dot" style="background:${ph.colour}"></div>${ph.name}
-      <span class="phase-pct" title="${signedOff}/${phNodes.length} signed off">${pct}%</span>
     </button>`;
   }).join('');
   html+='<button class="ph-add" data-requires-edit onclick="openPhaseModal()">+ Add phase</button>';
@@ -5384,6 +5845,9 @@ function upd(id,field,val){
     if(otherLive.length) showToast(`Note: ${otherLive.map(v=>v.title).join(', ')} — another variant of this page is also marked ${lastStatusName()}.`);
   }
   n[field]=val;
+  // Keep the auto-tracked Roadmap Feature (if this variant is associated with
+  // a product) in sync with the fields it mirrors.
+  if((field==='phase'||field==='title') && n.roadmapFeatureId) _rmSyncNodeVariantFeature(n);
   _rebuildNodeMap(); // keep O(1) lookup consistent after field mutation
   dbUpsertNode(n);
   _deferredRender();
@@ -5546,6 +6010,8 @@ function deleteNode(){
   if(!canEdit()){showToast('View-only access — editing is disabled');return;}
   if(!editingNodeId)return;
   if(!confirm('Delete this node and all its links/CTAs?'))return;
+  const n=gn(editingNodeId);
+  if(n&&n.roadmapFeatureId){ ROADMAP_FEATURES=ROADMAP_FEATURES.filter(f=>f.id!==n.roadmapFeatureId); dbDeleteFeature(n.roadmapFeatureId); }
   NODES=NODES.filter(n=>n.id!==editingNodeId);
   dbDeleteNode(editingNodeId);
   closeNodeModal();
@@ -5690,7 +6156,20 @@ function renderNeTab(tab){
         </div>`
         :`<div class="drow" style="margin-top:8px"><div class="drow-lbl">URL</div><input class="dinput mono" id="ne-slug" value="${n?escH(n.slug||''):''}" placeholder="https://… or /path" ${id?`onchange="upd('${id}','slug',this.value);refreshNeHeader('${id}')"`:''}></div>`}
         <div class="drow"><div class="drow-lbl">Notes</div><textarea class="dinput" rows="2" style="resize:vertical" id="ne-notes" ${id?`onchange="upd('${id}','notes',this.value)"`:''}>${n?escH(n.notes||''):''}</textarea></div>
-      </div>`;
+      </div>
+      ${(n&&n.variantOf)?`
+      <div class="ne-section">
+        <div class="ne-section-title">Roadmap</div>
+        <div class="drow"><div class="drow-lbl">Product</div>
+          <select class="dinput dselect" id="ne-roadmap-product" ${id?`onchange="updNodeRoadmapProduct('${id}',this.value)"`:''}>
+            <option value="">— Not on roadmap —</option>
+            ${ROADMAP_PRODUCTS.map(p=>`<option value="${p.id}"${n.roadmapProductId===p.id?' selected':''}>${escH(p.name)}</option>`).join('')}
+          </select>
+        </div>
+        <div style="font-size:10px;color:var(--text3);margin-top:4px;line-height:1.4">
+          ${n.roadmapProductId?`Tracked on the roadmap under <strong>${escH(_rmVariantEpicLabel(n.nodeType))}</strong>, in ${escH((PHASES.find(ph=>ph.id===n.phase)||{}).name||n.phase)}.`:`Associate this variant with a product to track it on the Product Roadmap, under an auto-created "${escH(_rmVariantEpicLabel(n.nodeType))}" functional area.`}
+        </div>
+      </div>`:''}`;
   }
 
   if(tab==='transformation'){
@@ -5983,6 +6462,8 @@ function deleteVariant(variantId){
   if(!confirm('Delete this phase variant? The base node is kept.'))return;
   const idx=NODES.findIndex(n=>n.id===variantId);
   if(idx===-1)return;
+  const variantFeatureId=NODES[idx].roadmapFeatureId;
+  if(variantFeatureId){ ROADMAP_FEATURES=ROADMAP_FEATURES.filter(f=>f.id!==variantFeatureId); dbDeleteFeature(variantFeatureId); }
   NODES.splice(idx,1);
   // Only delete variant-specific CTAs/links if they happen to exist
   if(CTAS[variantId])delete CTAS[variantId];
@@ -6769,6 +7250,7 @@ let curView = 'ia';
 
 // ── View switcher dropdown (header icon) ──
 const VIEW_OPTIONS=[
+  {id:'home',          emoji:'🏠',  label:'Homepage'},
   {id:'ia',            emoji:'🗂',  label:'IA — Hierarchy'},
   {id:'ecosystem',     emoji:'🕸',  label:'Ecosystem — Relationships'},
   {id:'audit',         emoji:'📋', label:'Audit — Diagnostics'},
@@ -6776,6 +7258,8 @@ const VIEW_OPTIONS=[
   {id:'actionreport',  emoji:'⚠️', label:'Action Report'},
   {id:'transformation',emoji:'📊', label:'Transformation Report'},
   {id:'roadmap',       emoji:'🗺',  label:'Product Roadmap'},
+  {id:'requirements',  emoji:'🧾', label:'Requirements Tracker'},
+  {id:'redirects',     emoji:'🔀', label:'Redirect Tracker'},
 ];
 function renderViewMenu(){
   const dd=eid('viewMenuDropdown');
@@ -6820,12 +7304,18 @@ const VIEW_CONTAINERS = {
   actionreport:   'viewActionReport',
   transformation: 'viewTransformation',
   roadmap:        'viewRoadmap',
+  requirements:   'viewRequirements',
+  redirects:      'viewRedirects',
 };
 
 function switchView(v){
+  // The Homepage isn't a real view container — it's the start-screen overlay
+  // shown again on demand. Leave curView/containers exactly as they are
+  // underneath (the overlay's own z-index blocks interaction regardless).
+  if(v==='home'){ showStartScreen(); return; }
   curView = v;
   const lnEl=eid('leftNav'),arLnEl=eid('arLeftNav');
-  const noLeftNav = v==='actionreport'||v==='transformation'||v==='roadmap';
+  const noLeftNav = v==='actionreport'||v==='transformation'||v==='roadmap'||v==='requirements'||v==='redirects';
   if(lnEl)lnEl.style.display=noLeftNav?'none':'';
   if(arLnEl){arLnEl.style.display=v==='actionreport'?'flex':'none';arLnEl.style.flexDirection='column';}
   // Hide all view containers
@@ -6843,6 +7333,11 @@ function switchView(v){
   // whole bar elsewhere rather than leaving an empty strip behind.
   const viewBar=eid('viewBar');
   if(viewBar) viewBar.style.display=(v==='ia'||v==='ecosystem')?'flex':'none';
+  // Layers menu only makes sense against the IA/Ecosystem canvases it filters —
+  // elsewhere it's dead chrome. On Requirements Tracker specifically, its footer
+  // slot is reused for the sticky Add-requirements bar instead (see renderRequirementsTracker()).
+  const layerBarEl=eid('layerBar');
+  if(layerBarEl) layerBarEl.style.display=(v==='ia'||v==='ecosystem')?'flex':'none';
   if(v!=='ia'&&v!=='ecosystem'){
     const mmPanel=eid('minimapPanel');
     if(mmPanel) mmPanel.classList.remove('open');
@@ -6860,6 +7355,8 @@ function switchView(v){
     case 'actionreport':   renderActionReport(); break;
     case 'transformation': renderTransformationReport(); break;
     case 'roadmap':        renderRoadmap(); break;
+    case 'requirements':   renderRequirementsTracker(); break;
+    case 'redirects':      renderRedirectTracker(); break;
   }
 }
 
@@ -7587,7 +8084,7 @@ function _trAccordionHtml(type,id){
       <div class="tr-cmt-new">
         <textarea class="cmt-edit-input" id="tr-cmt-new-${id}" rows="2" placeholder="Add a comment… use @email to mention someone"></textarea>
         <div class="cmt-row-actions" style="justify-content:flex-end;margin-top:6px">
-          <button class="mbtn mbtn-save" style="width:auto;padding:5px 14px;font-size:11px" onclick="_trCmtAddNew('${type}','${id}')">Comment</button>
+          <button class="mbtn mbtn-save" style="width:auto;padding:5px 14px;font-size:11px" onclick="_trCmtAddNew('${type}','${id}',this)">Comment</button>
         </div>
       </div>`:`<div class="cmt-empty">Sign in to add a comment.</div>`}
     </div>`;
@@ -7621,14 +8118,15 @@ function _trLegacyNoteHtml(id,notes){
 async function _trMigrateNote(id){
   const n=gn(id); if(!n||!n.notes||!n.notes.trim()) return;
   if(!gCurrentUser){showToast('Sign in to add a comment');return;}
+  const text=n.notes;
   try{
-    await sheetPost({action:'addComment',row:{
-      entityType:'node', entityId:id, text:n.notes, authorEmail:gCurrentUser.email,
-      parentId:'', mentions:_extractMentions(n.notes),
+    const res=await sheetPost({action:'addComment',row:{
+      entityType:'node', entityId:id, text, authorEmail:gCurrentUser.email,
+      parentId:'', mentions:_extractMentions(text),
     }});
+    if(!_cmtApplyNewComment(res)) await loadAllComments();
     n.notes='';
     dbUpsertNode(n);
-    await loadAllComments();
     _trOpenAccordions.add(id);
     renderTransformationReport();
   }catch(e){
@@ -7643,27 +8141,35 @@ function _trDismissNote(id){
   renderTransformationReport();
 }
 
-async function _trCmtAddNew(type,id){
+async function _trCmtAddNew(type,id,btn){
   const ta=eid('tr-cmt-new-'+id); if(!ta) return;
   const text=(ta.value||'').trim(); if(!text) return;
   if(!gCurrentUser){showToast('Sign in to comment');return;}
+  _cmtSetBtnBusy(btn,true,'Saving…');
   try{
-    await sheetPost({action:'addComment',row:{
+    const res=await sheetPost({action:'addComment',row:{
       entityType:type, entityId:id, text, authorEmail:gCurrentUser.email,
       parentId:'', mentions:_extractMentions(text),
     }});
-    await loadAllComments();
+    if(!_cmtApplyNewComment(res)) await loadAllComments();
     renderTransformationReport();
     if(typeof _deferredRender==='function') _deferredRender();
   }catch(e){
     showToast('⚠️ Could not save comment: '+e.message);
+    _cmtSetBtnBusy(btn,false);
   }
 }
 
 async function _trCmtResolve(commentId,resolved){
   try{
-    await sheetPost({action:'resolveComment',id:commentId,resolved,resolvedByEmail:(gCurrentUser&&gCurrentUser.email)||''});
-    await loadAllComments();
+    const resolvedByEmail=(gCurrentUser&&gCurrentUser.email)||'';
+    await sheetPost({action:'resolveComment',id:commentId,resolved,resolvedByEmail});
+    const c=COMMENTS_ALL.find(c=>c.id===commentId);
+    if(c){
+      c.resolved=resolved?'TRUE':'FALSE';
+      c.resolvedAt=resolved?new Date().toISOString():'';
+      c.resolvedBy=resolved?resolvedByEmail:'';
+    }
     renderTransformationReport();
   }catch(e){
     showToast('⚠️ Could not update comment: '+e.message);
@@ -7674,7 +8180,8 @@ async function _trCmtDelete(commentId){
   if(!confirm('Delete this comment?')) return;
   try{
     await sheetPost({action:'deleteComment',id:commentId});
-    await loadAllComments();
+    COMMENTS_ALL=COMMENTS_ALL.filter(c=>c.id!==commentId);
+    _cmtIndex();
     renderTransformationReport();
     if(typeof _deferredRender==='function') _deferredRender();
   }catch(e){
@@ -7740,26 +8247,8 @@ function renderTransformationReport(){
     </div>`;
   };
 
-  // ── URL change detection ──
-  // Returns {oldUrl, newUrl} when canonical slug ≠ variant's new URL, else null.
-  const hasUrlChange=v=>{
-    if(!v.variantOf)return null;
-    const canon=gn(v.variantOf);if(!canon)return null;
-    const oldUrl=(canon.slug||'').trim();
-    const newUrl=(v.newSlug||v.slug||'').trim();
-    if(!oldUrl||!newUrl||oldUrl===newUrl)return null;
-    return{oldUrl,newUrl};
-  };
-
-  // Auto-fill redirectFrom/redirectTo when a URL change is detected and fields are blank.
-  const autoFillRedirects=v=>{
-    const uc=hasUrlChange(v);if(!uc)return;
-    let dirty=false;
-    if(!v.redirectFrom){v.redirectFrom=uc.oldUrl;dirty=true;}
-    const canon=gn(v.variantOf);
-    if(canon&&!canon.redirectTo){canon.redirectTo=uc.newUrl;dbUpsertNode(canon);}
-    if(dirty)dbUpsertNode(v);
-  };
+  // hasUrlChange/autoFillRedirects are now global (promoted near gn()) so the
+  // Redirect Tracker view can reuse them — see that declaration for details.
 
   // ── Progress meter: a checklist, not a timeline. Each segment is completed
   // independently (some middle steps legitimately finish out of order) — the
@@ -7816,8 +8305,7 @@ function renderTransformationReport(){
     return `Old URL (${uc.oldUrl}) needs a redirect to new URL (${uc.newUrl})`;
   };
 
-  // ── Find redirect target node by URL ──
-  const findByUrl=url=>url?NODES.find(n=>n.slug===url||n.newSlug===url):null;
+  // findByUrl is now global (promoted near gn()) — see that declaration.
 
   // ── Current/new URLs as real hyperlinks — open in a new tab so checking
   // the live page doesn't navigate away from the report. Only linkified when
@@ -7855,7 +8343,11 @@ function renderTransformationReport(){
     const uc=opts.uc!==undefined?opts.uc:hasUrlChange(v);
     const rw=opts.rw!==undefined?opts.rw:null;
     const rowEdit=_trEditMode||_trRowEditIds.has(v.id);
-    const title=canon.title||v.title;
+    // When this variant renames the page, lead with the NEW name (what it's
+    // becoming) and call out the old one — mirrors how a URL change is shown
+    // as Current/New just below, so a rename reads the same way at a glance.
+    const nameChanged=canon!==v&&canon.title&&v.title&&canon.title.trim()!==v.title.trim();
+    const title=nameChanged?v.title:(canon.title||v.title);
     // Transformation documents are recorded against this specific variant
     // (each phase's overlay has its own doc list in the Phase Variants tab),
     // not the canonical page.
@@ -7867,6 +8359,7 @@ function renderTransformationReport(){
         <div class="pt-row-top">
           <div class="pt-row-title-wrap">
             <div class="tr-node-card-title" title="${escH(title)}">${escH(title)}</div>
+            ${nameChanged?`<span class="tr-node-card-title-was" title="Current name: ${escH(canon.title)}">Current: ${escH(canon.title)}</span>`:''}
             ${_trRowActionBtns(v.id)}
             ${dsStatusPill(currentStatusName(v),{size:'sm'})}
             ${isNew?`<span class="tr-node-card-new-badge">NEW</span>`:''}
@@ -7957,6 +8450,11 @@ function renderTransformationReport(){
   // — already live, not in scope for any phase.
   const trPhaseSelected=ph=>selectedPhases.has(ph.id);
   const trUnchangedSelected=selectedPhases.has('LIVE');
+  // True when the current phase-pill selection has nothing to show at all —
+  // i.e. every selected phase has zero variants/new pages (so it never made
+  // it into activePhases) and the "Not Changing" pseudo-phase isn't selected
+  // either. Drives the empty-state message below instead of a blank panel.
+  const anyPanelVisible=activePhases.some(trPhaseSelected)||trUnchangedSelected;
 
   // ── Search / stage filter — if nothing in the CURRENT selection matches,
   // point at whichever phase(s) do rather than silently changing which
@@ -8093,6 +8591,22 @@ function renderTransformationReport(){
 
   // ── Scrollable content area ──
   html+=`<div class="tr-content">`;
+
+  // ── Empty state: the selected phase(s) have no transformation work at all ──
+  if(!anyPanelVisible){
+    const emptyNames=PHASES.filter(ph=>selectedPhases.has(ph.id)).map(ph=>ph.name);
+    const emptyLabel=emptyNames.length?emptyNames.map(escH).join(', '):'this phase';
+    html+=`<div class="tr-empty-phase">
+      <span class="material-icons-round tr-empty-phase-icon">explore_off</span>
+      <div class="tr-empty-phase-title">There is no transformation project for ${emptyLabel}</div>
+      <div class="tr-empty-phase-sub">Choose another project phase to see the Transformation Plan</div>
+      <div class="tr-empty-phase-pills">
+        ${PHASES.map(ph=>`<button class="phase-chip${selectedPhases.has(ph.id)?' active':''}" onclick="switchPhase('${ph.id}')">
+          <div class="phase-dot" style="background:${ph.colour}"></div>${escH(ph.name)}
+        </button>`).join('')}
+      </div>
+    </div>`;
+  }
 
   // ── Phase panels ──
   activePhases.forEach(ph=>{
@@ -8849,16 +9363,22 @@ function _rmSelectProduct(id){
 }
 
 // ── Render ──
+// Phase 0 is the pre-transformation baseline ("as-is"), not a plan column —
+// the Roadmap only shows phases actual roadmap work can be scheduled into.
+function _rmPhases(){ return PHASES.filter(ph=>ph.id!=='PH0'); }
+
 function renderRoadmap(){
   const wrap=eid('viewRoadmap');
   const prevScrollTop=wrap.querySelector('.rm-content')?.scrollTop||0;
   wrap.innerHTML='';
 
+  const isAllMode=_rmActiveProductId==='ALL';
   const activeProduct=ROADMAP_PRODUCTS.find(p=>p.id===_rmActiveProductId);
   let html=`<div class="rm-wrap">`;
 
   // ── Header: product tabs ──
   html+=`<div class="rm-header"><div class="rm-tabs">`;
+  if(ROADMAP_PRODUCTS.length) html+=`<div class="rm-tab${isAllMode?' active':''}" onclick="_rmSelectProduct('ALL')">All</div>`;
   html+=ROADMAP_PRODUCTS.map(p=>`<div class="rm-tab${p.id===_rmActiveProductId?' active':''}" onclick="_rmSelectProduct('${p.id}')">${escH(p.name)}</div>`).join('');
   html+=`</div>`;
   html+=`<div class="rm-tab-add" data-requires-edit onclick="openAddRmProduct()">+ Add product</div>`;
@@ -8876,63 +9396,127 @@ function renderRoadmap(){
       <div class="rm-empty-sub">Add your first product to start mapping its roadmap.</div>
       <button class="mbtn mbtn-save" data-requires-edit onclick="openAddRmProduct()">+ Add product</button>
     </div>`;
-  } else if(!activeProduct){
+  } else if(!activeProduct && !isAllMode){
     html+=`<div class="rm-empty">Select a product above.</div>`;
+  } else if(!isAllMode && !ROADMAP_EPICS.some(e=>e.productId===activeProduct.id)){
+    html+=`<div class="rm-empty">
+      <div class="rm-empty-title">No functional areas yet</div>
+      <div class="rm-empty-sub">Add a functional area to start planning ${escH(activeProduct.name)}'s roadmap.</div>
+      <button class="mbtn mbtn-save" data-requires-edit onclick="openAddRmEpic('${activeProduct.id}')">+ Add functional area</button>
+    </div>`;
   } else {
-    const epics=ROADMAP_EPICS.filter(e=>e.productId===activeProduct.id).sort((a,b)=>a.order-b.order);
-    if(!epics.length){
-      html+=`<div class="rm-empty">
-        <div class="rm-empty-title">No functional areas yet</div>
-        <div class="rm-empty-sub">Add a functional area to start planning ${escH(activeProduct.name)}'s roadmap.</div>
-        <button class="mbtn mbtn-save" data-requires-edit onclick="openAddRmEpic('${activeProduct.id}')">+ Add functional area</button>
-      </div>`;
-    } else {
-      // NOTE: Roadmap intentionally ignores selectedPhases/togglePhase — it always
-      // renders every entry in PHASES as a column. A roadmap's purpose is showing
-      // the whole timeline at a glance; do NOT filter columns by the shared
-      // top-nav phase-pill selection (that filter is for "what am I editing right
-      // now" elsewhere in the app, not "what timeline exists").
-      const colTemplate=`200px repeat(${PHASES.length},minmax(240px,1fr))`;
-      html+=`<div class="rm-board" style="grid-template-columns:${colTemplate}">`;
-      html+=`<div class="rm-board-corner"></div>`;
-      html+=PHASES.map(ph=>`<div class="rm-board-header rm-phase-head" style="border-left:5px solid ${ph.colour};color:${ph.colour}">${escH(ph.name)}</div>`).join('');
+    // NOTE: Roadmap intentionally ignores selectedPhases/togglePhase — it always
+    // renders every rmPhases() entry as a column. A roadmap's purpose is showing
+    // the whole timeline at a glance; do NOT filter columns by the shared
+    // top-nav phase-pill selection (that filter is for "what am I editing right
+    // now" elsewhere in the app, not "what timeline exists"). Phase 0 (the
+    // pre-transformation baseline) is excluded entirely — see _rmPhases().
+    const rmPhases=_rmPhases();
+    const colTemplate=`200px repeat(${rmPhases.length},minmax(240px,1fr))`;
+    html+=`<div class="rm-board" style="grid-template-columns:${colTemplate}">`;
+    html+=`<div class="rm-board-corner" id="rm-board-corner">${isAllMode?'':escH(activeProduct.name)}</div>`;
+    html+=rmPhases.map(ph=>`<div class="rm-board-header rm-phase-head" style="border-left:5px solid ${ph.colour};color:${ph.colour}">${escH(ph.name)}</div>`).join('');
+
+    const productsToShow=isAllMode?ROADMAP_PRODUCTS:[activeProduct];
+    // The product separator is a plain (non-sticky) divider now — the corner
+    // cell handles the "current product" job instead — so the swimlane's own
+    // sticky name never has to share the sticky slot with it.
+    const swimlaneStickyTop=41;
+    productsToShow.forEach(prod=>{
+      const epics=ROADMAP_EPICS.filter(e=>e.productId===prod.id).sort((a,b)=>a.order-b.order);
+      if(isAllMode) html+=`<div class="rm-product-sep" data-product-id="${prod.id}" data-product-name="${escH(prod.name)}" style="grid-column:1/-1">${escH(prod.name)}</div>`;
+      if(!epics.length){
+        if(isAllMode) html+=`<div class="rm-product-sep-empty" style="grid-column:1/-1">No functional areas yet — switch to the ${escH(prod.name)} tab to add one.</div>`;
+        return;
+      }
       epics.forEach(ep=>{
+        const epicOpen=!_rmClosedEpics.has(ep.id);
+        const epicFeats=ROADMAP_FEATURES.filter(f=>f.epicId===ep.id);
+        const epicStoryCount=ROADMAP_STORIES.filter(s=>epicFeats.some(f=>f.id===s.featureId)).length;
         html+=`<div class="rm-swimlane-label" style="background:${ep.colour}18;border:2px solid ${ep.colour}33">
-          <div class="rm-swimlane-hd">
-            <div class="rm-swimlane-dot" style="background:${ep.colour}"></div>
-            <div class="rm-swimlane-name" title="${escH(ep.name)}">${escH(ep.name)}</div>
-          </div>
-          <div class="rm-swimlane-actions" data-requires-edit>
-            <button class="rm-swimlane-btn" onclick="openEditRmEpic('${ep.id}')" title="Edit functional area"><span class="material-icons-round" style="font-size:14px">edit</span></button>
+          <div class="rm-swimlane-sticky" style="top:${swimlaneStickyTop}px;background:${ep.colour}">
+            <div class="rm-swimlane-hd" onclick="_rmToggleEpic('${ep.id}')" style="cursor:pointer">
+              <span class="material-icons-round rm-swimlane-chev">${epicOpen?'expand_more':'chevron_right'}</span>
+              <div class="rm-swimlane-name" title="${escH(ep.name)}">${escH(ep.name)}</div>
+            </div>
+            <div class="rm-swimlane-counts" title="${epicFeats.length} feature(s), ${epicStoryCount} requirement(s)">
+              <span class="rm-count-badge"><span class="material-icons-round" style="font-size:10px">widgets</span>${epicFeats.length}</span>
+              <span class="rm-count-badge"><span class="material-icons-round" style="font-size:10px">checklist</span>${epicStoryCount}</span>
+            </div>
+            <div class="rm-swimlane-actions" data-requires-edit>
+              <button class="rm-swimlane-btn" onclick="event.stopPropagation();openEditRmEpic('${ep.id}')" title="Edit functional area"><span class="material-icons-round" style="font-size:14px">edit</span></button>
+            </div>
           </div>
         </div>`;
-        PHASES.forEach(ph=>{
-          const feats=ROADMAP_FEATURES.filter(f=>f.epicId===ep.id&&f.phaseId===ph.id).sort((a,b)=>a.order-b.order);
+        rmPhases.forEach(ph=>{
+          if(!epicOpen){
+            html+=`<div class="rm-phase-cell rm-phase-cell-collapsed" style="background:${ep.colour}08"></div>`;
+            return;
+          }
+          // Core features first, Fast Follow features in their own visually
+          // distinguished section at the bottom of the cell — a divider only
+          // appears when the cell actually has a Fast Follow item to set apart.
+          const allFeats=ROADMAP_FEATURES.filter(f=>f.epicId===ep.id&&f.phaseId===ph.id).sort((a,b)=>a.order-b.order);
+          const coreFeats=allFeats.filter(f=>!f.stretch);
+          const ffFeats=allFeats.filter(f=>f.stretch);
           html+=`<div class="rm-phase-cell" style="background:${ep.colour}08">`;
-          html+=feats.map(f=>_rmFeatureCardHtml(f,ep)).join('');
+          html+=coreFeats.map(f=>_rmFeatureCardHtml(f,ep)).join('');
+          if(ffFeats.length){
+            html+=`<div class="rm-fastfollow-divider"><span class="material-icons-round" style="font-size:11px">fast_forward</span>Fast Follow</div>`;
+            html+=ffFeats.map(f=>_rmFeatureCardHtml(f,ep)).join('');
+          }
           html+=`<div class="rm-cell-add" data-requires-edit onclick="openAddRmFeature('${ep.id}','${ph.id}')">+ Add feature</div>`;
           html+=`</div>`;
         });
       });
-      html+=`</div>`; // /.rm-board
-    }
+    });
+    html+=`</div>`; // /.rm-board
   }
   html+=`</div>`; // /.rm-content
   html+=`</div>`; // /.rm-wrap
 
   wrap.innerHTML=html;
   const newContent=wrap.querySelector('.rm-content');
-  if(newContent) newContent.scrollTop=prevScrollTop;
+  if(newContent){
+    newContent.scrollTop=prevScrollTop;
+    // In "All" mode the corner label tracks whichever product's separator
+    // you've scrolled past most recently — assigning .onscroll (not
+    // addEventListener) means a re-render never stacks duplicate listeners.
+    newContent.onscroll=isAllMode?_rmUpdateCornerLabel:null;
+  }
+  if(isAllMode) _rmUpdateCornerLabel();
   // Full innerHTML rebuild replaces every data-requires-edit element fresh
   // (with default/visible display) — re-apply role gating immediately rather
   // than waiting for the next sign-in-time applyRoleUI() pass.
   if(typeof applyRoleUI==='function') applyRoleUI();
 }
 
+// Updates the sticky corner cell to name whichever product's section is
+// currently scrolled into view (the separator bars themselves are plain,
+// non-sticky dividers — see the CSS comment on .rm-product-sep).
+function _rmUpdateCornerLabel(){
+  const corner=eid('rm-board-corner');
+  const content=document.querySelector('#viewRoadmap .rm-content');
+  if(!corner||!content) return;
+  const seps=[...content.querySelectorAll('.rm-product-sep')];
+  if(!seps.length) return;
+  const threshold=content.getBoundingClientRect().top+45; // ~ bottom edge of the sticky phase header
+  let current=seps[0];
+  for(const sep of seps){
+    if(sep.getBoundingClientRect().top<=threshold) current=sep; else break;
+  }
+  corner.textContent=current.dataset.productName||'';
+}
+
 function _rmFeatureCardHtml(f, epic){
   const st=ROADMAP_STATUS_COLOURS[f.status]||ROADMAP_STATUS_COLOURS['Planned'];
   const isOpen=_rmOpenFeatures.has(f.id);
   const stories=ROADMAP_STORIES.filter(s=>s.featureId===f.id).sort((a,b)=>a.order-b.order);
+  // Distinct from the feature's own Fast Follow pill (f.stretch, "this whole
+  // feature is a fast follow"): this flags a CORE feature that still has one
+  // or more Fast Follow requirements nested inside it — an outlined badge
+  // rather than the solid pill so the two meanings don't get confused.
+  const ffStoryCount=stories.filter(s=>s.stretch).length;
   return `<div class="rm-feature-card">
     <div class="rm-feature-accent" style="background:${st.fg}"></div>
     <div class="rm-feature-body">
@@ -8941,11 +9525,13 @@ function _rmFeatureCardHtml(f, epic){
           <span class="material-icons-round" style="font-size:14px">${f.icon||'lightbulb'}</span>
         </div>
         <div class="rm-feature-title" title="${escH(f.name)}">${escH(f.name)}</div>
+        <span class="rm-count-badge" title="${stories.length} requirement(s)"><span class="material-icons-round" style="font-size:9px">checklist</span>${stories.length}</span>
         <span class="material-icons-round rm-feature-chev">${isOpen?'expand_less':'expand_more'}</span>
       </div>
       <div class="rm-feature-meta">
         <span class="rm-feature-pill" style="color:${st.fg};background:${st.bg}">${escH(f.status)}</span>
-        ${f.stretch?'<span class="rm-stretch-pill">Stretch</span>':''}
+        ${f.stretch?'<span class="rm-stretch-pill">Fast Follow</span>':''}
+        ${(!f.stretch&&ffStoryCount)?`<span class="rm-contains-ff-badge" title="${ffStoryCount} Fast Follow requirement(s) inside"><span class="material-icons-round" style="font-size:10px">fast_forward</span>${ffStoryCount}</span>`:''}
         <div class="rm-feature-actions" data-requires-edit>
           <button class="rm-feature-btn" onclick="event.stopPropagation();openEditRmFeature('${f.id}')" title="Edit feature"><span class="material-icons-round" style="font-size:13px">edit</span></button>
         </div>
@@ -8955,18 +9541,26 @@ function _rmFeatureCardHtml(f, epic){
   </div>`;
 }
 
-function _rmStoriesHtml(featureId, stories){
-  let h=`<div class="rm-story-list" onclick="event.stopPropagation()">`;
-  stories.forEach(s=>{
-    h+=`<div class="rm-story-row">
-      <span class="material-icons-round rm-story-check${s.stretch?' checked':''}" data-requires-edit onclick="toggleRmStoryStretch('${s.id}')" title="Toggle stretch / fast-follow">${s.stretch?'check_box':'check_box_outline_blank'}</span>
+function _rmStoryRowHtml(featureId, s){
+  return `<div class="rm-story-row">
+      <span class="material-icons-round rm-story-check${s.stretch?' checked':''}" data-requires-edit onclick="toggleRmStoryStretch('${s.id}')" title="Toggle fast-follow">${s.stretch?'check_box':'check_box_outline_blank'}</span>
       <span class="rm-story-text">${escH(s.text)}</span>
-      ${s.stretch?'<span class="rm-stretch-pill">Stretch</span>':''}
+      ${s.stretch?'<span class="rm-stretch-pill">Fast Follow</span>':''}
       <button class="rm-story-del" data-requires-edit onclick="delRmStory('${featureId}','${s.id}')" title="Remove">×</button></div>`;
-  });
+}
+function _rmStoriesHtml(featureId, stories){
+  // Core requirements first, Fast Follow requirements in their own visually
+  // distinguished section at the bottom — same treatment as the feature cells.
+  const core=stories.filter(s=>!s.stretch), ff=stories.filter(s=>s.stretch);
+  let h=`<div class="rm-story-list" onclick="event.stopPropagation()">`;
+  h+=core.map(s=>_rmStoryRowHtml(featureId,s)).join('');
+  if(ff.length){
+    h+=`<div class="rm-story-fastfollow-divider"><span class="material-icons-round" style="font-size:9px">fast_forward</span>Fast Follow</div>`;
+    h+=ff.map(s=>_rmStoryRowHtml(featureId,s)).join('');
+  }
   h+=`<div id="rm-story-form-${featureId}" style="display:none" class="rm-story-form">
     <input type="text" id="rm-story-text-${featureId}" placeholder="Requirement text…">
-    <label class="rm-story-stretch-check" title="Stretch / fast-follow requirement"><input type="checkbox" id="rm-story-stretch-${featureId}"> Stretch</label>
+    <label class="rm-story-stretch-check" title="Fast-follow requirement"><input type="checkbox" id="rm-story-stretch-${featureId}"> Fast Follow</label>
     <button class="pv-doc-form-save" onclick="saveRmStory('${featureId}')">✓</button>
     <button class="pv-doc-form-cancel" onclick="eid('rm-story-form-${featureId}').style.display='none'">✗</button>
   </div>
@@ -8985,6 +9579,10 @@ function _rmToggleFeature(id){
   if(_rmOpenFeatures.has(id)) _rmOpenFeatures.delete(id); else _rmOpenFeatures.add(id);
   renderRoadmap();
 }
+function _rmToggleEpic(id){
+  if(_rmClosedEpics.has(id)) _rmClosedEpics.delete(id); else _rmClosedEpics.add(id);
+  renderRoadmap();
+}
 function _showRmStoryForm(featureId){
   const form=eid(`rm-story-form-${featureId}`);
   if(form) form.style.display='flex';
@@ -8997,7 +9595,7 @@ function saveRmStory(featureId){
   const text=(eid(`rm-story-text-${featureId}`)?.value||'').trim();
   if(!text){showToast('Please enter requirement text','error');return;}
   const stretch=!!eid(`rm-story-stretch-${featureId}`)?.checked;
-  const story={id:'ST'+Date.now(),featureId,text,stretch,order:ROADMAP_STORIES.filter(s=>s.featureId===featureId).length};
+  const story={id:'ST'+Date.now(),code:_reqGenerateCode(featureId),featureId,text,stretch,type:'',devStatus:'Not Started',testStatus:'Not Started',owner:'',source:'',order:ROADMAP_STORIES.filter(s=>s.featureId===featureId).length};
   ROADMAP_STORIES.push(story);
   dbUpsertStory(story);
   renderRoadmap();
@@ -9088,7 +9686,7 @@ function saveRmEpic(){
 // .tswitch/.ttrack/.tknob markup the tray already uses for sign-off /
 // decommissioned booleans (lines ~5727/11606).
 function _rmStretchSwitchHtml(elId, checked, onclickAttr){
-  return `<label>Stretch</label><div class="tswitch" id="${elId}" onclick="${onclickAttr}"><div class="ttrack ${checked?'on':''}"><div class="tknob"></div></div><div class="tlbl">${checked?'Stretch / fast-follow':'Core requirement'}</div></div>`;
+  return `<label>Fast Follow</label><div class="tswitch" id="${elId}" onclick="${onclickAttr}"><div class="ttrack ${checked?'on':''}"><div class="tknob"></div></div><div class="tlbl">${checked?'Fast follow':'Core requirement'}</div></div>`;
 }
 function togRmFeatureStretch(){
   selFeatureStretch=!selFeatureStretch;
@@ -9109,7 +9707,7 @@ function openAddRmFeature(epicId, phaseId){
   eid('rmf-delete-btn').style.display='none';
   eid('rmf-name').value=''; eid('rmf-desc').value='';
   selFeatureIcon=ROADMAP_ICONS[0];
-  eid('rmf-phase').innerHTML=PHASES.map(ph=>`<option value="${ph.id}"${ph.id===phaseId?' selected':''}>${escH(ph.name)}</option>`).join('');
+  eid('rmf-phase').innerHTML=_rmPhases().map(ph=>`<option value="${ph.id}"${ph.id===phaseId?' selected':''}>${escH(ph.name)}</option>`).join('');
   eid('rmf-status').value='Planned';
   selFeatureStretch=false;
   eid('rmf-stretch-field').innerHTML=_rmStretchSwitchHtml('rmf-stretch-switch',selFeatureStretch,'togRmFeatureStretch()');
@@ -9124,7 +9722,7 @@ function openEditRmFeature(id){
   eid('rmf-delete-btn').style.display='';
   eid('rmf-name').value=f.name; eid('rmf-desc').value=f.desc||'';
   selFeatureIcon=f.icon||ROADMAP_ICONS[0];
-  eid('rmf-phase').innerHTML=PHASES.map(ph=>`<option value="${ph.id}"${ph.id===f.phaseId?' selected':''}>${escH(ph.name)}</option>`).join('');
+  eid('rmf-phase').innerHTML=_rmPhases().map(ph=>`<option value="${ph.id}"${ph.id===f.phaseId?' selected':''}>${escH(ph.name)}</option>`).join('');
   eid('rmf-status').value=f.status||'Planned';
   selFeatureStretch=!!f.stretch;
   eid('rmf-stretch-field').innerHTML=_rmStretchSwitchHtml('rmf-stretch-switch',selFeatureStretch,'togRmFeatureStretch()');
@@ -9149,6 +9747,572 @@ function saveRmFeature(){
   }
   if(f) dbUpsertFeature(f);
   closeModal('rmFeatureModal'); renderRoadmap(); showToast('Feature saved');
+}
+
+/* ─── REQUIREMENTS TRACKER ──────────────────────────────────────────────── */
+// Requirements ARE the Product Roadmap's Stories (same records, same ROADMAP_STORIES
+// array/backend sheet) — this view is a dense, spreadsheet-style table over that
+// exact data, with extra fields (type/devStatus/testStatus/owner/source) and comment
+// threads layered on top, rather than a separate/duplicated data model.
+let _reqFilterProductId=''; // '' = all products
+let _reqFilterEpicId='';
+let _reqFilterFeatureId='';
+let _reqFilterDevStatus='';
+let _reqFilterTestStatus='';
+let _reqFilterOwner='';
+let _reqSearchQuery='';
+let _reqAddBarCollapsed=false; // the sticky bottom Add-requirements bar — collapsible for more table space
+let _reqExpandedReassignId=''; // story id whose Phase/Product/Area/Feature reassign select is expanded (pills+arrow otherwise)
+
+// Sticky "add requirements" context — set Phase/Epic/Feature once, add several
+// requirements against it without having to re-pick from a long combined list
+// each time. Cleared only when the chosen Epic/Feature no longer applies.
+let _reqAddPhaseId='';
+let _reqAddEpicId='';
+let _reqAddFeatureId='';
+
+// Which Jira issue type each level of Product > Epic > Feature > Requirement
+// pushes as — configurable in Settings > Jira since "Feature" as a hierarchy
+// level between Epic and Story only exists if the target Jira project has
+// been set up for it, and the exact type names vary per Jira instance.
+// ── Homepage / start screen ─────────────────────────────────────────────
+// Which views appear on the Homepage and how they're grouped is fixed here
+// in code (Audit and Action Report are deliberately not curated onto the
+// homepage — they stay reachable from the View menu as before). The welcome
+// note and each shown view's icon/description ARE user-editable, via
+// Settings > Homepage — see HOMEPAGE_VIEW_META/WELCOME_NOTE below.
+const HOMEPAGE_GROUPS=[
+  {title:'Website Management', views:['ia','ecosystem','platform']},
+  {title:'Project Management', views:['transformation','roadmap','requirements','redirects']},
+];
+let HOMEPAGE_VIEW_META={
+  ia:            {icon:'account_tree', desc:'Explore your sitemap as a navigable hierarchy.'},
+  ecosystem:     {icon:'hub',          desc:'See how pages and content connect to each other.'},
+  platform:      {icon:'dns',          desc:'View pages grouped by system and platform.'},
+  transformation:{icon:'bar_chart',    desc:'Track migration progress phase by phase.'},
+  roadmap:       {icon:'map',          desc:'Plan features and requirements across products.'},
+  requirements:  {icon:'fact_check',   desc:'Manage detailed requirements and discussion threads.'},
+  redirects:     {icon:'swap_horiz',   desc:'Track old-to-new URL redirects and decommissions by phase.'},
+};
+let WELCOME_NOTE='Welcome — choose a view below to get started.';
+
+let JIRA_TYPE_MAP = { product:'Initiative', epic:'Epic', feature:'Feature', requirement:'Story' };
+// Fetched lazily the first time a Jira badge needs to build a browse link —
+// avoids a network round-trip on every load for users who don't use Jira.
+let _jiraBaseUrlCache = null;
+async function _jiraOpenIssue(key){
+  if(_jiraBaseUrlCache===null){
+    try{ const st=await sheetPost({action:'getJiraStatus'}); _jiraBaseUrlCache = st.configured?st.baseUrl:''; }
+    catch(e){ _jiraBaseUrlCache=''; }
+  }
+  if(_jiraBaseUrlCache) window.open(_jiraBaseUrlCache+'/browse/'+key, '_blank', 'noopener');
+  else showToast('Jira is not configured');
+}
+
+function _reqResolveChain(s){
+  const feature=ROADMAP_FEATURES.find(f=>f.id===s.featureId)||null;
+  const epic=feature?ROADMAP_EPICS.find(e=>e.id===feature.epicId)||null:null;
+  const product=epic?ROADMAP_PRODUCTS.find(p=>p.id===epic.productId)||null:null;
+  return {feature,epic,product};
+}
+
+// Human-friendly requirement ID: EPIC-FEATURE-### — a stable, discussable
+// handle ("can we look at FLTS-PETAV-003?") distinct from the internal
+// ST<timestamp> id. Sequence is scoped to the Epic+Feature abbreviation pair
+// so renumbering never happens when unrelated requirements are added/removed.
+function _reqGenerateCode(featureId){
+  const feature=ROADMAP_FEATURES.find(f=>f.id===featureId);
+  const epic=feature?ROADMAP_EPICS.find(e=>e.id===feature.epicId):null;
+  const abbr=s=>(s||'').replace(/[^A-Za-z0-9]/g,'').slice(0,4).toUpperCase()||'GEN';
+  const prefix=`${abbr(epic&&epic.name)}-${abbr(feature&&feature.name)}-`;
+  let maxNum=0;
+  ROADMAP_STORIES.forEach(s=>{
+    if(s.code&&s.code.startsWith(prefix)){
+      const n=parseInt(s.code.slice(prefix.length),10);
+      if(!isNaN(n)&&n>maxNum) maxNum=n;
+    }
+  });
+  return prefix+String(maxNum+1).padStart(3,'0');
+}
+
+function _reqFeatureOptionsHtml(selectedFeatureId){
+  let h='<option value="">— Select a feature —</option>';
+  ROADMAP_PRODUCTS.forEach(p=>{
+    ROADMAP_EPICS.filter(e=>e.productId===p.id).forEach(ep=>{
+      ROADMAP_FEATURES.filter(f=>f.epicId===ep.id).forEach(f=>{
+        h+=`<option value="${f.id}"${f.id===selectedFeatureId?' selected':''}>${escH(p.name)} › ${escH(ep.name)} › ${escH(f.name)}</option>`;
+      });
+    });
+  });
+  return h;
+}
+
+function _reqSetFilterProduct(v){
+  _reqFilterProductId=v;
+  // The add-context Epic list is scoped to the product filter — drop a
+  // selection that's no longer in scope rather than silently keeping a
+  // hidden Epic/Feature selected.
+  const ep=ROADMAP_EPICS.find(e=>e.id===_reqAddEpicId);
+  if(ep && v && ep.productId!==v){ _reqAddEpicId=''; _reqAddFeatureId=''; }
+  // Same guard for the row FILTER's Epic/Feature selection.
+  const fep=ROADMAP_EPICS.find(e=>e.id===_reqFilterEpicId);
+  if(fep && v && fep.productId!==v){ _reqFilterEpicId=''; _reqFilterFeatureId=''; }
+  renderRequirementsTracker();
+}
+
+function _reqFilterEpicOptionsHtml(){
+  let h='<option value="">All functional areas</option>';
+  const prods=_reqFilterProductId?ROADMAP_PRODUCTS.filter(p=>p.id===_reqFilterProductId):ROADMAP_PRODUCTS;
+  prods.forEach(p=>{
+    const epics=ROADMAP_EPICS.filter(e=>e.productId===p.id).sort((a,b)=>a.order-b.order);
+    if(!epics.length) return;
+    const opts=epics.map(e=>`<option value="${e.id}"${e.id===_reqFilterEpicId?' selected':''}>${escH(e.name)}</option>`).join('');
+    h+=_reqFilterProductId?opts:`<optgroup label="${escH(p.name)}">${opts}</optgroup>`;
+  });
+  return h;
+}
+function _reqFilterFeatureOptionsHtml(){
+  let h='<option value="">All features</option>';
+  const feats=ROADMAP_FEATURES.filter(f=>{
+    if(_reqFilterEpicId) return f.epicId===_reqFilterEpicId;
+    if(_reqFilterProductId){ const ep=ROADMAP_EPICS.find(e=>e.id===f.epicId); return ep&&ep.productId===_reqFilterProductId; }
+    return true;
+  }).sort((a,b)=>a.order-b.order);
+  h+=feats.map(f=>`<option value="${f.id}"${f.id===_reqFilterFeatureId?' selected':''}>${escH(f.name)}</option>`).join('');
+  return h;
+}
+function _reqSetFilterEpic(v){
+  _reqFilterEpicId=v;
+  const f=ROADMAP_FEATURES.find(f=>f.id===_reqFilterFeatureId);
+  if(f && v && f.epicId!==v) _reqFilterFeatureId='';
+  renderRequirementsTracker();
+}
+function _reqSetFilterFeature(v){ _reqFilterFeatureId=v; renderRequirementsTracker(); }
+function _reqSetFilterDevStatus(v){ _reqFilterDevStatus=v; renderRequirementsTracker(); }
+function _reqSetFilterTestStatus(v){ _reqFilterTestStatus=v; renderRequirementsTracker(); }
+function _reqSetFilterOwner(v){ _reqFilterOwner=v; renderRequirementsTracker(); }
+function _reqToggleAddBar(){ _reqAddBarCollapsed=!_reqAddBarCollapsed; renderRequirementsTracker(); }
+
+function _reqChainPillsHtml(s){
+  const {feature,epic,product}=_reqResolveChain(s);
+  const ph=feature?PHASES.find(p=>p.id===feature.phaseId):null;
+  let h='<div class="req-chain-pills">';
+  if(product) h+=`<span class="req-chain-pill req-chain-pill-product" title="Product">${escH(product.name)}</span>`;
+  if(ph) h+=`<span class="req-chain-pill" style="color:${ph.colour};border-color:${ph.colour}66;background:${ph.colour}14" title="Phase">${escH(ph.name)}</span>`;
+  if(epic) h+=`<span class="req-chain-pill" style="color:${epic.colour};border-color:${epic.colour}66;background:${epic.colour}14" title="Functional area">${escH(epic.name)}</span>`;
+  if(feature) h+=`<span class="req-chain-pill req-chain-pill-feature" title="Feature">${escH(feature.name)}</span>`;
+  if(!product&&!epic&&!feature) h+='<span class="req-chain-pill req-chain-pill-missing">Unassigned</span>';
+  h+='</div>';
+  return h;
+}
+
+function _reqToggleReassign(storyId){
+  _reqExpandedReassignId = (_reqExpandedReassignId===storyId) ? '' : storyId;
+  renderRequirementsTracker();
+}
+
+function _reqAddPhaseOptionsHtml(){
+  let h='<option value="">Any phase</option>';
+  h+=PHASES.map(ph=>`<option value="${ph.id}"${ph.id===_reqAddPhaseId?' selected':''}>${escH(ph.name)}</option>`).join('');
+  return h;
+}
+
+function _reqAddEpicOptionsHtml(){
+  let h='<option value="">Select a functional area…</option>';
+  const prods=_reqFilterProductId?ROADMAP_PRODUCTS.filter(p=>p.id===_reqFilterProductId):ROADMAP_PRODUCTS;
+  prods.forEach(p=>{
+    const epics=ROADMAP_EPICS.filter(e=>e.productId===p.id).sort((a,b)=>a.order-b.order);
+    if(!epics.length) return;
+    const opts=epics.map(e=>`<option value="${e.id}"${e.id===_reqAddEpicId?' selected':''}>${escH(e.name)}</option>`).join('');
+    h+=_reqFilterProductId?opts:`<optgroup label="${escH(p.name)}">${opts}</optgroup>`;
+  });
+  return h;
+}
+
+function _reqAddFeatureOptionsHtml(){
+  if(!_reqAddEpicId) return '<option value="">Select a functional area first</option>';
+  const feats=ROADMAP_FEATURES.filter(f=>f.epicId===_reqAddEpicId&&(!_reqAddPhaseId||f.phaseId===_reqAddPhaseId)).sort((a,b)=>a.order-b.order);
+  if(!feats.length) return '<option value="">No features here — add one on the Roadmap</option>';
+  let h='<option value="">Select a feature…</option>';
+  h+=feats.map(f=>`<option value="${f.id}"${f.id===_reqAddFeatureId?' selected':''}>${escH(f.name)}</option>`).join('');
+  return h;
+}
+
+function _reqSetAddPhase(v){
+  _reqAddPhaseId=v;
+  const f=ROADMAP_FEATURES.find(f=>f.id===_reqAddFeatureId);
+  if(f && v && f.phaseId!==v) _reqAddFeatureId='';
+  renderRequirementsTracker();
+}
+function _reqSetAddEpic(v){
+  _reqAddEpicId=v;
+  const f=ROADMAP_FEATURES.find(f=>f.id===_reqAddFeatureId);
+  if(f && v && f.epicId!==v) _reqAddFeatureId='';
+  renderRequirementsTracker();
+}
+function _reqSetAddFeature(v){
+  _reqAddFeatureId=v;
+  renderRequirementsTracker();
+  const input=eid('req-add-text');
+  if(input) input.focus();
+}
+
+function renderRequirementsTracker(){
+  const wrap=eid('viewRequirements');
+  const prevScrollTop=wrap.querySelector('.req-content')?.scrollTop||0;
+  wrap.innerHTML='';
+
+  let html=`<div class="req-wrap">`;
+
+  // ── Header: title + search ──
+  html+=`<div class="req-header">
+    <div class="req-header-title">Requirements Tracker</div>
+    <div class="req-search-wrap">
+      <span class="material-icons-round req-search-icon">search</span>
+      <input class="req-search-input" id="req-search-input" type="text" placeholder="Search requirements…" value="${escH(_reqSearchQuery)}" oninput="_reqSetSearch(this.value)">
+      ${_reqSearchQuery?`<button class="req-search-clear" onclick="_reqClearSearch()" title="Clear search">✕</button>`:''}
+    </div>
+  </div>`;
+
+  // ── Filters row — Phase reuses the shared top-nav phase pills (#phaseBar,
+  // selectedPhases/togglePhase()) the same way Transformation Report does;
+  // no separate phase control is built here. Product/Epic/Feature cascade,
+  // plus Dev Status / Test Status / Owner. ──
+  html+=`<div class="req-filters">
+    <select class="req-filter-select" id="req-filter-product" onchange="_reqSetFilterProduct(this.value)">
+      <option value="">All products</option>
+      ${ROADMAP_PRODUCTS.map(p=>`<option value="${p.id}"${p.id===_reqFilterProductId?' selected':''}>${escH(p.name)}</option>`).join('')}
+    </select>
+    <select class="req-filter-select" id="req-filter-epic" onchange="_reqSetFilterEpic(this.value)">${_reqFilterEpicOptionsHtml()}</select>
+    <select class="req-filter-select" id="req-filter-feature" onchange="_reqSetFilterFeature(this.value)">${_reqFilterFeatureOptionsHtml()}</select>
+    <select class="req-filter-select" id="req-filter-devstatus" onchange="_reqSetFilterDevStatus(this.value)">
+      <option value="">All dev statuses</option>
+      ${REQ_STATUSES.map(st=>`<option value="${st}"${st===_reqFilterDevStatus?' selected':''}>Dev: ${st}</option>`).join('')}
+    </select>
+    <select class="req-filter-select" id="req-filter-teststatus" onchange="_reqSetFilterTestStatus(this.value)">
+      <option value="">All test statuses</option>
+      ${REQ_STATUSES.map(st=>`<option value="${st}"${st===_reqFilterTestStatus?' selected':''}>Test: ${st}</option>`).join('')}
+    </select>
+    <select class="req-filter-select" id="req-filter-owner" onchange="_reqSetFilterOwner(this.value)">
+      <option value="">All owners</option>
+      ${Object.keys(OWNER_C).map(o=>`<option value="${escH(o)}"${o===_reqFilterOwner?' selected':''}>${escH(o)}</option>`).join('')}
+    </select>
+  </div>`;
+
+  // ── Content / table ──
+  html+=`<div class="req-content">`;
+  if(!ROADMAP_FEATURES.length){
+    // Requirements attach to a Feature (Product Roadmap's Stories) — with no
+    // Feature to attach to, the add-bar below would be unusable, so point the
+    // user at the Roadmap instead of rendering a form that can't work.
+    html+=`<div class="rm-empty">
+      <div class="rm-empty-title">No features yet</div>
+      <div class="rm-empty-sub">Requirements attach to a Feature from the Product Roadmap — add a product, functional area and feature there first, then come back here to add requirements.</div>
+    </div>`;
+  } else {
+    const q=_reqSearchQuery.trim().toLowerCase();
+    const rows=ROADMAP_STORIES.filter(s=>{
+      const {feature,epic,product}=_reqResolveChain(s);
+      if(_reqFilterProductId && product?.id!==_reqFilterProductId) return false;
+      if(_reqFilterEpicId && epic?.id!==_reqFilterEpicId) return false;
+      if(_reqFilterFeatureId && feature?.id!==_reqFilterFeatureId) return false;
+      if(_reqFilterDevStatus && s.devStatus!==_reqFilterDevStatus) return false;
+      if(_reqFilterTestStatus && s.testStatus!==_reqFilterTestStatus) return false;
+      if(_reqFilterOwner && s.owner!==_reqFilterOwner) return false;
+      if(feature && !selectedPhases.has(feature.phaseId)) return false;
+      if(q && !s.text.toLowerCase().includes(q) && !(s.source||'').toLowerCase().includes(q) && !(s.code||'').toLowerCase().includes(q)) return false;
+      return true;
+    });
+    if(ROADMAP_STORIES.length){
+      html+=`<div class="req-table-scroll"><table class="req-table">
+        <thead><tr>
+          <th style="width:460px">Requirement</th>
+          <th style="width:260px">Phase / Product / Area / Feature</th>
+          <th style="width:170px">Type</th>
+          <th style="width:120px">Dev Status</th>
+          <th style="width:120px">Test Status</th>
+          <th style="width:120px">Owner</th>
+          <th style="width:160px">Source</th>
+          <th style="width:70px">Comments</th>
+          <th style="width:40px"></th>
+        </tr></thead>
+        <tbody>`;
+      rows.forEach(s=>{
+        const devC=REQ_STATUS_COLOURS[s.devStatus]||REQ_STATUS_COLOURS['Not Started'];
+        const testC=REQ_STATUS_COLOURS[s.testStatus]||REQ_STATUS_COLOURS['Not Started'];
+        const typeC=REQTYPE_C[s.type]||null;
+        html+=`<tr>
+          <td>
+            <div class="req-code-badge" title="Requirement ID">${escH(s.code||'—')}</div>
+            ${s.jiraKey?`<button type="button" class="req-jira-badge" onclick="_jiraOpenIssue('${escH(s.jiraKey)}')" title="Open ${escH(s.jiraKey)} in Jira"><span class="material-icons-round" style="font-size:9px">open_in_new</span>${escH(s.jiraKey)}</button>`:''}
+            <textarea class="req-text-input req-text-input-main" onchange="updReqField('${s.id}','text',this.value)">${escH(s.text)}</textarea>
+          </td>
+          <td>
+            ${_reqExpandedReassignId===s.id
+              ? `<select class="req-select req-reassign-select" onchange="updReqField('${s.id}','featureId',this.value)" title="Reassign to a different feature" autofocus>${_reqFeatureOptionsHtml(s.featureId)}</select>`
+              : `<div class="req-chain-row">${_reqChainPillsHtml(s)}<button class="req-chain-expand-btn" onclick="_reqToggleReassign('${s.id}')" title="Reassign feature"><span class="material-icons-round" style="font-size:14px">unfold_more</span></button></div>`
+            }
+          </td>
+          <td><select class="req-select" style="${typeC?`color:${typeC};border-color:${typeC}66`:''}" onchange="updReqField('${s.id}','type',this.value)">
+            <option value=""${!s.type?' selected':''}>—</option>
+            ${Object.keys(REQTYPE_C).map(t=>`<option value="${escH(t)}"${t===s.type?' selected':''}>${escH(t)}</option>`).join('')}
+          </select></td>
+          <td><select class="req-select req-status-select" style="color:${devC.fg};background:${devC.bg}" onchange="updReqField('${s.id}','devStatus',this.value)">
+            ${REQ_STATUSES.map(st=>`<option value="${st}"${st===s.devStatus?' selected':''}>${st}</option>`).join('')}
+          </select></td>
+          <td><select class="req-select req-status-select" style="color:${testC.fg};background:${testC.bg}" onchange="updReqField('${s.id}','testStatus',this.value)">
+            ${REQ_STATUSES.map(st=>`<option value="${st}"${st===s.testStatus?' selected':''}>${st}</option>`).join('')}
+          </select></td>
+          <td><select class="req-select" onchange="updReqField('${s.id}','owner',this.value)">
+            <option value=""${!s.owner?' selected':''}>—</option>
+            ${Object.keys(OWNER_C).map(o=>`<option value="${escH(o)}"${o===s.owner?' selected':''}>${escH(o)}</option>`).join('')}
+          </select></td>
+          <td><input type="text" class="req-text-input" placeholder="e.g. Client interview" value="${escH(s.source||'')}" onchange="updReqField('${s.id}','source',this.value)"></td>
+          <td>${commentBadgeHtml('story',s.id,{label:s.text.slice(0,60)})}</td>
+          <td><button class="rm-story-del" data-requires-edit onclick="delReqEntry('${s.id}')" title="Delete requirement">×</button></td>
+        </tr>`;
+      });
+      html+=`</tbody></table></div>`;
+      if(!rows.length) html+=`<div class="rm-empty">No requirements match this filter.</div>`;
+    } else {
+      html+=`<div class="rm-empty">
+        <div class="rm-empty-title">No requirements yet</div>
+        <div class="rm-empty-sub">Add your first requirement using the bar at the bottom of the screen.</div>
+      </div>`;
+    }
+  }
+  html+=`</div>`; // /.req-content
+
+  // ── Sticky bottom Add-requirements bar — occupies the same footer slot the
+  // Layers menu uses elsewhere (hidden here, see switchView()), collapsible
+  // so the table can reclaim that space. Phase/Epic/Feature selections stay
+  // sticky across adds so several requirements can be added to the same
+  // feature without re-picking from scratch each time. ──
+  if(ROADMAP_FEATURES.length){
+    const addFeat=ROADMAP_FEATURES.find(f=>f.id===_reqAddFeatureId);
+    const addChain=addFeat?_reqResolveChain({featureId:addFeat.id}):null;
+    html+=`<div class="req-add-bar" data-requires-edit>
+      <div class="req-add-bar-hd" onclick="_reqToggleAddBar()">
+        <span class="material-icons-round req-add-bar-chev">${_reqAddBarCollapsed?'expand_less':'expand_more'}</span>
+        <span class="req-add-bar-title">Add requirements</span>
+        <span class="req-add-bar-count">${ROADMAP_STORIES.length} total</span>
+      </div>`;
+    if(!_reqAddBarCollapsed){
+      html+=`<div class="req-add-bar-body">
+        <div class="req-add-context">
+          <select class="req-select" id="req-add-phase" onchange="_reqSetAddPhase(this.value)">${_reqAddPhaseOptionsHtml()}</select>
+          <select class="req-select" id="req-add-epic" onchange="_reqSetAddEpic(this.value)">${_reqAddEpicOptionsHtml()}</select>
+          <select class="req-select" id="req-add-feature" onchange="_reqSetAddFeature(this.value)"${!_reqAddEpicId?' disabled':''}>${_reqAddFeatureOptionsHtml()}</select>
+        </div>
+        <div class="req-add-entry">
+          <input type="text" class="req-text-input" id="req-add-text" placeholder="${addFeat?'New requirement text…':'Select a phase, functional area and feature above first'}"${!addFeat?' disabled':''} onkeydown="if(event.key==='Enter'){event.preventDefault();addReqEntry();}">
+          <button class="mbtn mbtn-save" onclick="addReqEntry()"${!addFeat?' disabled':''}>+ Add requirement</button>
+        </div>
+        ${addFeat?`<div class="req-add-target">Adding to: <strong>${escH(addFeat.name)}</strong> — ${escH(addChain.product?.name||'')} › ${escH(addChain.epic?.name||'')}${addFeat.phaseId?` › ${escH(PHASES.find(ph=>ph.id===addFeat.phaseId)?.name||'')}`:''}</div>`:''}
+      </div>`;
+    }
+    html+=`</div>`; // /.req-add-bar
+  }
+  html+=`</div>`; // /.req-wrap
+
+  wrap.innerHTML=html;
+  const newContent=wrap.querySelector('.req-content');
+  if(newContent) newContent.scrollTop=prevScrollTop;
+  if(typeof applyRoleUI==='function') applyRoleUI();
+}
+
+/* ═══════════════════════════════════════════
+   REDIRECT TRACKER
+   Lists every redirect-in-progress and every decommissioned page, grouped by
+   phase — the two populations rdrCollectRows() resolves (see its comment
+   near gn()). Completion is the existing persisted redirectCreated field;
+   the live HTTP-redirect check (RDR_VERIFY_CACHE) is a session-only,
+   never-saved informational badge shown alongside it — see the Redirect
+   Tracker plan for why it isn't persisted.
+═══════════════════════════════════════════ */
+function _rdrUrlLink(url,cls){
+  if(!url) return '<span style="color:var(--secondary);font-size:11px">No target set</span>';
+  const isAbs=/^https?:\/\//i.test(url);
+  const cssCls=`pt-url-val${cls?' '+cls:''}`;
+  if(!isAbs) return `<span class="${cssCls}">${escH(url)}</span>`;
+  return `<a class="${cssCls}" href="${escH(url)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">${escH(url)}<span class="material-icons-round">open_in_new</span></a>`;
+}
+const RDR_STATUS_META={
+  'verified':       {label:'Verified',        cls:'ok'},
+  'mismatch':       {label:'Redirects elsewhere', cls:'warn'},
+  'not-redirecting':{label:'Not redirecting yet',  cls:'warn'},
+  'error':          {label:'Check failed',    cls:'err'},
+  'no-target':      {label:'No target set',   cls:'neutral'},
+};
+function _rdrStatusBadgeHtml(nodeId){
+  const cached=RDR_VERIFY_CACHE[nodeId];
+  if(!cached) return `<span class="rdr-status-badge neutral">Not checked yet</span>`;
+  const meta=RDR_STATUS_META[cached.status]||{label:cached.status,cls:'neutral'};
+  return `<span class="rdr-status-badge ${meta.cls}" title="Checked ${_cmtFmtDate(cached.checkedAt)}">${escH(meta.label)}</span>`;
+}
+function rdrVerifyRow(nodeId){
+  const row=rdrCollectRows().find(r=>r.node.id===nodeId);
+  if(row) rdrVerifyNow([row]);
+}
+function rdrVerifyPhase(phaseId){
+  const rows=rdrCollectRows().filter(r=>r.phaseId===phaseId);
+  rdrVerifyNow(rows);
+}
+function rdrVerifyAllVisible(){
+  const rows=rdrCollectRows().filter(r=>selectedPhases.has(r.phaseId));
+  rdrVerifyNow(rows);
+}
+function renderRedirectTracker(){
+  const wrap=eid('viewRedirects');
+  const prevScrollTop=wrap.querySelector('.req-content')?.scrollTop||0;
+  wrap.innerHTML='';
+
+  const allRows=rdrCollectRows();
+  // Keep redirectFrom/redirectTo populated for the existing generic URL
+  // checker too, not just for display here — same call TR already makes.
+  allRows.forEach(r=>{ if(r.kind==='redirect') autoFillRedirects(r.node); });
+
+  const activePhases=PHASES.filter(ph=>allRows.some(r=>r.phaseId===ph.id));
+  const anyPanelVisible=activePhases.some(ph=>selectedPhases.has(ph.id));
+
+  let html=`<div class="req-wrap">`;
+  html+=`<div class="req-header">
+    <div class="req-header-title">Redirect Tracker</div>
+    <div style="margin-left:auto">${dsButton('Verify all visible',{variant:'outline',size:'sm',iconLeading:'refresh',onclick:'rdrVerifyAllVisible()'})}</div>
+  </div>`;
+
+  html+=`<div class="req-content">`;
+
+  if(!allRows.length){
+    html+=`<div class="rm-empty">
+      <div class="rm-empty-title">Nothing to track yet</div>
+      <div class="rm-empty-sub">Redirect Tracker lists pages whose URL is changing in a phase variant, and pages marked decommissioned. Nothing matches either yet.</div>
+    </div>`;
+  } else if(!anyPanelVisible){
+    const emptyNames=PHASES.filter(ph=>selectedPhases.has(ph.id)).map(ph=>ph.name);
+    const emptyLabel=emptyNames.length?emptyNames.map(escH).join(', '):'this phase';
+    html+=`<div class="tr-empty-phase">
+      <span class="material-icons-round tr-empty-phase-icon">explore_off</span>
+      <div class="tr-empty-phase-title">No redirects or decommissions for ${emptyLabel}</div>
+      <div class="tr-empty-phase-sub">Choose another project phase to see its Redirect Tracker</div>
+      <div class="tr-empty-phase-pills">
+        ${PHASES.map(ph=>`<button class="phase-chip${selectedPhases.has(ph.id)?' active':''}" onclick="switchPhase('${ph.id}')">
+          <div class="phase-dot" style="background:${ph.colour}"></div>${escH(ph.name)}
+        </button>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  activePhases.forEach(ph=>{
+    const isActive=selectedPhases.has(ph.id);
+    const phRows=allRows.filter(r=>r.phaseId===ph.id);
+    const doneCount=phRows.filter(r=>r.rowNode.redirectCreated).length;
+    const pct=phRows.length?Math.round(doneCount/phRows.length*100):0;
+
+    html+=`<div class="tr-phase-panel" data-rdr-panel="${ph.id}" style="${isActive?'':'display:none'}">`;
+    html+=`<div class="tr-summary-card" style="border-left:5px solid ${ph.colour}">
+      <div class="tr-summary-card-hd">
+        <div style="flex:1;min-width:200px">
+          <div class="tr-summary-title" style="color:${ph.colour}">${escH(ph.name)}${ph.desc?` — ${escH(ph.desc)}`:''}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div class="tr-exec-pct-num" style="color:${pct===100?'var(--brand-primary)':ph.colour}">${pct}%</div>
+          <div class="tr-exec-pct-cap">${doneCount} of ${phRows.length} complete</div>
+        </div>
+      </div>
+    </div>`;
+
+    html+=`<div class="req-table-scroll"><table class="req-table rdr-table">
+      <thead><tr>
+        <th style="width:240px">Page</th>
+        <th style="width:340px">Old URL → New URL</th>
+        <th style="width:170px">Live check</th>
+        <th style="width:120px">Complete</th>
+        <th style="width:70px"></th>
+      </tr></thead>
+      <tbody>`;
+    phRows.forEach(r=>{
+      const title=r.node.title||r.canon.title||r.node.id;
+      const done=!!r.rowNode.redirectCreated;
+      html+=`<tr>
+        <td>
+          <a onclick="openTray('${r.node.id}')" style="cursor:pointer;font-weight:600;color:var(--ink);text-decoration:none">${escH(title)}</a>
+          <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-top:2px">${r.kind==='decommission'?'Decommissioned':'Redirect'}</div>
+        </td>
+        <td class="rdr-url-cell">
+          ${_rdrUrlLink(r.oldUrl)}
+          <span class="material-icons-round" style="font-size:13px;color:var(--secondary);vertical-align:middle">arrow_forward</span>
+          ${_rdrUrlLink(r.newUrl,'new')}
+        </td>
+        <td>${_rdrStatusBadgeHtml(r.node.id)}</td>
+        <td>
+          <label style="display:flex;align-items:center;gap:6px;cursor:${canEdit()?'pointer':'default'}">
+            <input type="checkbox" ${done?'checked':''} ${canEdit()?'':'disabled'} onchange="upd('${r.rowNode.id}','redirectCreated',this.checked);renderRedirectTracker()">
+            <span style="font-size:11px;color:${done?'var(--wf-live-fg)':'var(--text2)'}">${done?'Complete':'Not yet'}</span>
+          </label>
+        </td>
+        <td><button class="rdr-verify-btn" onclick="rdrVerifyRow('${r.node.id}')" title="Check this redirect now"><span class="material-icons-round" style="font-size:14px">refresh</span></button></td>
+      </tr>`;
+    });
+    html+=`</tbody></table></div>`;
+    html+=`</div>`; // end phase panel
+  });
+
+  html+=`</div>`; // end .req-content
+  html+=`</div>`; // end .req-wrap
+  wrap.innerHTML=html;
+  const newContent=wrap.querySelector('.req-content');
+  if(newContent) newContent.scrollTop=prevScrollTop;
+  if(typeof applyRoleUI==='function') applyRoleUI();
+}
+
+function _reqSetSearch(val){
+  _reqSearchQuery=val||'';
+  // A full renderRequirementsTracker() rebuilds the whole panel's innerHTML —
+  // which destroys and recreates this very <input>, dropping focus after every
+  // keystroke (same issue already solved this way for Transformation Report's
+  // search box) — so explicitly restore focus + cursor position afterward.
+  const cursorPos=eid('req-search-input')?.selectionStart;
+  renderRequirementsTracker();
+  const input=eid('req-search-input');
+  if(input){ input.focus(); if(cursorPos!=null) input.setSelectionRange(cursorPos,cursorPos); }
+}
+function _reqClearSearch(){ _reqSearchQuery=''; renderRequirementsTracker(); }
+
+function updReqField(storyId, field, val){
+  if(!canEdit()){showToast('View-only access — editing is disabled');return;}
+  const s=ROADMAP_STORIES.find(s=>s.id===storyId); if(!s)return;
+  s[field]=val;
+  dbUpsertStory(s);
+  // Reassigning the feature is done — collapse back to the compact pills view.
+  if(field==='featureId' && _reqExpandedReassignId===storyId) _reqExpandedReassignId='';
+  renderRequirementsTracker();
+}
+
+function addReqEntry(){
+  if(!canEdit()){showToast('View-only access — editing is disabled');return;}
+  const featureId=_reqAddFeatureId;
+  const text=(eid('req-add-text')?.value||'').trim();
+  if(!featureId){showToast('Select a phase, functional area and feature first','error');return;}
+  if(!text){showToast('Enter the requirement text','error');return;}
+  const story={id:'ST'+Date.now(),code:_reqGenerateCode(featureId),featureId,text,stretch:false,type:'',devStatus:'Not Started',testStatus:'Not Started',owner:'',source:'',order:ROADMAP_STORIES.filter(s=>s.featureId===featureId).length};
+  ROADMAP_STORIES.push(story);
+  dbUpsertStory(story);
+  // Phase/Epic/Feature stay selected (sticky) so several requirements can be
+  // added to the same feature in a row — only the text field resets.
+  renderRequirementsTracker();
+  const input=eid('req-add-text');
+  if(input) input.focus();
+  showToast('Requirement added');
+}
+
+function delReqEntry(storyId){
+  if(!canEdit()){showToast('View-only access — editing is disabled');return;}
+  if(!confirm('Delete this requirement? This cannot be undone.'))return;
+  ROADMAP_STORIES=ROADMAP_STORIES.filter(s=>s.id!==storyId);
+  dbDeleteStory(storyId);
+  renderRequirementsTracker();
+  showToast('Requirement deleted');
 }
 
 /* ─── PLATFORM / CLUSTER ────────────────────────────────────────────────── */
@@ -9266,20 +10430,29 @@ let settingsTab = 'systems';
 let settingsCMS = {};
 let settingsOWNER = {};
 let settingsSTATUS = {};
+let settingsREQTYPE = {};
+let settingsJIRA = {}; // working copy of JIRA_TYPE_MAP, edited in Settings > Jira
+let settingsHOME = { welcomeNote:'', meta:{} }; // working copy of WELCOME_NOTE/HOMEPAGE_VIEW_META, edited in Settings > Homepage
+let _jiraStatusCache = null; // {configured,baseUrl,projectKey} — fetched once per panel open
+let _jiraSyncing = false;
 // Keys present when the panel was opened — a rename or delete only ever
 // changes these working copies' own keys, so at Save time we diff against
 // this snapshot to find entries that vanished (renamed away from or removed)
 // and clear out their now-orphaned Config sheet row. Without this, upserting
 // only the CURRENT keys left the OLD row behind forever, so a renamed or
 // deleted status/system/owner would silently reappear on the next reload.
-let settingsOrigKeys = { cms:[], owner:[], status:[] };
+let settingsOrigKeys = { cms:[], owner:[], status:[], reqtype:[] };
 
 function openSettings(tab){
   // Deep-copy current live data into working copies
-  settingsCMS    = JSON.parse(JSON.stringify(CMS));
-  settingsOWNER  = JSON.parse(JSON.stringify(OWNER_C));
-  settingsSTATUS = JSON.parse(JSON.stringify(STATUS));
-  settingsOrigKeys = { cms:Object.keys(settingsCMS), owner:Object.keys(settingsOWNER), status:Object.keys(settingsSTATUS) };
+  settingsCMS     = JSON.parse(JSON.stringify(CMS));
+  settingsOWNER   = JSON.parse(JSON.stringify(OWNER_C));
+  settingsSTATUS  = JSON.parse(JSON.stringify(STATUS));
+  settingsREQTYPE = JSON.parse(JSON.stringify(REQTYPE_C));
+  settingsJIRA    = JSON.parse(JSON.stringify(JIRA_TYPE_MAP));
+  settingsHOME    = { welcomeNote: WELCOME_NOTE, meta: JSON.parse(JSON.stringify(HOMEPAGE_VIEW_META)) };
+  settingsOrigKeys = { cms:Object.keys(settingsCMS), owner:Object.keys(settingsOWNER), status:Object.keys(settingsSTATUS), reqtype:Object.keys(settingsREQTYPE) };
+  _jiraStatusCache = null;
   switchStab(tab || settingsTab);
   eid('settingsPanel').classList.add('open');
 }
@@ -9288,7 +10461,7 @@ function closeSettings(){
 }
 function switchStab(tab){
   settingsTab = tab;
-  ['systems','owners','statuses','brand','logo','layout','crawl','components'].forEach(t=>{
+  ['systems','owners','statuses','reqtypes','brand','logo','layout','crawl','components','jira','home'].forEach(t=>{
     const el=eid('stab-'+t); if(el) el.classList.toggle('active', t===tab);
   });
   renderSettingsBody();
@@ -9299,11 +10472,14 @@ function renderSettingsBody(){
   if(settingsTab === 'systems')  body.innerHTML = renderSystemsTab();
   if(settingsTab === 'owners')   body.innerHTML = renderOwnersTab();
   if(settingsTab === 'statuses') body.innerHTML = renderStatusesTab();
+  if(settingsTab === 'reqtypes') body.innerHTML = renderReqTypesTab();
   if(settingsTab === 'brand')    body.innerHTML = renderBrandTab();
   if(settingsTab === 'logo')     body.innerHTML = renderLogoTab();
   if(settingsTab === 'layout')     body.innerHTML = renderLayoutTab();
   if(settingsTab === 'crawl')      body.innerHTML = renderCrawlTab();
   if(settingsTab === 'components') body.innerHTML = renderComponentsTab();
+  if(settingsTab === 'jira'){ body.innerHTML = renderJiraTab(); _jiraFetchStatus(); }
+  if(settingsTab === 'home')      body.innerHTML = renderHomeTab();
 }
 
 
@@ -9599,6 +10775,56 @@ function delOwnerEntry(i){
 function addOwnerEntry(){
   const name = 'New Owner '+(Object.keys(settingsOWNER).length+1);
   settingsOWNER[name] = '#2e4f7a';
+  renderSettingsBody();
+  setTimeout(()=>{
+    const inputs = eid('settingsBody').querySelectorAll('.cfg-name-input');
+    if(inputs.length) inputs[inputs.length-1].select();
+  },50);
+}
+
+// ── REQUIREMENT TYPES TAB — same name->colour pattern as Owners, used by
+// the Requirements Tracker view's Type column. ──────────────────────────
+function renderReqTypesTab(){
+  const rows = Object.entries(settingsREQTYPE).map(([name,colour],i)=>`
+    <div class="cfg-row" id="reqtype-row-${i}">
+      <div class="cfg-swatch" title="Type colour">
+        <div class="cfg-swatch-bg" style="background:${colour}"></div>
+        <input type="color" value="${colour}" oninput="updReqTypeColour(${i},this.value)" onchange="updReqTypeColour(${i},this.value)">
+      </div>
+      <input class="cfg-name-input" value="${escH(name)}" placeholder="Requirement type name"
+        onchange="renameReqType(${i},this.value)">
+      <button class="cfg-del" onclick="delReqTypeEntry(${i})" title="Remove">×</button>
+    </div>`).join('');
+  return `<div class="settings-section">
+    <div class="settings-section-title">Requirement Types</div>
+    <div style="font-size:9px;color:var(--text3);margin-bottom:10px">Used by the Requirements Tracker to classify each requirement (e.g. Functional Requirement, Business Rule, Regulatory Requirement).</div>
+    <div class="cfg-list">${rows}</div>
+    <button class="cfg-add-btn" onclick="addReqTypeEntry()">+ Add requirement type</button>
+  </div>`;
+}
+function reqTypeKeys(){ return Object.keys(settingsREQTYPE); }
+function updReqTypeColour(i, val){
+  const key = reqTypeKeys()[i]; if(!key) return;
+  settingsREQTYPE[key] = val;
+  const row = document.getElementById('reqtype-row-'+i);
+  if(row) row.querySelector('.cfg-swatch-bg').style.background = val;
+}
+function renameReqType(i, newName){
+  newName = newName.trim(); if(!newName) return;
+  const keys = reqTypeKeys();
+  const oldKey = keys[i]; if(!oldKey || oldKey === newName) return;
+  const rebuilt = {};
+  keys.forEach(k => { rebuilt[k===oldKey ? newName : k] = settingsREQTYPE[k]; });
+  settingsREQTYPE = rebuilt;
+}
+function delReqTypeEntry(i){
+  const key = reqTypeKeys()[i]; if(!key) return;
+  delete settingsREQTYPE[key];
+  renderSettingsBody();
+}
+function addReqTypeEntry(){
+  const name = 'New Type '+(Object.keys(settingsREQTYPE).length+1);
+  settingsREQTYPE[name] = '#2e4f7a';
   renderSettingsBody();
   setTimeout(()=>{
     const inputs = eid('settingsBody').querySelectorAll('.cfg-name-input');
@@ -9908,6 +11134,130 @@ function renderLayoutTab(){
 }
 
 
+// ── JIRA SETTINGS TAB ────────────────────────────────────────────────────
+function renderJiraTab(){
+  return `<div class="settings-section">
+    <div class="settings-section-title">Connection</div>
+    <div style="font-size:10px;color:var(--text3);margin-bottom:12px;line-height:1.5">
+      The Jira base URL, account email and API token are set directly in the Apps Script backend (in the JIRA CONNECTION block near SHEET_ID) — not here, and never sent to the browser.
+    </div>
+    <div id="jira-status-box" class="jira-status-box">Checking connection…</div>
+  </div>
+  <div class="settings-section">
+    <div class="settings-section-title">Issue Type Mapping</div>
+    <div style="font-size:10px;color:var(--text3);margin-bottom:14px;line-height:1.5">
+      Which Jira issue type each level pushes as when you click Sync. Match these to issue types that actually exist in your Jira project — "Feature" as a level between Epic and Story is a custom hierarchy most Jira projects need configuring for.
+    </div>
+    ${_jiraMapFieldHtml('product','Product →')}
+    ${_jiraMapFieldHtml('epic','Functional Area (Epic) →')}
+    ${_jiraMapFieldHtml('feature','Feature →')}
+    ${_jiraMapFieldHtml('requirement','Requirement →')}
+  </div>
+  <div class="settings-section">
+    <div class="settings-section-title">Sync</div>
+    <div style="font-size:10px;color:var(--text3);margin-bottom:12px;line-height:1.5">
+      Pushes every Product, Functional Area, Feature and Requirement to Jira as an issue — creating new ones and updating any already linked. Never reads from Jira or deletes anything there.
+    </div>
+    <button class="mbtn mbtn-save" id="jira-sync-btn" onclick="syncToJiraNow()">Sync to Jira</button>
+    <div id="jira-sync-result" style="margin-top:10px;font-size:11px;color:var(--text2);line-height:1.5"></div>
+  </div>`;
+}
+function _jiraMapFieldHtml(key,label){
+  return `<div style="margin-bottom:12px">
+    <label style="display:block;font-size:11px;font-weight:600;color:var(--text2);margin-bottom:3px">${label}</label>
+    <input value="${escH(settingsJIRA[key]||'')}" placeholder="Jira issue type name"
+      oninput="settingsJIRA['${key}']=this.value"
+      style="width:100%;max-width:280px;box-sizing:border-box;height:32px;padding:0 10px;border:1px solid var(--md-outline);border-radius:8px;font-family:var(--font-mono);font-size:11px;background:var(--md-surface);color:var(--md-on-surface);outline:none">
+  </div>`;
+}
+async function _jiraFetchStatus(){
+  if(_jiraStatusCache){ _jiraRenderStatus(); return; }
+  try{ _jiraStatusCache = await sheetPost({action:'getJiraStatus'}); }
+  catch(e){ _jiraStatusCache = {configured:false, error:e.message}; }
+  _jiraRenderStatus();
+}
+function _jiraRenderStatus(){
+  const box=eid('jira-status-box'); if(!box) return;
+  const st=_jiraStatusCache;
+  if(!st || !st.configured){
+    box.innerHTML = `<span class="jira-status-dot jira-status-off"></span> Not configured — set JIRA_BASE_URL, JIRA_EMAIL, JIRA_API_TOKEN and JIRA_PROJECT_KEY in the Apps Script.`;
+  } else {
+    box.innerHTML = `<span class="jira-status-dot jira-status-on"></span> Connected to <strong>${escH(st.baseUrl)}</strong> — project <strong>${escH(st.projectKey)}</strong>`;
+  }
+}
+async function syncToJiraNow(){
+  if(!canEdit()){showToast('View-only access — editing is disabled');return;}
+  if(_jiraSyncing) return;
+  _jiraSyncing = true;
+  const btn=eid('jira-sync-btn'), result=eid('jira-sync-result');
+  if(btn){ btn.disabled=true; btn.textContent='Syncing…'; }
+  if(result) result.textContent='';
+  try{
+    const res = await sheetPost({action:'syncToJira'});
+    if(res.error) throw new Error(res.error);
+    if(result){
+      const errCount=(res.errors||[]).length;
+      result.innerHTML = `Issues — created <strong>${res.created||0}</strong>, updated <strong>${res.updated||0}</strong>. ` +
+        `Comments — created <strong>${res.commentsCreated||0}</strong>, updated <strong>${res.commentsUpdated||0}</strong>.` +
+        (errCount ? `<br><span style="color:#c5221f">${errCount} error(s)</span>: ` + res.errors.slice(0,5).map(e=>escH((e.name||e.id)+' — '+e.error)).join('; ') : '');
+    }
+    showToast('Jira sync complete');
+    // Backend wrote new jiraKeys straight to the Sheet — reload so the
+    // frontend's in-memory Roadmap/Requirements data catches up.
+    await loadFromSheets();
+  }catch(e){
+    if(result) result.innerHTML = `<span style="color:#c5221f">Sync failed: ${escH(e.message)}</span>`;
+    showToast('Jira sync failed: '+e.message);
+  } finally {
+    _jiraSyncing = false;
+    if(btn){ btn.disabled=false; btn.textContent='Sync to Jira'; }
+  }
+}
+
+// ── HOMEPAGE SETTINGS TAB — welcome note + per-view icon/description. Which
+// views appear and how they're grouped (HOMEPAGE_GROUPS) is fixed in code,
+// not editable here — see the HOMEPAGE_GROUPS declaration for why. ────────
+function renderHomeTab(){
+  const groupsHtml = HOMEPAGE_GROUPS.map(group=>`
+    <div class="settings-section">
+      <div class="settings-section-title">${escH(group.title)}</div>
+      ${group.views.map(id=>_homeFieldHtml(id)).join('')}
+    </div>`).join('');
+  return `<div class="settings-section">
+    <div class="settings-section-title">Welcome Note</div>
+    <div style="font-size:10px;color:var(--text3);margin-bottom:10px;line-height:1.5">Shown at the top of the Homepage, above the view tiles.</div>
+    <textarea id="home-welcome-note" rows="3" placeholder="Welcome — choose a view below to get started."
+      oninput="settingsHOME.welcomeNote=this.value"
+      style="width:100%;max-width:520px;box-sizing:border-box;padding:8px 10px;border:1px solid var(--md-outline);border-radius:8px;font-family:var(--font-body);font-size:12px;background:var(--md-surface);color:var(--md-on-surface);outline:none;resize:vertical">${escH(settingsHOME.welcomeNote||'')}</textarea>
+  </div>
+  ${groupsHtml}`;
+}
+function _homeFieldHtml(id){
+  const opt = VIEW_OPTIONS.find(o=>o.id===id);
+  const label = opt ? opt.label : id;
+  const meta = settingsHOME.meta[id] || {};
+  return `<div class="cfg-row" id="home-row-${id}" style="align-items:flex-start;height:auto;padding:10px 0">
+    <span class="material-icons-round" id="home-icon-preview-${id}" style="width:34px;height:34px;border-radius:9px;background:var(--brand-primary-light);color:var(--brand-primary);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px">${escH(meta.icon||'help_outline')}</span>
+    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:5px">
+      <div style="font-size:11.5px;font-weight:700;color:var(--ink)">${escH(label)}</div>
+      <input value="${escH(meta.icon||'')}" placeholder="Material icon name, e.g. account_tree"
+        oninput="updHomeMeta('${id}','icon',this.value)"
+        style="width:100%;max-width:280px;box-sizing:border-box;height:28px;padding:0 9px;border:1px solid var(--md-outline);border-radius:7px;font-family:var(--font-mono);font-size:10.5px;background:var(--md-surface);color:var(--md-on-surface);outline:none">
+      <input value="${escH(meta.desc||'')}" placeholder="One sentence describing this area"
+        oninput="updHomeMeta('${id}','desc',this.value)"
+        style="width:100%;max-width:420px;box-sizing:border-box;height:28px;padding:0 9px;border:1px solid var(--md-outline);border-radius:7px;font-family:var(--font-body);font-size:11px;background:var(--md-surface);color:var(--md-on-surface);outline:none">
+    </div>
+  </div>`;
+}
+function updHomeMeta(id, field, val){
+  if(!settingsHOME.meta[id]) settingsHOME.meta[id] = {};
+  settingsHOME.meta[id][field] = val;
+  if(field==='icon'){
+    const prev = eid('home-icon-preview-'+id);
+    if(prev) prev.textContent = val || 'help_outline';
+  }
+}
+
 async function saveSettings(){
   // 1. Commit any in-progress name edits (inputs may not have fired onchange yet)
   eid('settingsBody').querySelectorAll('.cfg-name-input').forEach(inp=>inp.dispatchEvent(new Event('change')));
@@ -9928,23 +11278,35 @@ async function saveSettings(){
     renderCanvas();
   }
   // 3. Commit working copies to live data
-  CMS     = JSON.parse(JSON.stringify(settingsCMS));
-  OWNER_C = JSON.parse(JSON.stringify(settingsOWNER));
-  STATUS  = JSON.parse(JSON.stringify(settingsSTATUS));
+  CMS       = JSON.parse(JSON.stringify(settingsCMS));
+  OWNER_C   = JSON.parse(JSON.stringify(settingsOWNER));
+  STATUS    = JSON.parse(JSON.stringify(settingsSTATUS));
+  REQTYPE_C = JSON.parse(JSON.stringify(settingsREQTYPE));
+  JIRA_TYPE_MAP = JSON.parse(JSON.stringify(settingsJIRA));
+  WELCOME_NOTE = settingsHOME.welcomeNote || '';
+  HOMEPAGE_VIEW_META = JSON.parse(JSON.stringify(settingsHOME.meta));
   _stampStatusOrder();
   // 4. Write everything to Config sheet
   try {
-    for(const [k,v] of Object.entries(CMS))    await dbUpsertConfig('cms_'+k,    JSON.stringify(v));
-    for(const [k,v] of Object.entries(STATUS))  await dbUpsertConfig('status_'+k, JSON.stringify(v));
-    for(const [k,v] of Object.entries(OWNER_C)) await dbUpsertConfig('owner_'+k,  v);
+    for(const [k,v] of Object.entries(CMS))       await dbUpsertConfig('cms_'+k,     JSON.stringify(v));
+    for(const [k,v] of Object.entries(STATUS))    await dbUpsertConfig('status_'+k,  JSON.stringify(v));
+    for(const [k,v] of Object.entries(OWNER_C))   await dbUpsertConfig('owner_'+k,   v);
+    for(const [k,v] of Object.entries(REQTYPE_C)) await dbUpsertConfig('reqtype_'+k, v);
+    for(const [k,v] of Object.entries(JIRA_TYPE_MAP)) await dbUpsertConfig('jira_map_'+k, v);
+    await dbUpsertConfig('home_welcome_note', WELCOME_NOTE);
+    for(const [id,meta] of Object.entries(HOMEPAGE_VIEW_META)){
+      if(meta.icon) await dbUpsertConfig('home_icon_'+id, meta.icon);
+      if(meta.desc) await dbUpsertConfig('home_desc_'+id, meta.desc);
+    }
     // Clean up rows for anything renamed or removed since the panel opened —
     // upsert above only ever touches rows for keys that still exist, so a
     // renamed/deleted entry's old row would otherwise linger in Config and
     // reappear as a ghost entry on the next reload.
-    for(const k of settingsOrigKeys.cms.filter(k=>!CMS.hasOwnProperty(k)))       await dbDeleteConfig('cms_'+k);
-    for(const k of settingsOrigKeys.status.filter(k=>!STATUS.hasOwnProperty(k))) await dbDeleteConfig('status_'+k);
-    for(const k of settingsOrigKeys.owner.filter(k=>!OWNER_C.hasOwnProperty(k))) await dbDeleteConfig('owner_'+k);
-    settingsOrigKeys = { cms:Object.keys(CMS), owner:Object.keys(OWNER_C), status:Object.keys(STATUS) };
+    for(const k of settingsOrigKeys.cms.filter(k=>!CMS.hasOwnProperty(k)))         await dbDeleteConfig('cms_'+k);
+    for(const k of settingsOrigKeys.status.filter(k=>!STATUS.hasOwnProperty(k)))   await dbDeleteConfig('status_'+k);
+    for(const k of settingsOrigKeys.owner.filter(k=>!OWNER_C.hasOwnProperty(k)))   await dbDeleteConfig('owner_'+k);
+    for(const k of settingsOrigKeys.reqtype.filter(k=>!REQTYPE_C.hasOwnProperty(k))) await dbDeleteConfig('reqtype_'+k);
+    settingsOrigKeys = { cms:Object.keys(CMS), owner:Object.keys(OWNER_C), status:Object.keys(STATUS), reqtype:Object.keys(REQTYPE_C) };
     await dbUpsertConfig('logo_url',  logoImgUrl);
     await dbUpsertConfig('logo_text', logoLabelText);
     for(const [k,v] of Object.entries(brandSettings)) await dbUpsertConfig('brand_'+k, v);
@@ -12064,6 +13426,7 @@ async function syncToSheets() {
     for (const [k, v] of Object.entries(CMS))    await dbUpsertConfig('cms_'+k, JSON.stringify(v));
     for (const [k, v] of Object.entries(STATUS))  await dbUpsertConfig('status_'+k, JSON.stringify(v));
     for (const [k, v] of Object.entries(OWNER_C)) await dbUpsertConfig('owner_'+k, v);
+    for (const [k, v] of Object.entries(REQTYPE_C)) await dbUpsertConfig('reqtype_'+k, v);
     await dbUpsertConfig('logo_url',  logoImgUrl);
     await dbUpsertConfig('logo_text', logoLabelText);
     showToast(`✓ Synced ${NODES.length} nodes + layers + config to Sheets`);
@@ -12150,10 +13513,11 @@ function _seedDemoData(){
     {id:'FT4',epicId:'EP1',phaseId:'PH3',name:'Pet weight limits',desc:'Surface per-airline pet weight/size limits',icon:'info',status:'Planned',stretch:true,order:1},
   ];
   ROADMAP_STORIES=[
-    {id:'ST1',featureId:'FT1',text:'Add pet_friendly flag to flight search API response',stretch:false,order:0},
-    {id:'ST2',featureId:'FT1',text:'Show pet icon + tooltip on eligible flight results',stretch:false,order:1},
-    {id:'ST3',featureId:'FT1',text:'Add "Pet friendly only" filter toggle to search form',stretch:false,order:2},
-    {id:'ST4',featureId:'FT1',text:'Update fare rules copy to mention pet policy',stretch:true,order:3},
+    {id:'ST1',code:'FLIG-PETA-001',featureId:'FT1',text:'Add pet_friendly flag to flight search API response',stretch:false,type:'Functional Requirement',devStatus:'In Progress',testStatus:'Not Started',owner:'Engineering',source:'Client interview',order:0},
+    {id:'ST2',code:'FLIG-PETA-002',featureId:'FT1',text:'Show pet icon + tooltip on eligible flight results',stretch:false,type:'Functional Requirement',devStatus:'Not Started',testStatus:'Not Started',owner:'Product',source:'Client interview',order:1},
+    {id:'ST3',code:'FLIG-PETA-003',featureId:'FT1',text:'Add "Pet friendly only" filter toggle to search form',stretch:false,type:'Functional Requirement',devStatus:'Blocked',testStatus:'Not Started',owner:'Engineering',source:'Stakeholder workshop',order:2},
+    {id:'ST4',code:'FLIG-PETA-004',featureId:'FT1',text:'Update fare rules copy to mention pet policy',stretch:true,type:'Business Rule',devStatus:'Not Started',testStatus:'Not Started',owner:'Legal',source:'Regulatory review',order:3},
+    {id:'ST5',code:'BOOK-PAYM-001',featureId:'FT2',text:'Retry must not double-charge the card on network failure',stretch:false,type:'Regulatory Requirement',devStatus:'Done',testStatus:'In Progress',owner:'Engineering',source:'PCI compliance audit',order:0},
   ];
   _rmActiveProductId='PR1';
   selectedPhases=new Set(['PH0']); curPhase='PH0';
@@ -12166,6 +13530,7 @@ function enterDemoMode(){
   ROLE_TABLE={'demo@sitemapper.app':'admin'};
   _seedDemoData();
   hideAuthOverlay();
+  showStartScreen();
   renderUserPill(); applyRoleUI();
   renderPhaseBar(); renderMetrics(); renderLayerBar(); renderLegend(); renderNav(); renderCanvas();
   hideLoader();

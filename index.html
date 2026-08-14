@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- StrategicSitemapper  v44 -->
+<!-- StrategicSitemapper  v58 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -331,7 +331,8 @@ header{height:56px;background:var(--md-surface);border-bottom:1px solid var(--md
 .hdr-view-item{display:flex;align-items:center;gap:9px;padding:8px 14px;cursor:pointer;font-size:12px;font-family:var(--font-body);color:var(--md-on-surface);transition:background .12s;white-space:nowrap}
 .hdr-view-item:hover{background:var(--md-surface-container)}
 .hdr-view-item.active{color:var(--brand-primary);font-weight:600;background:var(--brand-primary-light)}
-.hdr-view-item-emoji{font-size:14px;flex-shrink:0}
+.hdr-view-item-icon{font-size:16px!important;flex-shrink:0;width:18px;display:flex;justify-content:center;color:var(--text2)}
+.hdr-view-item.active .hdr-view-item-icon{color:var(--brand-primary)}
 .hdr-view-item-label{flex:1;overflow:hidden;text-overflow:ellipsis}
 .hdr-view-item-check{font-size:15px!important;flex-shrink:0;color:var(--brand-primary)}
 
@@ -965,18 +966,21 @@ header{height:56px;background:var(--md-surface);border-bottom:1px solid var(--md
 /* Capped height + its own scrollbar — a project with many configured statuses
    (or the 4-bucket rollup on top) must not grow the exec header itself, which
    sits above .tr-content and doesn't scroll with the rest of the page. */
-.tr-barchart-scroll{max-height:260px;overflow-y:auto}
-.tr-barchart{display:flex;flex-direction:column;gap:8px;padding:14px 16px 16px;margin-top:8px;border-radius:12px;background:var(--paper);border:1px solid var(--border)}
-.tr-barchart-row{display:flex;align-items:center;gap:10px;cursor:pointer;padding:1px 2px;border-radius:8px;transition:transform .12s}
+.tr-barchart-scroll{max-height:320px;overflow-y:auto}
+.tr-barchart{display:flex;flex-direction:column;gap:2px;padding:8px 12px 10px;margin-top:6px;border-radius:12px;background:var(--paper);border:1px solid var(--border)}
+/* More than 6 configured statuses switches to 2 columns (see renderTransformationReport)
+   so the whole breakdown stays visible without scrolling instead of growing tall. */
+.tr-barchart.two-col{display:grid;grid-template-columns:1fr 1fr;column-gap:16px}
+.tr-barchart-col{display:flex;flex-direction:column;gap:2px;min-width:0}
+.tr-barchart-row{display:flex;align-items:center;gap:10px;cursor:pointer;padding:2px;border-radius:6px;transition:transform .12s}
 .tr-barchart-row:hover{transform:translateX(2px)}
 .tr-barchart-row.active .tr-barchart-label{color:var(--brand-primary)}
 .tr-barchart-label{width:120px;flex-shrink:0;font-size:9px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;transition:color .12s}
-.tr-barchart-bar-area{position:relative;flex:1;padding-right:14px}
-.tr-barchart-track{position:relative;height:10px;background:var(--md-surface-variant);border-radius:var(--radius-full)}
-.tr-barchart-fill{position:relative;height:100%;min-width:10px;border-radius:var(--radius-full);transition:width .5s cubic-bezier(.22,1,.36,1);background:linear-gradient(180deg,color-mix(in srgb,var(--bar-col) 80%,white) 0%,var(--bar-col) 55%,color-mix(in srgb,var(--bar-col) 75%,black) 100%);box-shadow:inset 0 1px 1px rgba(255,255,255,.35),inset 0 -2px 3px rgba(0,0,0,.15)}
-.tr-barchart-bead{position:absolute;top:50%;right:0;transform:translate(50%,-50%);width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 32% 26%,#fff 0%,color-mix(in srgb,var(--bar-col) 55%,white) 18%,var(--bar-col) 52%,color-mix(in srgb,var(--bar-col) 55%,black) 100%);box-shadow:0 2px 4px rgba(0,0,0,.25),inset 0 -2px 3px rgba(0,0,0,.2)}
-.tr-barchart-val{width:52px;flex-shrink:0;font-size:11px;font-weight:800;color:var(--ink);white-space:nowrap;text-align:left}
-.tr-barchart-val-pct{display:block;font-size:9px;font-weight:600;color:var(--text3);margin-top:1px}
+.tr-barchart-bar-area{position:relative;flex:1}
+.tr-barchart-track{position:relative;height:6px;background:var(--md-surface-variant);border-radius:var(--radius-full)}
+.tr-barchart-fill{position:relative;height:100%;min-width:6px;border-radius:var(--radius-full);transition:width .5s cubic-bezier(.22,1,.36,1);background:var(--bar-col)}
+.tr-barchart-val{width:44px;flex-shrink:0;font-size:10px;font-weight:800;color:var(--ink);white-space:nowrap;text-align:left;display:flex;align-items:baseline;gap:4px}
+.tr-barchart-val-pct{font-size:9px;font-weight:600;color:var(--text3)}
 
 /* Header row — search pinned right. Phase selection itself now lives in the
    top-nav phase pills (shared `selectedPhases`, see togglePhase()) rather
@@ -1005,40 +1009,44 @@ header{height:56px;background:var(--md-surface);border-bottom:1px solid var(--md
    .pt-row (accent bar, title+status left / owner+system right header line,
    side-by-side URL box): shares those classes directly so the two views
    stay in sync instead of drifting apart. */
-.tr-card-grid{display:flex;flex-direction:column;gap:8px;padding:0 12px}
+.tr-card-grid{display:flex;flex-direction:column;gap:5px;padding:0 12px}
 .tr-node-card{display:flex;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--el-1);transition:box-shadow .15s;cursor:pointer;margin:0 10px}
 .tr-node-card:hover{box-shadow:var(--el-2)}
 .tr-node-card-edit{background:var(--paper)!important;cursor:default}
 .tr-node-card-accent{width:4px;flex-shrink:0}
-.tr-node-card-body{flex:1;min-width:0;padding:10px 14px;display:flex;flex-direction:column;gap:6px}
+.tr-node-card-body{flex:1;min-width:0;padding:7px 12px;display:flex;flex-direction:column;gap:4px}
 .tr-node-card-title{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:0 1 auto;min-width:0}
 .tr-node-card-new-badge{font-size:8px;font-weight:700;padding:1px 7px;border-radius:6px;background:var(--wf-live-bg);color:var(--wf-live-fg);letter-spacing:.04em;flex-shrink:0}
 .tr-node-card-title-was{font-size:9px;font-weight:600;color:var(--secondary);background:var(--md-surface-container);padding:2px 8px;border-radius:8px;letter-spacing:.02em;white-space:nowrap;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;max-width:200px}
 /* A light-weight section label used throughout the card (URLs / Links / Notes) */
 .tr-sec-lbl{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--secondary);display:flex;align-items:center;gap:4px}
 .tr-node-card-badges{display:flex;gap:5px;flex-wrap:wrap}
+/* Progress gets its own full-width row — this screen's whole point is showing
+   where each page stands, so the pipeline bar shouldn't be squeezed in next to
+   footer icons. */
+.tr-node-card-progress{padding:1px 0}
 .tr-node-card-footer{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .tr-node-card-links{display:flex;gap:5px;flex-wrap:wrap}
 .tr-link-chip{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:600;padding:3px 8px;border-radius:6px;background:var(--md-surface-container);color:var(--ink);white-space:nowrap;text-decoration:none;cursor:pointer}
 a.tr-link-chip:hover{background:var(--brand-primary);color:#fff}
 .tr-node-card-divider{height:1px;background:var(--border)}
 
-/* Segmented progress pill — one large capsule, segments fill in with colour as
-   the pipeline advances — plus a matching label row so every stage is named. */
-.tr-pipeline{display:flex;flex-direction:column;gap:5px}
+/* Segmented progress pill — one capsule, segments fill in with colour as the
+   pipeline advances. The stage name lives INSIDE each segment (.tr-seg-text)
+   rather than a separate row below, so the bar stays a single compact field
+   while every label stays visible without hovering. */
 .tr-seg-pill{display:flex;height:16px;border-radius:var(--radius-full);overflow:hidden;background:var(--border);gap:2px;width:100%}
-.tr-seg{flex:1;transition:background .2s}
+.tr-seg{flex:1;transition:background .2s;display:flex;align-items:center;justify-content:center;min-width:0;position:relative}
 /* The "current status" ring is an inset box-shadow on a plain rectangular
    segment; when that segment is first/last, the pill's own rounded-corner
    clip (overflow:hidden above) cuts the ring off unevenly at that end.
    Rounding the end segments to match fixes it. */
 .tr-seg:first-child{border-radius:var(--radius-full) 0 0 var(--radius-full)}
 .tr-seg:last-child{border-radius:0 var(--radius-full) var(--radius-full) 0}
-.tr-seg-pill.sm{height:9px}
-.tr-seg-labels{display:flex;gap:2px}
-.tr-seg-label{flex:1;text-align:center;font-size:8px;font-weight:600;color:var(--secondary);line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 1px}
-.tr-seg-label.done{color:var(--ink)}
-.tr-seg-label.current{font-weight:800}
+.tr-seg-pill.sm{height:7px}
+.tr-seg-pill.has-labels{height:22px}
+.tr-seg-text{font-size:8px;font-weight:700;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;padding:0 4px;text-shadow:0 1px 1px rgba(0,0,0,.2)}
+.tr-seg.current .tr-seg-text{font-weight:800}
 
 .tr-decom-card{display:flex;flex-direction:column;background:var(--white);border:1.5px solid var(--rag-red-bg);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--el-1);margin:0 10px}
 .tr-decom-old{display:flex;align-items:center;gap:10px;padding:9px 14px;background:var(--rag-red-bg)}
@@ -1067,6 +1075,7 @@ a.tr-link-chip:hover{background:var(--brand-primary);color:#fff}
   .tr-exec-btn-row .ds-btn{flex:1}
   .tr-search-wrap{padding:0 10px 0 6px}
   .tr-search-input,.tr-search-input:focus{width:100px}
+  .tr-barchart.two-col{grid-template-columns:1fr}
 }
 /* "Really small" — collapse the action buttons into a burger menu instead of stacking them. */
 @container tr-report (max-width:420px){
@@ -1090,6 +1099,7 @@ a.tr-link-chip:hover{background:var(--brand-primary);color:#fff}
     .tr-exec-actions>.tr-exec-pct-wrap{order:2;text-align:left}
     .tr-exec-btn-row{width:100%;order:1}
     .tr-exec-btn-row .ds-btn{flex:1}
+    .tr-barchart.two-col{grid-template-columns:1fr}
   }
   @media (max-width:420px){
     .tr-exec-title{font-size:18px}
@@ -1107,7 +1117,6 @@ a.tr-link-chip:hover{background:var(--brand-primary);color:#fff}
   #viewTransformation .tr-row-btn .material-icons-round{font-size:16px}
   #viewTransformation .tr-search-clear{width:26px;height:26px;font-size:14px}
   #viewTransformation .tr-exec-menu-btn{width:44px;height:44px}
-  #viewTransformation .tr-cmt-hdr{padding:10px 8px}
   #viewTransformation .tr-seg-pill-editable{height:28px}
   #viewTransformation .tr-seg-pill-editable.sm{height:20px}
 }
@@ -1120,9 +1129,7 @@ a.tr-link-chip:hover{background:var(--brand-primary);color:#fff}
 .tr-cmt-hdr.has-open{background:var(--rag-amber-bg);color:var(--rag-amber-fg)}
 .tr-cmt-open-count{font-size:9px;padding:1px 7px;border-radius:8px;background:var(--rag-amber-fg);color:#fff;font-weight:700}
 .tr-cmt-hdr:hover{color:var(--brand-primary)}
-.tr-cmt-resolved-count{font-size:9px;padding:1px 7px;border-radius:8px;background:#e6f0e8;color:#3d6b45;font-weight:700}
 .tr-cmt-body{padding:2px 2px 4px 20px}
-.tr-cmt-new{margin-top:4px}
 .cmt-item.tr-cmt-resolved .cmt-text{color:var(--text3);text-decoration:line-through}
 .tr-cmt-resolved-tag{font-size:8px;font-weight:700;padding:1px 6px;border-radius:6px;background:#e6f0e8;color:#3d6b45}
 
@@ -1388,19 +1395,20 @@ a.pt-url-val:hover{text-decoration:underline}
 .rm-feature-card{display:flex;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--el-1)}
 .rm-feature-accent{width:4px;flex-shrink:0}
 .rm-feature-body{flex:1;min-width:0;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
-.rm-feature-hd{display:flex;align-items:center;gap:8px;cursor:pointer}
-.rm-feature-icon{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rm-feature-hd{display:flex;align-items:center;gap:8px}
+.rm-feature-icon{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:filter .15s}
+.rm-feature-icon:hover{filter:brightness(0.92)}
 .rm-feature-title{flex:1;min-width:0;font-family:var(--font-display);font-size:12px;font-weight:700;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rm-feature-meta{display:flex;align-items:center;gap:8px;padding-left:34px}
 .rm-feature-pill{font-size:9px;font-weight:700;padding:2px 8px;border-radius:8px;white-space:nowrap;flex-shrink:0}
-.rm-feature-actions{display:flex;flex-shrink:0;margin-left:auto}
-.rm-feature-btn{background:none;border:none;color:var(--text3);cursor:pointer;padding:2px;border-radius:4px;display:flex}
-.rm-feature-btn:hover{color:var(--brand-primary);background:var(--md-surface-container)}
 .rm-feature-chev{font-size:16px!important;color:var(--text3);flex-shrink:0}
+.rm-feature-toggle{cursor:pointer;transition:all .15s}
+.rm-feature-toggle:hover{background:var(--brand-primary-light);color:var(--brand-primary)}
+.rm-feature-toggle .rm-feature-chev{color:inherit}
 .rm-story-list{display:flex;flex-direction:column;gap:3px;padding-left:34px}
 .rm-story-row{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--ink)}
-.rm-story-check{font-size:14px!important;color:var(--text3);cursor:pointer;flex-shrink:0}
-.rm-story-check.checked{color:var(--wf-wf-fg)}
+.rm-story-row-clickable{cursor:pointer;border-radius:5px;padding:2px 4px;margin:-2px -4px;transition:background .15s}
+.rm-story-row-clickable:hover{background:var(--md-surface-container)}
 .rm-story-text{flex:0 1 auto;min-width:0}
 .rm-story-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;padding:1px 3px;border-radius:3px;line-height:1;margin-left:auto}
 .rm-story-del:hover{color:#c5221f;background:#fce8e6}
@@ -1451,6 +1459,10 @@ a.pt-url-val:hover{text-decoration:underline}
 .req-text-input:focus,.req-select:focus{outline:none;border-color:var(--brand-primary)}
 .req-status-select{font-weight:700;border-color:transparent}
 .req-code-badge{font-family:var(--font-mono,monospace);font-size:9px;font-weight:700;color:var(--text2);background:var(--md-surface-container);border-radius:5px;padding:1px 6px;display:inline-block;margin-bottom:4px;letter-spacing:.02em}
+.req-code-badge-clickable{cursor:pointer;transition:all .15s}
+.req-code-badge-clickable:hover{background:var(--brand-primary-light);color:var(--brand-primary)}
+.rd-view-text{font-size:13px;color:var(--ink);line-height:1.5;padding:4px 0;white-space:pre-wrap}
+.rd-view-pill{display:inline-flex;align-items:center;font-size:12px;font-weight:600;padding:5px 10px;border-radius:8px;background:var(--md-surface-container);color:var(--text)}
 .req-jira-badge{display:inline-flex;align-items:center;gap:3px;font-family:var(--font-mono,monospace);font-size:9px;font-weight:700;color:#0052CC;background:#DEEBFF;border:none;border-radius:5px;padding:1px 6px;margin:0 0 4px 4px;letter-spacing:.02em;cursor:pointer}
 .req-jira-badge:hover{background:#B3D4FF}
 /* Textarea, not a single-line input — the ask was for more of the requirement
@@ -1493,6 +1505,75 @@ a.pt-url-val:hover{text-decoration:underline}
 .rdr-status-badge.neutral{background:var(--md-surface-container);color:var(--text3)}
 .rdr-verify-btn{width:28px;height:28px;border:1px solid var(--md-outline-variant);border-radius:8px;background:var(--md-surface);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
 .rdr-verify-btn:hover{color:var(--brand-primary);border-color:var(--brand-primary);background:var(--brand-primary-light)}
+
+/* ── TEST PLAN — reuses .req-wrap/.req-header/.req-content/.req-table-scroll/
+   .req-table/.req-filter-select, .ar-metric-bar/.ar-metric-tile (see
+   renderRequirementsTracker() / _renderArGlobal()), and the Transformation
+   Report's .tr-cmt-accordion/.tr-cmt-hdr for the collapsed-by-default summary
+   accordion — all verbatim. Only genuinely new pieces get their own rules
+   here, prefixed .tpl- (Test Plan — "tp-" is already taken by the
+   touchpoint-type convention, TP_TYPES/.tp-icon-strip). ────────────────── */
+.tpl-subtab-toggle{display:flex;gap:2px;background:var(--md-surface-container);border-radius:10px;padding:3px;flex-shrink:0}
+.tpl-subtab-btn{border:none;background:transparent;padding:7px 14px;border-radius:8px;font-family:var(--font-body);font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .15s}
+.tpl-subtab-btn.active{background:var(--white);color:var(--brand-primary);box-shadow:var(--el-1)}
+.tpl-only-fail-toggle{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);cursor:pointer;user-select:none}
+.tpl-hier-tree{display:flex;flex-direction:column;gap:8px;padding:14px 20px}
+.tpl-hier-group{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--white)}
+.tpl-hier-hdr{display:flex;align-items:center;gap:8px;width:100%;background:var(--md-surface-container);border:none;padding:9px 12px;cursor:pointer;font-family:var(--font-body);font-size:12px;font-weight:700;color:var(--ink);text-align:left;transition:background .12s}
+.tpl-hier-hdr:hover{background:var(--brand-primary-light)}
+.tpl-hier-hdr-epic{background:var(--md-surface);font-weight:600;font-size:11.5px}
+.tpl-hier-hdr-feature{background:var(--white);font-weight:600;font-size:11px;border-bottom:1px solid var(--border)}
+.tpl-hier-chev{color:var(--text3);flex-shrink:0}
+.tpl-hier-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tpl-hier-count{font-size:10px;font-weight:600;color:var(--text3);flex-shrink:0;white-space:nowrap}
+.tpl-hier-fail-badge{font-size:9px;font-weight:700;padding:2px 8px;border-radius:8px;background:var(--rag-red-bg);color:var(--rag-red-fg);flex-shrink:0;white-space:nowrap}
+.tpl-hier-pct{font-size:10px;font-weight:700;padding:3px 9px;border-radius:10px;flex-shrink:0;min-width:34px;text-align:center}
+.tpl-hier-body{padding:8px 10px 8px 22px;display:flex;flex-direction:column;gap:6px;background:var(--paper)}
+.tpl-hier-body-leaf{padding:8px 10px}
+.tpl-failures-group{border-color:var(--rag-red-fg)}
+.tpl-failures-hdr{background:var(--rag-red-bg);color:var(--rag-red-fg)}
+.tpl-failures-hdr:hover{filter:brightness(0.96)}
+.tpl-failures-hdr .tpl-hier-chev{color:var(--rag-red-fg)}
+.tpl-req-row{display:flex;flex-direction:column;gap:6px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--white)}
+.tpl-req-row-fail{border-color:var(--rag-red-fg);background:var(--rag-red-bg)}
+.tpl-req-row-main{display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap}
+.tpl-req-row-text{flex:1;min-width:200px;font-size:12px;color:var(--ink);line-height:1.4}
+.tpl-req-row-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tpl-signoff-chips{display:flex;gap:4px;flex-wrap:wrap}
+.tpl-signoff-chip{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:9px;font-weight:700;color:#fff;cursor:default}
+.tpl-signoff-chip.pass{background:var(--rag-green-fg)}
+.tpl-signoff-chip.fail{background:var(--rag-red-fg)}
+.tpl-verify-pill{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700}
+.tpl-coverage-icon{font-size:16px;line-height:1}
+.tpl-mark-btn{padding:6px 14px;border-radius:8px;border:1px solid var(--md-outline-variant);background:var(--md-surface);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s}
+.tpl-mark-btn:hover{border-color:var(--brand-primary);color:var(--brand-primary)}
+.tpl-mark-form{display:flex;flex-direction:column;gap:6px;padding:8px;background:var(--md-surface-container);border-radius:10px}
+.tpl-mark-form-btns{display:flex;gap:6px}
+.tpl-mark-notes{width:100%;box-sizing:border-box;min-height:50px;padding:6px 8px;border:1px solid var(--md-outline-variant);border-radius:6px;background:var(--md-surface);font-size:11px;font-family:var(--font-body);resize:vertical}
+.tpl-pass-btn{background:var(--rag-green-bg);color:var(--rag-green-fg);border-color:transparent}
+.tpl-fail-btn{background:var(--rag-red-bg);color:var(--rag-red-fg);border-color:transparent}
+.tpl-scenario-list{display:flex;flex-direction:column;gap:14px;padding:16px 20px}
+.tpl-scenario-form{border:1px solid var(--md-outline-variant);border-radius:var(--radius-lg);box-shadow:var(--el-1);padding:16px;background:var(--white);display:flex;flex-direction:column;gap:10px}
+.tpl-scenario-textarea{width:100%;box-sizing:border-box;min-height:160px;padding:10px 12px;border:1px solid var(--md-outline-variant);border-radius:8px;background:var(--md-surface);font-size:12px;font-family:var(--font-body);line-height:1.5;resize:vertical}
+.tpl-meta-textarea{width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid var(--md-outline-variant);border-radius:8px;background:var(--md-surface);font-size:12px;font-family:var(--font-body);line-height:1.5;resize:vertical}
+.tpl-steps-list{display:flex;flex-direction:column;gap:8px}
+.tpl-step-row{display:flex;gap:8px;align-items:flex-start;background:var(--md-surface-container);border-radius:10px;padding:10px}
+.tpl-step-num{flex-shrink:0;width:22px;height:22px;border-radius:50%;background:var(--brand-primary);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:2px}
+.tpl-step-fields{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}
+.tpl-scenario-title-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.tpl-scenario-title{font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--ink)}
+.tpl-scenario-meta{font-size:11px;color:var(--text2);line-height:1.5}
+.tpl-step-table-scroll{overflow-x:auto;border:1px solid var(--border);border-radius:8px;margin:2px 0}
+.tpl-step-table{border-collapse:collapse;width:100%;font-size:11px;min-width:520px}
+.tpl-step-table th{background:var(--md-surface-container);text-align:left;padding:6px 8px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text2);border-bottom:1px solid var(--border)}
+.tpl-step-table td{padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:top;white-space:pre-wrap}
+.tpl-scenario-card{border:1px solid var(--md-outline-variant);border-radius:var(--radius-lg);box-shadow:var(--el-1);background:var(--white);padding:16px;display:flex;flex-direction:column;gap:10px}
+.tpl-scenario-card-hd{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tpl-scenario-text{max-height:180px;overflow:auto;white-space:pre-wrap;font-size:12px;line-height:1.5;color:var(--ink);background:var(--paper);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+.tpl-copy-btn{border:1px solid var(--md-outline-variant);background:var(--md-surface);border-radius:6px;padding:4px 9px;font-size:10px;font-weight:600;color:var(--text2);cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.tpl-copy-btn:hover{border-color:var(--brand-primary);color:var(--brand-primary)}
+.tpl-scenario-links{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.tpl-req-chip{font-size:10px;padding:3px 8px;border-radius:12px;background:var(--md-surface-container);color:var(--text2);border:1px solid var(--md-outline-variant)}
 </style>
 </head>
 <body>
@@ -1672,6 +1753,10 @@ a.pt-url-val:hover{text-decoration:underline}
   <div class="mbody">
     <div class="mfield"><label>Name</label><input class="minput" id="rmf-name" placeholder="e.g. Pet Availability"></div>
     <div class="mfield"><label>Description</label><input class="minput" id="rmf-desc" placeholder="One-line summary"></div>
+    <div class="ne-grid2" style="gap:10px">
+      <div class="mfield" style="margin:0"><label>Product</label><select class="mselect" id="rmf-product" onchange="_rmFeatureProductChanged()"></select></div>
+      <div class="mfield" style="margin:0"><label>Functional area</label><select class="mselect" id="rmf-epic"></select></div>
+    </div>
     <div class="mfield"><label>Icon</label><div class="tp-type-grid" id="rmFeatureIconGrid"></div></div>
     <div class="ne-grid2" style="gap:10px">
       <div class="mfield" style="margin:0"><label>Phase</label><select class="mselect" id="rmf-phase"></select></div>
@@ -1687,6 +1772,30 @@ a.pt-url-val:hover{text-decoration:underline}
     <button class="mbtn mbtn-danger" id="rmf-delete-btn" style="display:none;margin-right:auto" onclick="deleteRmFeature(_rmEditingFeatureId)">Delete feature</button>
     <button class="mbtn mbtn-cancel" onclick="closeModal('rmFeatureModal')">Cancel</button>
     <button class="mbtn mbtn-save" onclick="saveRmFeature()">Save</button>
+  </div>
+</div>
+</div>
+
+<!-- Requirements Tracker: Requirement Detail Modal -->
+<div class="modal-bg" id="reqDetailModal">
+<div class="modal">
+  <div class="mhead"><h3 id="reqDetailTitle">Requirement</h3><button class="mclose" onclick="closeReqDetail()">✕</button></div>
+  <div class="mbody" id="reqDetailBody"></div>
+  <div class="mfoot" id="reqDetailFoot"></div>
+</div>
+</div>
+
+<!-- Test Plan: Scenario Pack Prompt Template Modal -->
+<div class="modal-bg" id="tplPromptModal">
+<div class="modal" style="max-width:640px">
+  <div class="mhead"><h3>Scenario Pack Prompt Template</h3><button class="mclose" onclick="closeModal('tplPromptModal')">✕</button></div>
+  <div class="mbody">
+    <div style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.5">Paste this into ChatGPT, Claude, or any other tool — along with your actual requirement codes — to generate a new scenario pack in the format this app can import directly via "Import from Markdown".</div>
+    <textarea id="tplPromptText" readonly style="width:100%;box-sizing:border-box;min-height:360px;padding:10px 12px;border:1px solid var(--md-outline-variant);border-radius:8px;background:var(--md-surface);font-size:11px;font-family:var(--font-mono,monospace);line-height:1.5;resize:vertical"></textarea>
+  </div>
+  <div class="mfoot">
+    <button class="mbtn mbtn-cancel" onclick="closeModal('tplPromptModal')">Close</button>
+    <button class="mbtn mbtn-save" onclick="_tplCopyPromptTemplate()">Copy to clipboard</button>
   </div>
 </div>
 </div>
@@ -1957,6 +2066,8 @@ a.pt-url-val:hover{text-decoration:underline}
     <div id="viewRequirements" style="display:none;flex:1;min-width:0;overflow:auto"></div>
     <!-- Redirect Tracker view -->
     <div id="viewRedirects" style="display:none;flex:1;min-width:0;overflow:auto"></div>
+    <!-- Test Plan view -->
+    <div id="viewTestPlan" style="display:none;flex:1;min-width:0;overflow:auto"></div>
 
     <div class="layer-bar" id="layerBar" style="position:relative">
       <div id="ecoStatsSlot" style="display:none;position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--text3);background:var(--md-surface-container);border:1px solid var(--md-outline-variant);border-radius:8px;padding:3px 10px;pointer-events:none;white-space:nowrap"></div>
@@ -2535,6 +2646,9 @@ async function loadFromSheets() {
     ROADMAP_EPICS    = (data.epics||[]).map(r=>({id:String(r.id||''),productId:String(r.productId||''),name:r.name||'',desc:r.desc||'',colour:r.colour||EPIC_COLOURS[0],order:Number(r.order)||0,jiraKey:r.jiraKey||''})).sort((a,b)=>a.order-b.order);
     ROADMAP_FEATURES = (data.features||[]).map(r=>({id:String(r.id||''),epicId:String(r.epicId||''),phaseId:String(r.phaseId||''),name:r.name||'',desc:r.desc||'',icon:r.icon||ROADMAP_ICONS[0],status:r.status||'Planned',stretch:r.stretch==='TRUE'||r.stretch===true,order:Number(r.order)||0,jiraKey:r.jiraKey||''})).sort((a,b)=>a.order-b.order);
     ROADMAP_STORIES  = (data.stories||[]).map(r=>({id:String(r.id||''),code:r.code||'',featureId:String(r.featureId||''),text:r.text||'',stretch:r.stretch==='TRUE'||r.stretch===true,type:r.type||'',devStatus:r.devStatus||'Not Started',testStatus:r.testStatus||'Not Started',owner:r.owner||'',source:r.source||'',order:Number(r.order)||0,jiraKey:r.jiraKey||''})).sort((a,b)=>a.order-b.order);
+    TEST_RESULTS = (data.testResults||[]).map(r=>({id:String(r.id||''),storyId:String(r.storyId||''),testerEmail:String(r.testerEmail||'').trim().toLowerCase(),result:r.result||'',notes:r.notes||'',testedAt:r.testedAt||null}));
+    TEST_SCENARIOS = (data.scenarios||[]).map(r=>({id:String(r.id||''),title:r.title||'',mode:r.mode||'freeform',type:r.type||'',priority:r.priority||'',objective:r.objective||'',preconditions:r.preconditions||'',testData:r.testData||'',stepsJson:r.stepsJson||'',overallExpected:r.overallExpected||'',reqCodes:r.reqCodes||'',text:r.text||'',status:r.status||'Not Tested',lastTestedBy:String(r.lastTestedBy||'').trim().toLowerCase(),lastTestedAt:r.lastTestedAt||null,notes:r.notes||'',createdBy:String(r.createdBy||'').trim().toLowerCase(),createdAt:r.createdAt||null}));
+    TEST_SCENARIO_LINKS = (data.scenarioLinks||[]).map(r=>({id:String(r.id||''),scenarioId:String(r.scenarioId||''),storyId:String(r.storyId||'')}));
     if (_rmActiveProductId && !ROADMAP_PRODUCTS.find(p=>p.id===_rmActiveProductId)) _rmActiveProductId=null;
     if (!_rmActiveProductId && ROADMAP_PRODUCTS.length) _rmActiveProductId=ROADMAP_PRODUCTS[0].id;
 
@@ -2694,6 +2808,12 @@ async function loadFromSheets() {
     }
     _rebuildNodeFindings();
 
+    // node.status is a derived field ("current" = last-completed step) that's re-saved
+    // whenever a checklist box is toggled — but pages nobody has touched since the
+    // completed/next-step derivation changed still carry the old "next step" value.
+    // Recompute it here (in memory only) so canvas colours, phase-bar counts, filters
+    // and exports all read the corrected value immediately, without waiting on an edit.
+    NODES.forEach(n=>{ if(n.completedStatuses&&n.completedStatuses.length) n.status=currentStatusName(n); });
     _rebuildNodeMap(); // prime lookup Map after new data arrives from Sheets
     seedMigrationActionsFromNodes();
     renderPhaseBar(); renderMetrics(); renderLayerBar(); renderLegend(); renderNav(); renderCanvas(); applyLogo(); applyBrandColours(); updateLoaderLogo();
@@ -2883,6 +3003,18 @@ function updNodeRoadmapProduct(id, productId){
 }
 async function dbUpsertStory(s){try{await sheetPost({action:'upsertStory',row:{id:s.id,code:s.code||'',featureId:s.featureId,text:s.text||'',stretch:s.stretch?'TRUE':'FALSE',type:s.type||'',devStatus:s.devStatus||'Not Started',testStatus:s.testStatus||'Not Started',owner:s.owner||'',source:s.source||'',order:s.order||0,jiraKey:s.jiraKey||''}});}catch(e){console.error('dbUpsertStory:',e);showToast('Sheet write error: '+e.message);}}
 async function dbDeleteStory(id){try{await sheetPost({action:'deleteStory',id});}catch(e){console.error('dbDeleteStory:',e);showToast('Sheet write error: '+e.message);}}
+async function dbUpsertTestResult(r){try{await sheetPost({action:'upsertTestResult',row:{id:r.id,storyId:r.storyId,testerEmail:r.testerEmail,result:r.result,notes:r.notes||'',testedAt:r.testedAt}});}catch(e){console.error('dbUpsertTestResult:',e);showToast('Sheet write error: '+e.message);}}
+async function dbUpsertScenario(sc){try{await sheetPost({action:'upsertScenario',row:{id:sc.id,title:sc.title||'',mode:sc.mode||'freeform',type:sc.type||'',priority:sc.priority||'',objective:sc.objective||'',preconditions:sc.preconditions||'',testData:sc.testData||'',stepsJson:sc.stepsJson||'',overallExpected:sc.overallExpected||'',reqCodes:sc.reqCodes||'',text:sc.text||'',status:sc.status||'Not Tested',lastTestedBy:sc.lastTestedBy||'',lastTestedAt:sc.lastTestedAt||'',notes:sc.notes||'',createdBy:sc.createdBy||'',createdAt:sc.createdAt||''}});}catch(e){console.error('dbUpsertScenario:',e);showToast('Sheet write error: '+e.message);}}
+async function dbDeleteScenario(id){try{await sheetPost({action:'deleteScenario',id});}catch(e){console.error('dbDeleteScenario:',e);showToast('Sheet write error: '+e.message);}}
+async function dbUpsertScenarioLink(l){try{await sheetPost({action:'upsertScenarioLink',row:{id:l.id,scenarioId:l.scenarioId,storyId:l.storyId}});}catch(e){console.error('dbUpsertScenarioLink:',e);showToast('Sheet write error: '+e.message);}}
+async function dbDeleteScenarioLink(id){try{await sheetPost({action:'deleteScenarioLink',id});}catch(e){console.error('dbDeleteScenarioLink:',e);showToast('Sheet write error: '+e.message);}}
+// Batch variants — one HTTP round-trip for many link rows, instead of one per
+// row. A single scenario can cite requirement codes on every step, easily
+// producing dozens of links; firing that many concurrent individual requests
+// at the Apps Script backend exceeds its concurrent-execution limit and
+// starts failing ("Sheet write error"). Used by _tplPersistScenarioDraft.
+async function dbUpsertScenarioLinksBatch(links){if(!links.length)return;try{await sheetPost({action:'upsertScenarioLinksBatch',rows:links.map(l=>({id:l.id,scenarioId:l.scenarioId,storyId:l.storyId}))});}catch(e){console.error('dbUpsertScenarioLinksBatch:',e);showToast('Sheet write error: '+e.message);}}
+async function dbDeleteScenarioLinksBatch(ids){if(!ids.length)return;try{await sheetPost({action:'deleteScenarioLinksBatch',ids});}catch(e){console.error('dbDeleteScenarioLinksBatch:',e);showToast('Sheet write error: '+e.message);}}
 async function dbUpsertJourney(journey) {
   try {
     await sheetPost({ action:'upsertJourney', row: {id:journey.id, name:journey.name, colour:journey.colour, desc:journey.desc||''} });
@@ -2948,9 +3080,10 @@ function isNodeLive(n){
    wireframe is technically signed off). So each status is independently
    completable — `node.completedStatuses` is the set of finished ones, in any
    order — and `node.status` (read by every other view: canvas, audit table,
-   phase bar, filters, exports) is kept as a DERIVED field: the lowest-ranked
-   status not yet completed — "what needs attention next". Once everything is
-   complete, status naturally lands on the last (Live) entry.
+   phase bar, filters, exports) is kept as a DERIVED field: the highest-ranked
+   status that IS completed — "where the page currently sits", not what's left
+   to do. Once everything is complete, status naturally lands on the last
+   (Live) entry.
 
    Nodes without any completedStatuses data yet (old saves, demo data, brand
    new nodes) transparently fall back to treating "everything before the
@@ -2963,18 +3096,25 @@ function isStatusComplete(node,name){
   }
   return statusIndex(name)<statusIndex(node.status||Object.keys(STATUS)[0]);
 }
+// Returns where the node CURRENTLY sits — the highest-ranked status it has
+// actually completed — not the next one still pending. A node that's checked
+// off "Wireframe" and "Content Written" but not "Dev Complete" reads as
+// "Content Written" (where it is), not "Dev Complete" (what's left to do).
 function currentStatusName(node){
   const names=Object.keys(STATUS);
   if(!names.length) return node.status||'';
   if(node.completedStatuses && node.completedStatuses.length){
-    const done=new Set(node.completedStatuses);
-    const next=names.find(s=>!done.has(s));
-    return next!==undefined?next:names[names.length-1];
+    let lastIdx=-1;
+    node.completedStatuses.forEach(s=>{
+      const idx=names.indexOf(s);
+      if(idx>lastIdx) lastIdx=idx;
+    });
+    return lastIdx>=0?names[lastIdx]:names[0];
   }
   return node.status||names[0];
 }
 // Toggles one status's completion for a node, independent of the others, then
-// recomputes the derived node.status ("lowest incomplete") and saves both.
+// recomputes the derived node.status ("highest completed") and saves both.
 function toggleNodeStatusComplete(id,name){
   if(!canEdit())return;
   const n=gn(id);if(!n)return;
@@ -3193,6 +3333,110 @@ let _rmClosedEpics=new Set(); // epic ids whose swimlane is collapsed — empty 
 let _rmEditingProductId=null, _rmEditingEpicId=null, _rmEditingFeatureId=null; // null = "add" mode
 let _rmEpicModalProductId=null;    // implicit product context for the Epic modal
 let _rmFeatureModalCtx={epicId:null, phaseId:null}; // implicit context + pre-fill for the Feature modal
+
+// TEST PLAN: functional-requirement test results + free-text scenario tests,
+// scoped to Functional Requirement Stories. "TPL" prefix (not "TP") deliberately
+// avoids collision with the existing TP_TYPES/.tp-* touchpoint-type convention.
+let TEST_RESULTS=[];        // [{id,storyId,testerEmail,result,notes,testedAt}] — one row per (story,tester), upserted on retest
+let TEST_SCENARIOS=[];      // [{id,text,status,lastTestedBy,lastTestedAt,notes,createdBy,createdAt}]
+let TEST_SCENARIO_LINKS=[]; // [{id,scenarioId,storyId}] — many-to-many, mirrors NODE_COMPS
+const TPL_RESULT_COLOURS={
+  'Pass':{fg:'var(--rag-green-fg)',bg:'var(--rag-green-bg)'},
+  'Fail':{fg:'var(--rag-red-fg)',  bg:'var(--rag-red-bg)'},
+};
+const TPL_SCENARIO_STATUS_COLOURS={
+  'Not Tested':{fg:'var(--wf-ns-fg)',  bg:'var(--wf-ns-bg)'},
+  'Pass':      {fg:'var(--rag-green-fg)',bg:'var(--rag-green-bg)'},
+  'Fail':      {fg:'var(--rag-red-fg)',  bg:'var(--rag-red-bg)'},
+};
+// Copy/paste-ready instructions for prompting a third-party AI tool to write
+// a new scenario pack in exactly the markdown shape _tplParseScenarioMarkdown()
+// imports — see the "Scenario Pack Prompt Template" modal on the Scenario
+// Tests tab. Kept as one plain constant (not built from other constants) so
+// it reads identically to what a user pastes elsewhere, without drifting if
+// the app's own rendering copy changes later.
+const TPL_SCENARIO_PROMPT_TEMPLATE=`You are writing a Test Scenario Pack in a specific markdown format so it can be
+directly imported into our test management tool. Follow this structure exactly.
+
+## Overall structure
+- Each scenario is its own level-3 heading: ### SC-<number> — <short title>
+  (Sequential numbers, e.g. SC-01, SC-02, ... no gaps.)
+- Immediately under the heading, four metadata lines, each starting with a bold label:
+  - **Objective:** <one sentence — what this scenario proves>
+  - **Type:** <Positive|Negative|Mixed> · **Priority:** <P1|P2|P3>  (one line, separated by ·)
+  - **Preconditions:** <state required before the scenario starts>
+  - **Test data:** <the specific data used — passenger counts, routes, dates, cards, etc.>
+- Then a step table with exactly these 4 columns, in this order:
+  | # | Action | Expected result | Requirements covered |
+  - # — step number (plain integer; "6a"/"6b" style only for closely related sub-steps)
+  - Action — what the tester does, one sentence, plain language
+  - Expected result — what must be observed for the step to pass, specific and verifiable
+  - Requirements covered — comma-separated requirement CODES this step verifies (see rules below)
+- Then a closing line: **Overall expected result:** <what the whole scenario proves when every step passes>
+- Leave a blank line and a --- divider between scenarios.
+
+## Requirement code rules — read this carefully
+- Every code in "Requirements covered" MUST be an exact, real code from the
+  requirements list you're given — copy it character-for-character.
+- Never invent, guess, or paraphrase a code. If a step doesn't map to a specific
+  requirement, leave "Requirements covered" blank for that step.
+- Spread codes across the steps that actually exercise them — don't dump every
+  code from a feature onto step 1.
+- The same requirement can be covered by more than one scenario or more than one
+  step; that's expected.
+
+## Style rules
+- Action and Expected result are plain English, 1–2 sentences each — no bold,
+  italics, or backticks inside table cells.
+- Describe every observable thing that must be true; don't merge multiple checks
+  into one vague expected result.
+- Positive/golden-path scenarios are typically longer (15–30+ steps); negative
+  scenarios are typically shorter and focused (5–10 steps).
+- Priority: P1 = blocks release, P2 = must fix before launch, P3 = fix when able.
+- Type: Positive (expected/easy path), Negative (should fail safely), or Mixed
+  (both positive and negative branches in one flow).
+
+## Worked example
+
+### SC-01 — Golden path: single adult return booking, paid by card
+
+**Objective:** Prove a first-time visitor can complete an end-to-end return booking and receive a confirmed booking reference.
+**Type:** Positive · **Priority:** P1
+**Preconditions:** No account session. Seeded availability on the test route. Test card that approves.
+**Test data:** 1 Adult · Return trip, departure +30 days, return +37 days · Economy fare · Visa test card.
+
+| # | Action | Expected result | Requirements covered |
+|---|---|---|---|
+| 1 | Open the homepage as a new visitor. | The booking widget loads with sensible defaults and no prior session data. | BOOK-PROD-001, BOOK-PROD-002 |
+| 2 | Search for the test route and select a fare. | Search results show at least one bookable flight; fare details match what's charged later. | FLIG-INBO-001, FLIG-FARE-001 |
+| 3 | Complete passenger and contact details, then pay. | Payment succeeds, a single booking is created, and a confirmation is shown. | GUES-ADUL-001, PAYM-BOOK-003 |
+
+**Overall expected result:** A confirmed booking exists matching exactly what the customer saw before paying, and no price changed between search and payment.
+
+## What to hand back
+Produce one markdown document containing every scenario, using only the
+structure above. Do not add extra commentary, headers, or sections outside of
+what's described — the importer only reads ###-level scenario blocks in this
+exact shape.
+
+(Paste your actual list of requirement codes alongside this prompt so the tool
+references real codes instead of guessing.)`;
+let _tplSubTab='functional';       // 'functional' | 'scenario'
+let _tplFilterFeatureId='';
+let _tplSearchQuery='';
+let _tplOnlyOpenFailures=false;
+let _tplMarkingStoryId=null;       // storyId whose inline Pass/Fail form is expanded
+let _tplMarkingScenarioId=null;    // scenarioId whose inline Pass/Fail form is expanded
+let _tplScenarioDraft=null;        // {id:null|scenarioId, mode, title, ..., steps:[]} — see _tplBlankScenarioDraft()
+let _tplImportOpen=false;          // markdown bulk-import panel open/closed
+// Functional Tests hierarchy accordion state — Product > Functional Area
+// (Epic) > Feature, each collapsed by default so the tree starts compact;
+// Open Failures defaults OPEN since finding failures is the point of it.
+let _tplSummaryOpen=false;
+let _tplFailuresOpen=true;
+let _tplOpenProducts=new Set();
+let _tplOpenEpics=new Set();
+let _tplOpenFeatures=new Set();
 
 // JOURNEYS: [{id, name, colour, desc, steps:[{nodeId, label}]}]
 let JOURNEYS=[];
@@ -3898,6 +4142,7 @@ function togglePhase(id){
   else{selectedPhases.add(id);}
   curPhase=[...selectedPhases].filter(p=>p!=='LIVE').pop()||'PH0'; // keep compat
   layerFilter={key:null,value:null};renderPhaseBar();renderMetrics();renderLayerBar();renderCanvas();
+  if(curView==='testplan') renderTestPlan();
 }
 function toggleLines(){
   linesVisible=!linesVisible;
@@ -3916,7 +4161,7 @@ function toggleLines(){
     syncSvgSize();
   }
 }
-function switchPhase(id){curPhase=id;selectedPhases=new Set([id]);layerFilter={key:null,value:null};renderPhaseBar();renderMetrics();renderLayerBar();renderCanvas()}
+function switchPhase(id){curPhase=id;selectedPhases=new Set([id]);layerFilter={key:null,value:null};renderPhaseBar();renderMetrics();renderLayerBar();renderCanvas();if(curView==='testplan') renderTestPlan();}
 
 /* ═══════════════════════════════════════════
    LEFT NAV
@@ -6190,25 +6435,12 @@ function renderNeTab(tab){
         <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
           ${statusNames.map((name)=>{
             const complete=isStatusComplete(n,name);
-            const isCurrent=name===curName&&!complete;
+            const isCurrent=name===curName;
             const st=STATUS[name];
             const border=isCurrent?`2px solid ${st.fg}`:complete?`1.5px solid ${st.fg}`:'1.5px solid var(--md-outline-variant)';
             return`<div onclick="toggleNodeStatusComplete('${id}','${name.replace(/'/g,"\\'")}');refreshNeHeader('${id}');renderNeTab('transformation');renderCanvas()"
-              style="padding:6px 12px;border-radius:20px;border:${border};background:${complete?st.bg:'var(--md-surface-container)'};cursor:pointer;font-size:10px;font-weight:700;color:${complete?st.fg:isCurrent?st.fg:'var(--text3)'};white-space:nowrap;transition:all .15s" title="${complete?'Done — click to uncheck':isCurrent?'Next step':'Not yet — click to check off'}">${complete?'✓ ':''}${escH(name)}</div>`;
+              style="padding:6px 12px;border-radius:20px;border:${border};background:${complete?st.bg:'var(--md-surface-container)'};cursor:pointer;font-size:10px;font-weight:700;color:${complete?st.fg:isCurrent?st.fg:'var(--text3)'};white-space:nowrap;transition:all .15s" title="${isCurrent?(complete?'Currently here — click to uncheck':'Next step — click to check off'):complete?'Done — click to uncheck':'Not yet — click to check off'}">${complete?'✓ ':''}${escH(name)}</div>`;
           }).join('')}
-        </div>
-        <div style="font-size:9px;color:var(--text3);margin-bottom:6px;font-weight:500;letter-spacing:.03em">SUB-TASKS — independent of status</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">
-          <div onclick="upd('${id}','cmsCreated',!${!!n.cmsCreated});renderNeTab('transformation')"
-            style="padding:8px 10px;border-radius:8px;border:1.5px solid ${n.cmsCreated?'#2a5c6a':'var(--md-outline-variant)'};background:${n.cmsCreated?'#e0edf5':'var(--md-surface-container)'};cursor:pointer;display:flex;align-items:center;gap:7px">
-            <span class="material-icons-round" style="font-size:14px;color:${n.cmsCreated?'#2a5c6a':'var(--text3)'}">${n.cmsCreated?'check_box':'check_box_outline_blank'}</span>
-            <div><div style="font-size:10px;font-weight:700;color:${n.cmsCreated?'#2a5c6a':'var(--text2)'}">CMS Created</div><div style="font-size:8px;color:var(--text3)">CMS build complete</div></div>
-          </div>
-          <div onclick="upd('${id}','contentCreated',!${!!n.contentCreated});renderNeTab('transformation')"
-            style="padding:8px 10px;border-radius:8px;border:1.5px solid ${n.contentCreated?'#2e4f7a':'var(--md-outline-variant)'};background:${n.contentCreated?'#e8eef8':'var(--md-surface-container)'};cursor:pointer;display:flex;align-items:center;gap:7px">
-            <span class="material-icons-round" style="font-size:14px;color:${n.contentCreated?'#2e4f7a':'var(--text3)'}">${n.contentCreated?'check_box':'check_box_outline_blank'}</span>
-            <div><div style="font-size:10px;font-weight:700;color:${n.contentCreated?'#2e4f7a':'var(--text2)'}">Content Created</div><div style="font-size:8px;color:var(--text3)">Content authored &amp; approved</div></div>
-          </div>
         </div>
         ${_neUc?`<div style="background:#f5f0ff;border:1px solid #c8b8ef;border-radius:10px;padding:10px 12px;margin-bottom:10px">
           <div style="font-size:9px;font-weight:700;color:#5a3d7a;letter-spacing:.05em;margin-bottom:6px;display:flex;align-items:center;gap:5px"><span class="material-icons-round" style="font-size:12px">swap_horiz</span>URL CHANGE DETECTED — REDIRECT REQUIRED</div>
@@ -7250,16 +7482,17 @@ let curView = 'ia';
 
 // ── View switcher dropdown (header icon) ──
 const VIEW_OPTIONS=[
-  {id:'home',          emoji:'🏠',  label:'Homepage'},
-  {id:'ia',            emoji:'🗂',  label:'IA — Hierarchy'},
-  {id:'ecosystem',     emoji:'🕸',  label:'Ecosystem — Relationships'},
-  {id:'audit',         emoji:'📋', label:'Audit — Diagnostics'},
-  {id:'platform',      emoji:'🏗',  label:'Platform - Systems View'},
-  {id:'actionreport',  emoji:'⚠️', label:'Action Report'},
-  {id:'transformation',emoji:'📊', label:'Transformation Report'},
-  {id:'roadmap',       emoji:'🗺',  label:'Product Roadmap'},
-  {id:'requirements',  emoji:'🧾', label:'Requirements Tracker'},
-  {id:'redirects',     emoji:'🔀', label:'Redirect Tracker'},
+  {id:'home',          icon:'home',          label:'Homepage'},
+  {id:'ia',            icon:'account_tree',  label:'IA — Hierarchy'},
+  {id:'ecosystem',     icon:'hub',           label:'Ecosystem — Relationships'},
+  {id:'audit',         icon:'troubleshoot',  label:'Audit — Diagnostics'},
+  {id:'platform',      icon:'dns',           label:'Platform - Systems View'},
+  {id:'actionreport',  icon:'report',        label:'Action Report'},
+  {id:'transformation',icon:'bar_chart',     label:'Transformation Report'},
+  {id:'roadmap',       icon:'map',           label:'Product Roadmap'},
+  {id:'requirements',  icon:'fact_check',    label:'Requirements Tracker'},
+  {id:'redirects',     icon:'swap_horiz',    label:'Redirect Tracker'},
+  {id:'testplan',      icon:'science',       label:'Test Plan'},
 ];
 function renderViewMenu(){
   const dd=eid('viewMenuDropdown');
@@ -7267,7 +7500,7 @@ function renderViewMenu(){
   dd.innerHTML=VIEW_OPTIONS.map(o=>{
     const active=o.id===curView;
     return `<div class="hdr-view-item${active?' active':''}" onclick="switchView('${o.id}');closeViewMenu()">
-      <span class="hdr-view-item-emoji">${o.emoji}</span>
+      <span class="material-icons-round hdr-view-item-icon">${o.icon}</span>
       <span class="hdr-view-item-label">${escH(o.label)}</span>
       ${active?'<span class="material-icons-round hdr-view-item-check">check</span>':''}
     </div>`;
@@ -7306,6 +7539,7 @@ const VIEW_CONTAINERS = {
   roadmap:        'viewRoadmap',
   requirements:   'viewRequirements',
   redirects:      'viewRedirects',
+  testplan:       'viewTestPlan',
 };
 
 function switchView(v){
@@ -7315,7 +7549,7 @@ function switchView(v){
   if(v==='home'){ showStartScreen(); return; }
   curView = v;
   const lnEl=eid('leftNav'),arLnEl=eid('arLeftNav');
-  const noLeftNav = v==='actionreport'||v==='transformation'||v==='roadmap'||v==='requirements'||v==='redirects';
+  const noLeftNav = v==='actionreport'||v==='transformation'||v==='roadmap'||v==='requirements'||v==='redirects'||v==='testplan';
   if(lnEl)lnEl.style.display=noLeftNav?'none':'';
   if(arLnEl){arLnEl.style.display=v==='actionreport'?'flex':'none';arLnEl.style.flexDirection='column';}
   // Hide all view containers
@@ -7357,6 +7591,7 @@ function switchView(v){
     case 'roadmap':        renderRoadmap(); break;
     case 'requirements':   renderRequirementsTracker(); break;
     case 'redirects':      renderRedirectTracker(); break;
+    case 'testplan':       renderTestPlan(); break;
   }
 }
 
@@ -7942,9 +8177,7 @@ function renderAuditView(){
 // Which phase panels are visible is driven by the shared top-nav phase pills
 // (selectedPhases / togglePhase(), same Set used by the main IA canvas) —
 // not a report-local selection — so there's one phase filter, not two.
-let _trEditMode=false;
-let _trRowEditIds=new Set();   // per-row "click dots to update" toggles (independent of the global Edit Mode button)
-let _trOpenAccordions=new Set(); // node ids whose comment accordion is expanded
+let _trRowEditIds=new Set();   // per-row "click pencil to update" toggles — each card has its own edit toggle
 // Freezes row order per phase tab so editing a status doesn't reshuffle the list the
 // user is looking at — order is only recomputed on an explicit Refresh / data reload.
 let _trRowOrderCache={};
@@ -8003,7 +8236,7 @@ function _trNodeMatchesSearch(n){
   // toggle) must never vanish out from under them because their own edit
   // just made it stop matching the stage/search filter — always show it
   // until they exit edit mode, at which point normal filtering resumes.
-  if(_trEditMode||_trRowEditIds.has(n.id)) return true;
+  if(_trRowEditIds.has(n.id)) return true;
   if(_trStageFilter&&currentStatusName(n)!==_trStageFilter) return false;
   if(!_trSearchQuery) return true;
   const hay=[n.title,n.owner,n.slug,n.newSlug].filter(Boolean).join(' ').toLowerCase();
@@ -8015,12 +8248,7 @@ function _trToggleRowEdit(id){
   renderTransformationReport();
 }
 
-function _trToggleAccordion(id){
-  if(_trOpenAccordions.has(id)) _trOpenAccordions.delete(id); else _trOpenAccordions.add(id);
-  renderTransformationReport();
-}
-
-// Burger menu for the header's Refresh/Edit Mode actions, shown only when the report
+// Burger menu for the header's Refresh action, shown only when the report
 // panel is too narrow for the normal button row (see .tr-exec-menu-wrap CSS).
 function _trToggleExecMenu(){
   const dd=eid('tr-exec-menu-dd');
@@ -8032,11 +8260,10 @@ document.addEventListener('click',e=>{
   if(dd&&dd.style.display==='flex'&&!dd.contains(e.target)) dd.style.display='none';
 });
 
-// Per-row pencil (toggle inline status editing) + launch (open full node modal) buttons.
-// Both work regardless of the row's current edit state — fixes having to jump back to
-// the top "Edit Mode" toggle, and having no way to open the modal while a row is mid-edit.
+// Per-row pencil (toggle inline status editing) + launch (open full node modal) buttons —
+// every card has its own independent edit toggle.
 function _trRowActionBtns(id){
-  const rowEdit=_trEditMode||_trRowEditIds.has(id);
+  const rowEdit=_trRowEditIds.has(id);
   return `<button class="tr-row-btn${rowEdit?' active':''}" onclick="event.stopPropagation();_trToggleRowEdit('${id}')" title="${rowEdit?'Done editing status':'Edit status'}">
     <span class="material-icons-round" style="font-size:13px">edit</span>
   </button>
@@ -8045,62 +8272,11 @@ function _trRowActionBtns(id){
   </button>`;
 }
 
-// Comment accordion shown on every Transformation Report row. Reads/writes the same
-// COMMENTS_ALL / COMMENTS_BY_ENTITY data as the node modal's Comments tab and the
-// chat-bubble badge elsewhere in the app, so all three surfaces stay in sync.
+// Shared with the app-wide Comments Modal (commentBadgeHtml/openCommentsPanel) —
+// the Transformation Report used to render its own inline comment accordion here;
+// it now opens the same modal every other view uses instead. Kept for the
+// "resolved" tag the shared modal's own thread renderer still reads.
 function _trIsCommentResolved(c){ return c.resolved==='TRUE'||c.resolved===true; }
-
-function _trAccordionHtml(type,id){
-  const list=COMMENTS_BY_ENTITY[_cmtKey(type,id)]||[];
-  const openCount=list.filter(c=>!_trIsCommentResolved(c)).length;
-  const resolvedCount=list.length-openCount;
-  const isOpen=_trOpenAccordions.has(id);
-
-  let body='';
-  if(isOpen){
-    const byParent={};
-    list.forEach(c=>{ const p=c.parentId||''; (byParent[p]=byParent[p]||[]).push(c); });
-    const topLevel=byParent['']||[];
-    const itemHtml=c=>{
-      const resolved=_trIsCommentResolved(c);
-      const mine=gCurrentUser && c.authorEmail===gCurrentUser.email;
-      const canDel=mine||isAdmin();
-      return `<div class="cmt-item tr-cmt-item${resolved?' tr-cmt-resolved':''}">
-        <div class="cmt-avatar">${_cmtInitials(c.authorEmail)}</div>
-        <div class="cmt-body-col">
-          <div class="cmt-meta"><span class="cmt-author">${escH(c.authorEmail)}</span><span class="cmt-time">${_cmtFmtDate(c.createdAt)}${c.editedAt?' (edited)':''}</span>${resolved?'<span class="tr-cmt-resolved-tag">Resolved</span>':''}</div>
-          <div class="cmt-text">${_cmtLinkifyMentions(c.text)}</div>
-          <div class="cmt-row-actions">
-            ${gCurrentUser?`<button class="cmt-link-btn" onclick="_trCmtResolve('${escH(c.id)}',${!resolved})">${resolved?'Reopen':'Mark resolved'}</button>`:''}
-            ${canDel?`<button class="cmt-link-btn cmt-link-danger" onclick="_trCmtDelete('${escH(c.id)}')">Delete</button>`:''}
-          </div>
-        </div>
-      </div>`;
-    };
-    const threadHtml=topLevel.length?topLevel.map(itemHtml).join(''):'<div class="cmt-empty">No comments yet.</div>';
-    body=`<div class="tr-cmt-body">
-      <div class="cmt-thread" style="margin-bottom:10px">${threadHtml}</div>
-      ${gCurrentUser?`
-      <div class="tr-cmt-new">
-        <textarea class="cmt-edit-input" id="tr-cmt-new-${id}" rows="2" placeholder="Add a comment… use @email to mention someone"></textarea>
-        <div class="cmt-row-actions" style="justify-content:flex-end;margin-top:6px">
-          <button class="mbtn mbtn-save" style="width:auto;padding:5px 14px;font-size:11px" onclick="_trCmtAddNew('${type}','${id}',this)">Comment</button>
-        </div>
-      </div>`:`<div class="cmt-empty">Sign in to add a comment.</div>`}
-    </div>`;
-  }
-
-  return `<div class="tr-cmt-accordion">
-    <button class="tr-cmt-hdr${openCount?' has-open':''}" onclick="_trToggleAccordion('${id}')">
-      <span class="material-icons-round" style="font-size:14px">${openCount?'chat_bubble':'chat_bubble_outline'}</span>
-      <span>${list.length?`${list.length} comment${list.length===1?'':'s'}`:'No comments — add one'}</span>
-      ${openCount?`<span class="tr-cmt-open-count">${openCount} open</span>`:''}
-      ${resolvedCount?`<span class="tr-cmt-resolved-count">${resolvedCount} resolved</span>`:''}
-      <span class="material-icons-round" style="font-size:16px;margin-left:auto">${isOpen?'expand_less':'expand_more'}</span>
-    </button>
-    ${body}
-  </div>`;
-}
 
 // Legacy per-node "notes" text pre-dates the Comments system. Surface it as a
 // one-time migration prompt so it can be folded into the same comment thread
@@ -8127,8 +8303,8 @@ async function _trMigrateNote(id){
     if(!_cmtApplyNewComment(res)) await loadAllComments();
     n.notes='';
     dbUpsertNode(n);
-    _trOpenAccordions.add(id);
     renderTransformationReport();
+    openCommentsPanel('node',id,n.title||'');
   }catch(e){
     showToast('⚠️ Could not migrate note: '+e.message);
   }
@@ -8139,54 +8315,6 @@ function _trDismissNote(id){
   n.notes='';
   dbUpsertNode(n);
   renderTransformationReport();
-}
-
-async function _trCmtAddNew(type,id,btn){
-  const ta=eid('tr-cmt-new-'+id); if(!ta) return;
-  const text=(ta.value||'').trim(); if(!text) return;
-  if(!gCurrentUser){showToast('Sign in to comment');return;}
-  _cmtSetBtnBusy(btn,true,'Saving…');
-  try{
-    const res=await sheetPost({action:'addComment',row:{
-      entityType:type, entityId:id, text, authorEmail:gCurrentUser.email,
-      parentId:'', mentions:_extractMentions(text),
-    }});
-    if(!_cmtApplyNewComment(res)) await loadAllComments();
-    renderTransformationReport();
-    if(typeof _deferredRender==='function') _deferredRender();
-  }catch(e){
-    showToast('⚠️ Could not save comment: '+e.message);
-    _cmtSetBtnBusy(btn,false);
-  }
-}
-
-async function _trCmtResolve(commentId,resolved){
-  try{
-    const resolvedByEmail=(gCurrentUser&&gCurrentUser.email)||'';
-    await sheetPost({action:'resolveComment',id:commentId,resolved,resolvedByEmail});
-    const c=COMMENTS_ALL.find(c=>c.id===commentId);
-    if(c){
-      c.resolved=resolved?'TRUE':'FALSE';
-      c.resolvedAt=resolved?new Date().toISOString():'';
-      c.resolvedBy=resolved?resolvedByEmail:'';
-    }
-    renderTransformationReport();
-  }catch(e){
-    showToast('⚠️ Could not update comment: '+e.message);
-  }
-}
-
-async function _trCmtDelete(commentId){
-  if(!confirm('Delete this comment?')) return;
-  try{
-    await sheetPost({action:'deleteComment',id:commentId});
-    COMMENTS_ALL=COMMENTS_ALL.filter(c=>c.id!==commentId);
-    _cmtIndex();
-    renderTransformationReport();
-    if(typeof _deferredRender==='function') _deferredRender();
-  }catch(e){
-    showToast('⚠️ Could not delete comment: '+e.message);
-  }
 }
 
 function renderTransformationReport(){
@@ -8252,39 +8380,35 @@ function renderTransformationReport(){
 
   // ── Progress meter: a checklist, not a timeline. Each segment is completed
   // independently (some middle steps legitimately finish out of order) — the
-  // "current" segment (bordered/glowing) is the lowest-ranked one NOT yet
-  // done, i.e. what needs attention next. Click a segment/label to toggle
+  // "current" segment (bordered/glowing) is the highest-ranked one that IS
+  // done, i.e. where the page currently sits. Click a segment/label to toggle
   // ITS completion; the derived current status follows automatically. ──
   const progressPill=(n,si,rowEdit=false,sizeCls='',showLabels=true)=>{
-    const em=_trEditMode||rowEdit, id=n.id;
+    const em=rowEdit, id=n.id;
     const names=Object.keys(STATUS);
     const segs=names.map((name,i)=>{
       const st=STATUS[name]||{fg:'#9c8b78'};
       const complete=isStatusComplete(n,name);
-      const isCurrent=i===si&&!complete;
+      const isCurrent=i===si;
       const clickAttr=em?` onclick="toggleNodeStatusComplete('${id}','${name.replace(/'/g,"\\'")}');renderTransformationReport()"`:'';
       const cursor=em?'cursor:pointer;':'';
       const ring=isCurrent?`box-shadow:inset 0 0 0 2px ${st.fg};`:'';
-      return `<div class="tr-seg${isCurrent?' current':''}"${clickAttr} style="${cursor}${ring}background:${complete?st.fg:'var(--border)'}" title="${escH(name)}${complete?' — done':isCurrent?' — next step':''}"></div>`;
+      // Label lives INSIDE the segment itself (not a separate row below) — white on a
+      // filled/complete segment, muted grey on an unfilled one, so every stage name is
+      // readable at a glance without hovering.
+      const label=showLabels?`<span class="tr-seg-text" style="color:${complete?'#fff':'var(--secondary)'}">${escH(name)}</span>`:'';
+      return `<div class="tr-seg${isCurrent?' current':''}"${clickAttr} style="${cursor}${ring}background:${complete?st.fg:'var(--border)'}" title="${escH(name)}${isCurrent?(complete?' — current':' — next step'):complete?' — done':''}">${label}</div>`;
     }).join('');
-    const pill=`<div class="tr-seg-pill${sizeCls?' '+sizeCls:''}${em?' tr-seg-pill-editable':''}">${segs}</div>`;
-    if(!showLabels) return pill;
-    const labels=names.map((name,i)=>{
-      const st=STATUS[name]||{fg:'var(--secondary)'};
-      const complete=isStatusComplete(n,name);
-      const isCurrent=i===si&&!complete;
-      const cls=isCurrent?'current':complete?'done':'';
-      const clickAttr=em?` onclick="toggleNodeStatusComplete('${id}','${name.replace(/'/g,"\\'")}');renderTransformationReport()"`:'';
-      const cursor=em?'cursor:pointer;':'';
-      return `<div class="tr-seg-label${cls?' '+cls:''}"${clickAttr} style="${cursor}${complete||isCurrent?`color:${st.txt||st.fg}`:''}" title="${escH(name)}">${complete?'✓ ':''}${escH(name)}</div>`;
-    }).join('');
-    return `<div class="tr-pipeline">${pill}<div class="tr-seg-labels">${labels}</div></div>`;
+    return `<div class="tr-seg-pill${sizeCls?' '+sizeCls:''}${em?' tr-seg-pill-editable':''}${showLabels?' has-labels':''}">${segs}</div>`;
   };
 
-  // Sub-task badges — independent of which status is selected.
+  // Sub-task badge — independent of which status is selected. CMS Created and
+  // Content Created were removed here (and everywhere else in the app) at the
+  // user's request; Redirect Created is the one still worth tracking this way
+  // since it's conditional on an actual URL change.
   const subtaskBadges=(n,uc,rowEdit=false)=>{
-    const em=_trEditMode||rowEdit, id=n.id;
-    const cms=!!n.cmsCreated, ct=!!n.contentCreated, rd=!!n.redirectCreated;
+    const em=rowEdit, id=n.id;
+    const rd=!!n.redirectCreated;
     const badge=(active,label,col,fn)=>{
       const clickAttr=em&&fn?` onclick="${fn}"`:'';
       const cursor=em&&fn?'cursor:pointer;':'';
@@ -8292,9 +8416,7 @@ function renderTransformationReport(){
         <span class="material-icons-round" style="font-size:10px">${active?'check_circle':'radio_button_unchecked'}</span>${label}
       </span>`;
     };
-    return `${badge(cms,'CMS','#2a5c6a',em?`upd('${id}','cmsCreated',${!cms});renderTransformationReport()`:null)}
-      ${badge(ct,'Content','#2e4f7a',em?`upd('${id}','contentCreated',${!ct});renderTransformationReport()`:null)}
-      ${uc?badge(rd,'Redirect','#5a3d7a',em?`upd('${id}','redirectCreated',${!rd});renderTransformationReport()`:null):''}`;
+    return uc?badge(rd,'Redirect','#5a3d7a',em?`upd('${id}','redirectCreated',${!rd});renderTransformationReport()`:null):'';
   };
 
   // ── Redirect warning (kept for decom rows that don't use hasUrlChange) ──
@@ -8342,7 +8464,7 @@ function renderTransformationReport(){
     const stObj=STATUS[v.status]||STATUS[Object.keys(STATUS)[0]];
     const uc=opts.uc!==undefined?opts.uc:hasUrlChange(v);
     const rw=opts.rw!==undefined?opts.rw:null;
-    const rowEdit=_trEditMode||_trRowEditIds.has(v.id);
+    const rowEdit=_trRowEditIds.has(v.id);
     // When this variant renames the page, lead with the NEW name (what it's
     // becoming) and call out the old one — mirrors how a URL change is shown
     // as Current/New just below, so a rename reads the same way at a glance.
@@ -8373,15 +8495,15 @@ function renderTransformationReport(){
           ${canon.slug?`<div class="pt-url-line"><span class="pt-url-lbl">Current</span>${trUrlLink(canon.slug)}</div>`:''}
           ${uc?`<div class="pt-url-line"><span class="pt-url-lbl">New</span>${trUrlLink(uc.newUrl,'new')}</div>`:''}
         </div>`:''}
-        ${progressPill(v,si,rowEdit)}
+        <div class="tr-node-card-progress">${progressPill(v,si,rowEdit,'',true)}</div>
         <div class="tr-node-card-footer">
           ${v.signOff?`<span title="Signed off" class="material-icons-round" style="font-size:13px;color:var(--rag-green-fg)">verified</span>`:''}
           ${rw?`<span class="material-icons-round" style="font-size:14px;color:var(--rag-red-fg)" title="${escH(rw)}">warning</span>`:''}
           <div class="tr-node-card-badges">${subtaskBadges(v,uc,rowEdit)}</div>
+          <div style="margin-left:auto" onclick="event.stopPropagation()">${commentBadgeHtml('node',v.id,{label:title})}</div>
         </div>
         ${docsHtml?`<div class="tr-node-card-divider"></div>${docsHtml}`:''}
-        <div class="tr-node-card-divider"></div>
-        <div onclick="event.stopPropagation()">${_trLegacyNoteHtml(v.id,v.notes)}${_trAccordionHtml('node',v.id)}</div>
+        ${v.notes&&v.notes.trim()?`<div class="tr-node-card-divider"></div><div onclick="event.stopPropagation()">${_trLegacyNoteHtml(v.id,v.notes)}</div>`:''}
       </div>
     </div>`;
   };
@@ -8414,8 +8536,11 @@ function renderTransformationReport(){
           </div>
         </div>
       </div>
-      <div style="padding:10px 14px">${progressPill(v,stageOf(v),false,'sm')}</div>
-      <div onclick="event.stopPropagation()">${_trLegacyNoteHtml(v.id,v.notes)}${_trAccordionHtml('node',v.id)}</div>
+      <div style="padding:8px 14px;display:flex;align-items:center;gap:10px">
+        <div style="flex:1">${progressPill(v,stageOf(v),false,'sm',false)}</div>
+        <div onclick="event.stopPropagation()">${commentBadgeHtml('node',v.id,{label:v.title||canon.title})}</div>
+      </div>
+      ${v.notes&&v.notes.trim()?`<div onclick="event.stopPropagation()">${_trLegacyNoteHtml(v.id,v.notes)}</div>`:''}
     </div>`;
   };
 
@@ -8455,6 +8580,13 @@ function renderTransformationReport(){
   // it into activePhases) and the "Not Changing" pseudo-phase isn't selected
   // either. Drives the empty-state message below instead of a blank panel.
   const anyPanelVisible=activePhases.some(trPhaseSelected)||trUnchangedSelected;
+
+  // Nodes belonging to the currently selected phase(s) — used to scope the
+  // Status Breakdown chart to what's actually in view, not the whole project.
+  const phaseScopedNodes=activePhases.filter(trPhaseSelected).flatMap(ph=>[
+    ...variants.filter(v=>v.phase===ph.id),
+    ...newInPhase.filter(n=>n.phase===ph.id),
+  ]);
 
   // ── Search / stage filter — if nothing in the CURRENT selection matches,
   // point at whichever phase(s) do rather than silently changing which
@@ -8501,9 +8633,6 @@ function renderTransformationReport(){
   // Action buttons are built once and reused in both the normal button row (wide
   // panel) and the burger-menu dropdown (narrow panel) so the two never drift apart.
   const _trRefreshBtnHtml=dsButton('Refresh',{variant:'outline',size:'sm',iconLeading:'refresh',onclick:"_trRowOrderCache={};renderTransformationReport()"});
-  const _trEditBtnHtml=_trEditMode
-    ? dsButton('Save & Exit Edit',{variant:'primary',size:'sm',iconLeading:'check',onclick:'_trEditMode=false;renderTransformationReport()',style:'background:var(--wf-live-fg);border-color:var(--wf-live-fg)'})
-    : dsButton('Edit Mode',{variant:'outline',size:'sm',iconLeading:'edit',onclick:'_trEditMode=true;renderTransformationReport()',style:'color:var(--brand-primary);border-color:var(--brand-primary)'});
   html+=`<div class="tr-exec-hd">
     <div class="tr-exec-hd-row">
       <div>
@@ -8524,56 +8653,63 @@ function renderTransformationReport(){
         </div>
         <div class="tr-exec-btn-row">
           ${_trRefreshBtnHtml}
-          ${_trEditBtnHtml}
         </div>
         <div class="tr-exec-menu-wrap">
           <button class="tr-exec-menu-btn" onclick="event.stopPropagation();_trToggleExecMenu()" title="Actions"><span class="material-icons-round" style="font-size:18px">menu</span></button>
           <div class="tr-exec-menu-dd" id="tr-exec-menu-dd">
             ${_trRefreshBtnHtml}
-            ${_trEditBtnHtml}
           </div>
         </div>
       </div>
     </div>
     ${(()=>{
-      // Status breakdown — one horizontal bar per configured status (exact
-      // count, not the 4-bucket rollup), sized relative to the busiest status
-      // so the bars are visually comparable, with the count and %-of-total
-      // called out as text. Click a bar to filter every phase's list to just
-      // that status. Collapsible (and collapsed by default — this plus the
-      // 4-bucket rollup living here instead of always-visible in the header
-      // is what keeps the header itself compact) and internally scrollable so
-      // a large number of configured statuses doesn't grow the header — it
-      // grows the accordion's own scroll area instead.
-      const stageCounts=Object.keys(STATUS).map(name=>({name,n:allTransformingNodes.filter(v=>currentStatusName(v)===name).length,st:STATUS[name]}));
+      // Status breakdown — scoped to whichever phase(s) are currently selected
+      // via the top-nav phase pills (same phaseScopedNodes the panels below
+      // render), so the chart reflects what's actually in view instead of the
+      // whole project. One horizontal bar per configured status (exact count,
+      // not the 4-bucket rollup), sized relative to the busiest status so the
+      // bars are visually comparable, with the count and %-of-total called out
+      // as text. Click a bar to filter every phase's list to just that status.
+      // Collapsible (collapsed by default) — and laid out as 2 columns once
+      // there are enough configured statuses that 1 column would need to
+      // scroll, so the whole thing stays visible at a glance.
+      const psTotal=phaseScopedNodes.length;
+      const psLive=phaseScopedNodes.filter(isLive).length;
+      const psStaged=phaseScopedNodes.filter(isStagedBucket).length;
+      const psIP=phaseScopedNodes.filter(isInProgressBucket).length;
+      const psNS=phaseScopedNodes.filter(isNotStartedBucket).length;
+      const stageCounts=Object.keys(STATUS).map(name=>({name,n:phaseScopedNodes.filter(v=>currentStatusName(v)===name).length,st:STATUS[name]}));
       const maxCount=Math.max(1,...stageCounts.map(s=>s.n));
-      const rows=stageCounts.map(s=>{
+      const rowsArr=stageCounts.map(s=>{
         const active=_trStageFilter===s.name;
         const barPct=Math.round(s.n/maxCount*100);
-        const ofTotalPct=totalVariants>0?Math.round(s.n/totalVariants*100):0;
+        const ofTotalPct=psTotal>0?Math.round(s.n/psTotal*100):0;
         return `<div class="tr-barchart-row${active?' active':''}" onclick="_trSetStageFilter('${s.name.replace(/'/g,"\\'")}')" title="Click to ${active?'clear':'filter by'} ${escH(s.name)}">
           <div class="tr-barchart-label" title="${escH(s.name)}">${escH(s.name)}</div>
           <div class="tr-barchart-bar-area">
             <div class="tr-barchart-track">
-              <div class="tr-barchart-fill" style="width:${s.n?barPct:0}%;--bar-col:${s.st.fg}">
-                ${s.n?`<div class="tr-barchart-bead" style="--bar-col:${s.st.fg}"></div>`:''}
-              </div>
+              <div class="tr-barchart-fill" style="width:${s.n?barPct:0}%;--bar-col:${s.st.fg}"></div>
             </div>
           </div>
           <div class="tr-barchart-val">${s.n}<span class="tr-barchart-val-pct">${ofTotalPct}%</span></div>
         </div>`;
-      }).join('');
+      });
+      const twoCol=rowsArr.length>6;
+      const barsHtml=twoCol
+        ? `<div class="tr-barchart two-col"><div class="tr-barchart-col">${rowsArr.slice(0,Math.ceil(rowsArr.length/2)).join('')}</div><div class="tr-barchart-col">${rowsArr.slice(Math.ceil(rowsArr.length/2)).join('')}</div></div>`
+        : `<div class="tr-barchart">${rowsArr.join('')}</div>`;
       return `<div class="tr-barchart-wrap">
         <button type="button" class="tr-barchart-toggle${_trStatusChartOpen?' open':''}" onclick="_trToggleStatusChart()">
           <span class="material-icons-round chev" style="font-size:18px">expand_more</span>
           Status breakdown
+          <span style="font-weight:600;color:var(--secondary);text-transform:none;letter-spacing:0">— selected phase${activePhases.filter(trPhaseSelected).length!==1?'s':''}</span>
           ${!_trStatusChartOpen&&_trStageFilter?`<span class="tr-barchart-active-badge">filtered: ${escH(_trStageFilter)}</span>`:''}
           ${_trStageFilter?`<span class="tr-barchart-clear" onclick="event.stopPropagation();_trSetStageFilter('')">✕ Clear filter</span>`:''}
         </button>
-        ${_trStatusChartOpen?`<div class="tr-barchart-scroll">
-          <div style="padding:2px 4px 12px">${trBreakdown({live:totalLive,staged:totalStaged,ip:totalIP,ns:totalNS},'lg')}</div>
-          <div class="tr-barchart">${rows}</div>
-        </div>`:''}
+        ${_trStatusChartOpen?(psTotal>0?`<div class="tr-barchart-scroll">
+          <div style="padding:2px 4px 12px">${trBreakdown({live:psLive,staged:psStaged,ip:psIP,ns:psNS},'lg')}</div>
+          ${barsHtml}
+        </div>`:`<div style="padding:16px 4px;text-align:center;font-size:11px;color:var(--secondary)">No phase selected above — choose one to see its status breakdown.</div>`):''}
       </div>`;
     })()}
   </div>`;
@@ -8613,10 +8749,6 @@ function renderTransformationReport(){
     const isActive=trPhaseSelected(ph);
     const phV=variants.filter(v=>v.phase===ph.id);
     const phN=newInPhase.filter(n=>n.phase===ph.id);
-    const allPh=[...phV,...phN];
-    const phLive=allPh.filter(isLive).length;
-    const phPct=phPctMap[ph.id];
-    const warnCount=phV.filter(v=>redirectWarn(v)).length;
 
     // Order: lowest stage (Not Started) at top, highest (Live) at bottom — but
     // frozen per phase tab once computed, so editing a status in place doesn't
@@ -8641,23 +8773,6 @@ function renderTransformationReport(){
     }
 
     html+=`<div class="tr-phase-panel" data-tr-panel="${ph.id}" style="${isActive?'':'display:none'}">`;
-
-    // Phase summary card — name/description live here once (tabs above are
-    // name-only). The Live/Staged/In Progress/Not Started breakdown that used
-    // to live here was removed: the header's status breakdown chart already
-    // covers it in more detail (and is filterable), so it was redundant.
-    html+=`<div class="tr-summary-card" style="border-left:5px solid ${ph.colour}">
-      <div class="tr-summary-card-hd">
-        <div style="flex:1;min-width:200px">
-          <div class="tr-summary-title" style="color:${ph.colour}">${escH(ph.name)}${ph.desc?` — ${escH(ph.desc)}`:''}</div>
-          ${warnCount?`<div class="tr-summary-warn"><span class="material-icons-round" style="font-size:13px">warning</span>${warnCount} redirect${warnCount!==1?'s':''} needed</div>`:''}
-        </div>
-        <div style="text-align:right;flex-shrink:0">
-          <div class="tr-exec-pct-num" style="color:${phPct===100?'var(--brand-primary)':ph.colour}">${phPct}%</div>
-          <div class="tr-exec-pct-cap">${phLive} of ${allPh.length} pages live</div>
-        </div>
-      </div>
-    </div>`;
 
     // ── Search filtering (list only — phase stats above stay unfiltered) ──
     const visSorted=sorted.filter(_trNodeMatchesSearch);
@@ -9351,11 +9466,6 @@ function deleteRmFeature(id){
   _rmOpenFeatures.delete(id);
   closeModal('rmFeatureModal'); renderRoadmap(); showToast('Feature deleted');
 }
-function delRmStory(featureId,storyId){
-  ROADMAP_STORIES=ROADMAP_STORIES.filter(s=>s.id!==storyId);
-  dbDeleteStory(storyId);
-  renderRoadmap();
-}
 
 function _rmSelectProduct(id){
   _rmActiveProductId=id;
@@ -9520,43 +9630,38 @@ function _rmFeatureCardHtml(f, epic){
   return `<div class="rm-feature-card">
     <div class="rm-feature-accent" style="background:${st.fg}"></div>
     <div class="rm-feature-body">
-      <div class="rm-feature-hd" onclick="_rmToggleFeature('${f.id}')">
-        <div class="rm-feature-icon" style="background:${epic.colour}18;color:${epic.colour}">
+      <div class="rm-feature-hd">
+        <div class="rm-feature-icon" style="background:${epic.colour}18;color:${epic.colour}" onclick="event.stopPropagation();openEditRmFeature('${f.id}')" title="Edit feature">
           <span class="material-icons-round" style="font-size:14px">${f.icon||'lightbulb'}</span>
         </div>
         <div class="rm-feature-title" title="${escH(f.name)}">${escH(f.name)}</div>
-        <span class="rm-count-badge" title="${stories.length} requirement(s)"><span class="material-icons-round" style="font-size:9px">checklist</span>${stories.length}</span>
-        <span class="material-icons-round rm-feature-chev">${isOpen?'expand_less':'expand_more'}</span>
+        <span class="rm-count-badge rm-feature-toggle" onclick="_rmToggleFeature('${f.id}')" title="${stories.length} requirement(s) — click to ${isOpen?'collapse':'expand'}"><span class="material-icons-round" style="font-size:9px">checklist</span>${stories.length}<span class="material-icons-round rm-feature-chev">${isOpen?'expand_less':'expand_more'}</span></span>
       </div>
       <div class="rm-feature-meta">
         <span class="rm-feature-pill" style="color:${st.fg};background:${st.bg}">${escH(f.status)}</span>
         ${f.stretch?'<span class="rm-stretch-pill">Fast Follow</span>':''}
         ${(!f.stretch&&ffStoryCount)?`<span class="rm-contains-ff-badge" title="${ffStoryCount} Fast Follow requirement(s) inside"><span class="material-icons-round" style="font-size:10px">fast_forward</span>${ffStoryCount}</span>`:''}
-        <div class="rm-feature-actions" data-requires-edit>
-          <button class="rm-feature-btn" onclick="event.stopPropagation();openEditRmFeature('${f.id}')" title="Edit feature"><span class="material-icons-round" style="font-size:13px">edit</span></button>
-        </div>
       </div>
       ${isOpen?_rmStoriesHtml(f.id, stories):''}
     </div>
   </div>`;
 }
 
-function _rmStoryRowHtml(featureId, s){
-  return `<div class="rm-story-row">
-      <span class="material-icons-round rm-story-check${s.stretch?' checked':''}" data-requires-edit onclick="toggleRmStoryStretch('${s.id}')" title="Toggle fast-follow">${s.stretch?'check_box':'check_box_outline_blank'}</span>
+function _rmStoryRowHtml(s){
+  return `<div class="rm-story-row rm-story-row-clickable" onclick="openReqDetail('${s.id}')" title="View requirement details">
       <span class="rm-story-text">${escH(s.text)}</span>
       ${s.stretch?'<span class="rm-stretch-pill">Fast Follow</span>':''}
-      <button class="rm-story-del" data-requires-edit onclick="delRmStory('${featureId}','${s.id}')" title="Remove">×</button></div>`;
+    </div>`;
 }
 function _rmStoriesHtml(featureId, stories){
   // Core requirements first, Fast Follow requirements in their own visually
   // distinguished section at the bottom — same treatment as the feature cells.
   const core=stories.filter(s=>!s.stretch), ff=stories.filter(s=>s.stretch);
   let h=`<div class="rm-story-list" onclick="event.stopPropagation()">`;
-  h+=core.map(s=>_rmStoryRowHtml(featureId,s)).join('');
+  h+=core.map(s=>_rmStoryRowHtml(s)).join('');
   if(ff.length){
     h+=`<div class="rm-story-fastfollow-divider"><span class="material-icons-round" style="font-size:9px">fast_forward</span>Fast Follow</div>`;
-    h+=ff.map(s=>_rmStoryRowHtml(featureId,s)).join('');
+    h+=ff.map(s=>_rmStoryRowHtml(s)).join('');
   }
   h+=`<div id="rm-story-form-${featureId}" style="display:none" class="rm-story-form">
     <input type="text" id="rm-story-text-${featureId}" placeholder="Requirement text…">
@@ -9566,13 +9671,6 @@ function _rmStoriesHtml(featureId, stories){
   </div>
   <button class="rm-story-add-btn" data-requires-edit onclick="_showRmStoryForm('${featureId}')">+ Add requirement</button>`;
   return h+`</div>`;
-}
-function toggleRmStoryStretch(storyId){
-  if(!canEdit()){showToast('View-only access — editing is disabled');return;}
-  const s=ROADMAP_STORIES.find(s=>s.id===storyId); if(!s)return;
-  s.stretch=!s.stretch;
-  dbUpsertStory(s);
-  renderRoadmap();
 }
 
 function _rmToggleFeature(id){
@@ -9700,6 +9798,14 @@ function selRmIcon(icon){
   selFeatureIcon=icon;
   _rmRenderIconGrid();
 }
+function _rmFeatureEpicOptionsHtml(productId, selectedEpicId){
+  const epics=ROADMAP_EPICS.filter(e=>e.productId===productId).sort((a,b)=>a.order-b.order);
+  if(!epics.length) return '<option value="">— No functional areas in this product —</option>';
+  return epics.map(e=>`<option value="${e.id}"${e.id===selectedEpicId?' selected':''}>${escH(e.name)}</option>`).join('');
+}
+function _rmFeatureProductChanged(){
+  eid('rmf-epic').innerHTML=_rmFeatureEpicOptionsHtml(eid('rmf-product').value, '');
+}
 function openAddRmFeature(epicId, phaseId){
   if(!canEdit()){showToast('View-only access — editing is disabled');return;}
   _rmEditingFeatureId=null; _rmFeatureModalCtx={epicId,phaseId};
@@ -9707,6 +9813,9 @@ function openAddRmFeature(epicId, phaseId){
   eid('rmf-delete-btn').style.display='none';
   eid('rmf-name').value=''; eid('rmf-desc').value='';
   selFeatureIcon=ROADMAP_ICONS[0];
+  const curEpic=ROADMAP_EPICS.find(e=>e.id===epicId);
+  eid('rmf-product').innerHTML=ROADMAP_PRODUCTS.map(p=>`<option value="${p.id}"${p.id===curEpic?.productId?' selected':''}>${escH(p.name)}</option>`).join('');
+  eid('rmf-epic').innerHTML=_rmFeatureEpicOptionsHtml(curEpic?.productId, epicId);
   eid('rmf-phase').innerHTML=_rmPhases().map(ph=>`<option value="${ph.id}"${ph.id===phaseId?' selected':''}>${escH(ph.name)}</option>`).join('');
   eid('rmf-status').value='Planned';
   selFeatureStretch=false;
@@ -9722,6 +9831,9 @@ function openEditRmFeature(id){
   eid('rmf-delete-btn').style.display='';
   eid('rmf-name').value=f.name; eid('rmf-desc').value=f.desc||'';
   selFeatureIcon=f.icon||ROADMAP_ICONS[0];
+  const curEpic=ROADMAP_EPICS.find(e=>e.id===f.epicId);
+  eid('rmf-product').innerHTML=ROADMAP_PRODUCTS.map(p=>`<option value="${p.id}"${p.id===curEpic?.productId?' selected':''}>${escH(p.name)}</option>`).join('');
+  eid('rmf-epic').innerHTML=_rmFeatureEpicOptionsHtml(curEpic?.productId, f.epicId);
   eid('rmf-phase').innerHTML=_rmPhases().map(ph=>`<option value="${ph.id}"${ph.id===f.phaseId?' selected':''}>${escH(ph.name)}</option>`).join('');
   eid('rmf-status').value=f.status||'Planned';
   selFeatureStretch=!!f.stretch;
@@ -9733,15 +9845,16 @@ function saveRmFeature(){
   if(!canEdit()){showToast('View-only access — editing is disabled');return;}
   const name=eid('rmf-name').value.trim(); if(!name){alert('Enter a name');return;}
   const desc=eid('rmf-desc').value.trim();
+  const epicId=eid('rmf-epic').value;
+  if(!epicId){alert('Select a functional area — add one to this product first if none exist');return;}
   const phaseId=eid('rmf-phase').value;
   const status=eid('rmf-status').value;
   const stretch=selFeatureStretch;
   let f;
   if(_rmEditingFeatureId){
     f=ROADMAP_FEATURES.find(f=>f.id===_rmEditingFeatureId);
-    if(f){f.name=name;f.desc=desc;f.icon=selFeatureIcon;f.phaseId=phaseId;f.status=status;f.stretch=stretch;}
+    if(f){f.name=name;f.desc=desc;f.icon=selFeatureIcon;f.epicId=epicId;f.phaseId=phaseId;f.status=status;f.stretch=stretch;}
   } else {
-    const epicId=_rmFeatureModalCtx.epicId;
     f={id:'FT'+Date.now(),epicId,phaseId,name,desc,icon:selFeatureIcon,status,stretch,order:ROADMAP_FEATURES.filter(x=>x.epicId===epicId&&x.phaseId===phaseId).length};
     ROADMAP_FEATURES.push(f);
   }
@@ -9763,6 +9876,8 @@ let _reqFilterOwner='';
 let _reqSearchQuery='';
 let _reqAddBarCollapsed=false; // the sticky bottom Add-requirements bar — collapsible for more table space
 let _reqExpandedReassignId=''; // story id whose Phase/Product/Area/Feature reassign select is expanded (pills+arrow otherwise)
+let _reqDetailStoryId=null; // story id shown in the Requirement Detail modal, or null if closed
+let _reqDetailEditMode=false; // false = read-only detail view, true = fields are editable
 
 // Sticky "add requirements" context — set Phase/Epic/Feature once, add several
 // requirements against it without having to re-pick from a long combined list
@@ -9783,7 +9898,7 @@ let _reqAddFeatureId='';
 // Settings > Homepage — see HOMEPAGE_VIEW_META/WELCOME_NOTE below.
 const HOMEPAGE_GROUPS=[
   {title:'Website Management', views:['ia','ecosystem','platform']},
-  {title:'Project Management', views:['transformation','roadmap','requirements','redirects']},
+  {title:'Project Management', views:['transformation','roadmap','requirements','redirects','testplan']},
 ];
 let HOMEPAGE_VIEW_META={
   ia:            {icon:'account_tree', desc:'Explore your sitemap as a navigable hierarchy.'},
@@ -9793,6 +9908,7 @@ let HOMEPAGE_VIEW_META={
   roadmap:       {icon:'map',          desc:'Plan features and requirements across products.'},
   requirements:  {icon:'fact_check',   desc:'Manage detailed requirements and discussion threads.'},
   redirects:     {icon:'swap_horiz',   desc:'Track old-to-new URL redirects and decommissions by phase.'},
+  testplan:      {icon:'science',      desc:'Run functional and scenario tests, and track coverage.'},
 };
 let WELCOME_NOTE='Welcome — choose a view below to get started.';
 
@@ -10043,7 +10159,7 @@ function renderRequirementsTracker(){
         const typeC=REQTYPE_C[s.type]||null;
         html+=`<tr>
           <td>
-            <div class="req-code-badge" title="Requirement ID">${escH(s.code||'—')}</div>
+            <div class="req-code-badge req-code-badge-clickable" title="View full details" onclick="openReqDetail('${s.id}')">${escH(s.code||'—')}</div>
             ${s.jiraKey?`<button type="button" class="req-jira-badge" onclick="_jiraOpenIssue('${escH(s.jiraKey)}')" title="Open ${escH(s.jiraKey)} in Jira"><span class="material-icons-round" style="font-size:9px">open_in_new</span>${escH(s.jiraKey)}</button>`:''}
             <textarea class="req-text-input req-text-input-main" onchange="updReqField('${s.id}','text',this.value)">${escH(s.text)}</textarea>
           </td>
@@ -10313,6 +10429,905 @@ function delReqEntry(storyId){
   dbDeleteStory(storyId);
   renderRequirementsTracker();
   showToast('Requirement deleted');
+}
+
+/* ─── Requirement Detail modal — clicking a requirement's code badge in the
+   Requirements Tracker opens a consolidated, read-only view of every field
+   (Type/Dev Status/Test Status/Owner/Source/Comments); "Edit" switches the
+   same fields to inputs in place, Save writes through updReqField's usual
+   dbUpsertStory path and returns to the read-only view. ───────────────── */
+function openReqDetail(storyId){
+  _reqDetailStoryId=storyId;
+  _reqDetailEditMode=false;
+  _renderReqDetail();
+  openModal('reqDetailModal');
+}
+function closeReqDetail(){
+  closeModal('reqDetailModal');
+  _reqDetailStoryId=null;
+  _reqDetailEditMode=false;
+}
+function _reqDetailEnterEdit(){
+  if(!canEdit()){showToast('View-only access — editing is disabled');return;}
+  _reqDetailEditMode=true;
+  _renderReqDetail();
+}
+function _reqDetailCancelEdit(){
+  _reqDetailEditMode=false;
+  _renderReqDetail();
+}
+function _renderReqDetail(){
+  const s=ROADMAP_STORIES.find(x=>x.id===_reqDetailStoryId);
+  if(!s){closeReqDetail();return;}
+  const edit=_reqDetailEditMode;
+  const devC=REQ_STATUS_COLOURS[s.devStatus]||REQ_STATUS_COLOURS['Not Started'];
+  const testC=REQ_STATUS_COLOURS[s.testStatus]||REQ_STATUS_COLOURS['Not Started'];
+  const typeC=REQTYPE_C[s.type]||null;
+
+  eid('reqDetailTitle').textContent=s.code||'Requirement';
+
+  let body=`<div class="mfield"><label>Requirement</label>`;
+  body+=edit
+    ? `<textarea class="minput" id="rd-text" rows="3">${escH(s.text)}</textarea>`
+    : `<div class="rd-view-text">${escH(s.text)}</div>`;
+  body+=`</div>`;
+
+  body+=`<div class="mfield"><label>Location</label><div style="padding-top:2px">${_reqChainPillsHtml(s)}</div></div>`;
+
+  body+=`<div class="ne-grid2" style="gap:10px">
+    <div class="mfield" style="margin:0"><label>Type</label>${edit
+      ? `<select class="mselect" id="rd-type"><option value=""${!s.type?' selected':''}>—</option>${Object.keys(REQTYPE_C).map(t=>`<option value="${escH(t)}"${t===s.type?' selected':''}>${escH(t)}</option>`).join('')}</select>`
+      : `<div class="rd-view-pill" style="${typeC?`color:${typeC};background:${typeC}22`:''}">${escH(s.type||'—')}</div>`}
+    </div>
+    <div class="mfield" style="margin:0"><label>Owner</label>${edit
+      ? `<select class="mselect" id="rd-owner"><option value=""${!s.owner?' selected':''}>—</option>${Object.keys(OWNER_C).map(o=>`<option value="${escH(o)}"${o===s.owner?' selected':''}>${escH(o)}</option>`).join('')}</select>`
+      : `<div class="rd-view-pill">${escH(s.owner||'—')}</div>`}
+    </div>
+  </div>`;
+
+  body+=`<div class="ne-grid2" style="gap:10px">
+    <div class="mfield" style="margin:0"><label>Dev Status</label>${edit
+      ? `<select class="mselect" id="rd-devstatus">${REQ_STATUSES.map(st=>`<option value="${st}"${st===s.devStatus?' selected':''}>${st}</option>`).join('')}</select>`
+      : `<div class="rd-view-pill" style="color:${devC.fg};background:${devC.bg}">${escH(s.devStatus)}</div>`}
+    </div>
+    <div class="mfield" style="margin:0"><label>Test Status</label>${edit
+      ? `<select class="mselect" id="rd-teststatus">${REQ_STATUSES.map(st=>`<option value="${st}"${st===s.testStatus?' selected':''}>${st}</option>`).join('')}</select>`
+      : `<div class="rd-view-pill" style="color:${testC.fg};background:${testC.bg}">${escH(s.testStatus)}</div>`}
+    </div>
+  </div>`;
+
+  body+=`<div class="mfield"><label>Source</label>${edit
+    ? `<input class="minput" id="rd-source" value="${escH(s.source||'')}" placeholder="e.g. Client interview">`
+    : `<div class="rd-view-text">${escH(s.source||'—')}</div>`}
+  </div>`;
+
+  body+=`<div class="mfield"><label>Fast Follow</label>${edit
+    ? `<label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink);cursor:pointer;padding-top:2px"><input type="checkbox" id="rd-stretch" ${s.stretch?'checked':''}> Mark as Fast Follow</label>`
+    : `<div class="rd-view-pill">${s.stretch?'Yes — Fast Follow':'No'}</div>`}
+  </div>`;
+
+  body+=`<div class="mfield"><label>Comments</label><div style="padding-top:2px">${commentBadgeHtml('story',s.id,{label:s.text.slice(0,60)})}</div></div>`;
+
+  eid('reqDetailBody').innerHTML=body;
+
+  eid('reqDetailFoot').innerHTML=edit
+    ? `<button class="mbtn mbtn-danger" data-requires-edit style="margin-right:auto" onclick="_reqDetailDelete()">Remove requirement</button>
+       <button class="mbtn mbtn-cancel" onclick="_reqDetailCancelEdit()">Cancel</button>
+       <button class="mbtn mbtn-save" onclick="_reqDetailSave()">Save</button>`
+    : `<button class="mbtn mbtn-cancel" onclick="closeReqDetail()">Close</button>
+       <button class="mbtn mbtn-save" data-requires-edit onclick="_reqDetailEnterEdit()">Edit</button>`;
+  if(typeof applyRoleUI==='function') applyRoleUI();
+}
+// Re-renders whichever view is currently hosting the modal — it's opened from
+// both Requirements Tracker and the Product Roadmap's feature cards.
+function _reqDetailRerenderHost(){
+  if(curView==='requirements') renderRequirementsTracker();
+  else if(curView==='roadmap') renderRoadmap();
+  else if(curView==='testplan') renderTestPlan();
+}
+function _reqDetailDelete(){
+  if(!canEdit()){showToast('View-only access — editing is disabled');return;}
+  if(!confirm('Delete this requirement? This cannot be undone.'))return;
+  const storyId=_reqDetailStoryId;
+  ROADMAP_STORIES=ROADMAP_STORIES.filter(s=>s.id!==storyId);
+  dbDeleteStory(storyId);
+  closeReqDetail();
+  _reqDetailRerenderHost();
+  showToast('Requirement deleted');
+}
+function _reqDetailSave(){
+  if(!canEdit()){showToast('View-only access — editing is disabled');return;}
+  const s=ROADMAP_STORIES.find(x=>x.id===_reqDetailStoryId);
+  if(!s)return;
+  const text=(eid('rd-text')?.value||'').trim();
+  if(text) s.text=text;
+  s.type=eid('rd-type')?.value||'';
+  s.owner=eid('rd-owner')?.value||'';
+  s.devStatus=eid('rd-devstatus')?.value||'Not Started';
+  s.testStatus=eid('rd-teststatus')?.value||'Not Started';
+  s.source=(eid('rd-source')?.value||'').trim();
+  s.stretch=!!eid('rd-stretch')?.checked;
+  dbUpsertStory(s);
+  _reqDetailEditMode=false;
+  _renderReqDetail();
+  _reqDetailRerenderHost();
+  showToast('Requirement updated');
+}
+
+/* ─── TEST PLAN ──────────────────────────────────────────────────────────
+   Covers every requirement type (Functional Requirement, Business Rule,
+   Regulatory Requirement, and anything with no Type set) — all of them need
+   testing regardless of type, so _tplScopedStories() doesn't filter on it.
+   Functional Tests: one row per (story,tester) in TEST_RESULTS, upserted on
+   retest (id = storyId+'::'+testerEmail). Verified = >=2 distinct Pass
+   testers AND 0 Fail testers currently on file — a Fail from anyone blocks
+   verification until the same composite row is overwritten with a Pass.
+   Scenario Tests: free-text paragraphs (TEST_SCENARIOS) linked to individual
+   requirements via TEST_SCENARIO_LINKS; single-execution Pass/Fail, no
+   2-person gate. Scenario coverage for a story = >=1 linked scenario whose
+   status is currently 'Pass'. ────────────────────────────────────────── */
+function _tplScopedStories(){
+  // All requirement types are testable here — Functional Requirements, Business
+  // Rules and Regulatory Requirements alike (and anything with no Type set yet).
+  return ROADMAP_STORIES.filter(s=>{
+    const feature=ROADMAP_FEATURES.find(f=>f.id===s.featureId);
+    if(!feature || !selectedPhases.has(feature.phaseId)) return false;
+    if(_tplFilterFeatureId && feature.id!==_tplFilterFeatureId) return false;
+    if(_tplSearchQuery){
+      const q=_tplSearchQuery.trim().toLowerCase();
+      if(q && !s.text.toLowerCase().includes(q) && !(s.code||'').toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
+}
+function _tplStoryVerification(storyId){
+  const rows=TEST_RESULTS.filter(r=>r.storyId===storyId);
+  const passers=[...new Set(rows.filter(r=>r.result==='Pass').map(r=>r.testerEmail))];
+  const failers=rows.filter(r=>r.result==='Fail');
+  return {rows, passers, failCount:failers.length, verified:passers.length>=2 && failers.length===0, openFail:failers.length>0};
+}
+function _tplScenarioHasCoverage(storyId){
+  const linkedIds=TEST_SCENARIO_LINKS.filter(l=>l.storyId===storyId).map(l=>l.scenarioId);
+  return TEST_SCENARIOS.some(sc=>linkedIds.includes(sc.id) && sc.status==='Pass');
+}
+function _tplScenarioHasOpenFail(storyId){
+  const linkedIds=TEST_SCENARIO_LINKS.filter(l=>l.storyId===storyId).map(l=>l.scenarioId);
+  return TEST_SCENARIOS.some(sc=>linkedIds.includes(sc.id) && sc.status==='Fail');
+}
+
+function renderTestPlan(){
+  const wrap=eid('viewTestPlan');
+  const prevScrollTop=wrap.querySelector('.tpl-content')?.scrollTop||0;
+  wrap.innerHTML='';
+
+  const stories=_tplScopedStories();
+  const total=stories.length;
+  const verifiedCount=stories.filter(s=>_tplStoryVerification(s.id).verified).length;
+  const scenarioCoveredCount=stories.filter(s=>_tplScenarioHasCoverage(s.id)).length;
+  const openFailCount=stories.filter(s=>_tplStoryVerification(s.id).openFail).length
+    + stories.filter(s=>_tplScenarioHasOpenFail(s.id)).length;
+  const verifiedPct=total?Math.round(verifiedCount/total*100):0;
+  const scenarioPct=total?Math.round(scenarioCoveredCount/total*100):0;
+
+  let html=`<div class="req-wrap">`;
+
+  html+=`<div class="req-header">
+    <div class="req-header-title">Test Plan</div>
+    <div class="tpl-subtab-toggle">
+      <button class="tpl-subtab-btn${_tplSubTab==='functional'?' active':''}" onclick="_tplSetSubTab('functional')">Functional Tests</button>
+      <button class="tpl-subtab-btn${_tplSubTab==='scenario'?' active':''}" onclick="_tplSetSubTab('scenario')">Scenario Tests</button>
+    </div>
+    <div class="req-search-wrap">
+      <span class="material-icons-round req-search-icon">search</span>
+      <input class="req-search-input" type="text" placeholder="Search requirements…" value="${escH(_tplSearchQuery)}" oninput="_tplSetSearch(this.value)">
+      ${_tplSearchQuery?`<button class="req-search-clear" onclick="_tplClearSearch()" title="Clear search">✕</button>`:''}
+    </div>
+  </div>`;
+
+  html+=`<div style="padding:10px 20px 0">${_tplSummaryAccordionHtml(total,verifiedCount,verifiedPct,scenarioCoveredCount,scenarioPct,openFailCount)}</div>`;
+
+  const featuresInScope=ROADMAP_FEATURES.filter(f=>selectedPhases.has(f.phaseId));
+  html+=`<div class="req-filters">
+    <select class="req-filter-select" onchange="_tplSetFilterFeature(this.value)">
+      <option value="">All features (in selected phase${selectedPhases.size>1?'s':''})</option>
+      ${featuresInScope.map(f=>`<option value="${f.id}"${f.id===_tplFilterFeatureId?' selected':''}>${escH(f.name)}</option>`).join('')}
+    </select>
+    <label class="tpl-only-fail-toggle"><input type="checkbox" ${_tplOnlyOpenFailures?'checked':''} onchange="_tplToggleOnlyFailures()"> Show only open failures</label>
+  </div>`;
+
+  html+=`<div class="req-content tpl-content">`;
+  if(!total){
+    html+=`<div class="rm-empty">
+      <div class="rm-empty-title">No requirements in scope</div>
+      <div class="rm-empty-sub">Select a phase with requirements using the phase bar above, or add some from the Requirements Tracker first.</div>
+    </div>`;
+  } else if(_tplSubTab==='functional'){
+    html+=_tplRenderFunctionalTab(stories);
+  } else {
+    html+=_tplRenderScenarioTab(stories);
+  }
+  html+=`</div>`; // /.tpl-content
+
+  html+=`</div>`; // /.req-wrap
+
+  wrap.innerHTML=html;
+  const newContent=wrap.querySelector('.tpl-content');
+  if(newContent) newContent.scrollTop=prevScrollTop;
+  if(typeof applyRoleUI==='function') applyRoleUI();
+}
+
+// ── Summary accordion — the Verified/Scenario Covered/Open Failures stats
+// used to be always-visible header tiles; now tucked into a small collapsed-
+// by-default accordion using the Transformation Report's own comment-
+// accordion classes (.tr-cmt-*) verbatim, so it matches that view's style
+// exactly rather than approximating it. ─────────────────────────────────
+function _tplSummaryAccordionHtml(total,verifiedCount,verifiedPct,scenarioCoveredCount,scenarioPct,openFailCount){
+  const isOpen=_tplSummaryOpen;
+  return `<div class="tr-cmt-accordion tpl-summary-accordion">
+    <button class="tr-cmt-hdr${openFailCount?' has-open':''}" onclick="_tplToggleSummary()">
+      <span class="material-icons-round" style="font-size:13px">${isOpen?'expand_more':'chevron_right'}</span>
+      Test Plan Summary
+      ${openFailCount?`<span class="tr-cmt-open-count">${openFailCount} open</span>`:''}
+    </button>
+    ${isOpen?`<div class="tr-cmt-body">
+      <div class="ar-metric-bar" style="margin-top:4px">
+        <div class="ar-metric-tile ${total&&verifiedPct===100?'ok':'issue'}">
+          <div class="ar-metric-num">${verifiedCount}/${total}</div>
+          <div class="ar-metric-lbl">Verified — ${verifiedPct}%</div>
+        </div>
+        <div class="ar-metric-tile ${total&&scenarioPct===100?'ok':'issue'}">
+          <div class="ar-metric-num">${scenarioCoveredCount}/${total}</div>
+          <div class="ar-metric-lbl">Scenario Covered — ${scenarioPct}%</div>
+        </div>
+        <div class="ar-metric-tile ${openFailCount?'issue':'ok'}">
+          <div class="ar-metric-num">${openFailCount}</div>
+          <div class="ar-metric-lbl">Open Failures</div>
+        </div>
+      </div>
+    </div>`:''}
+  </div>`;
+}
+function _tplToggleSummary(){ _tplSummaryOpen=!_tplSummaryOpen; renderTestPlan(); }
+
+// ── Functional Tests — organised as a Product > Functional Area (Epic) >
+// Feature accordion tree instead of one flat table, so a product/area/
+// feature can be seen as "fully tested" at a glance via its own %-verified
+// badge. Open Failures gets its own always-relevant flat accordion above the
+// tree for fast triage, independent of which branches happen to be expanded.
+function _tplGroupPct(groupStories){
+  if(!groupStories.length) return 0;
+  const verified=groupStories.filter(s=>_tplStoryVerification(s.id).verified).length;
+  return Math.round(verified/groupStories.length*100);
+}
+function _tplPctBadgeStyle(pct){
+  if(pct>=100) return {fg:'var(--rag-green-fg)',bg:'var(--rag-green-bg)'};
+  if(pct<=0)   return {fg:'var(--rag-red-fg)',  bg:'var(--rag-red-bg)'};
+  return {fg:'var(--rag-amber-fg)',bg:'var(--rag-amber-bg)'};
+}
+// Builds Product → Epic → Feature → Stories from a flat scoped list, each
+// level carrying its own story array (for the %-verified rollup) — sorted
+// by each level's own `order` field, matching the Roadmap's ordering.
+function _tplBuildHierarchyTree(stories){
+  const featureMap={};
+  stories.forEach(s=>{
+    if(!featureMap[s.featureId]) featureMap[s.featureId]={feature:ROADMAP_FEATURES.find(f=>f.id===s.featureId),stories:[]};
+    featureMap[s.featureId].stories.push(s);
+  });
+  const epicMap={};
+  Object.values(featureMap).forEach(fEntry=>{
+    if(!fEntry.feature) return;
+    const epicId=fEntry.feature.epicId;
+    if(!epicMap[epicId]) epicMap[epicId]={epic:ROADMAP_EPICS.find(e=>e.id===epicId),features:[],stories:[]};
+    epicMap[epicId].features.push(fEntry);
+    epicMap[epicId].stories.push(...fEntry.stories);
+  });
+  const productMap={};
+  Object.values(epicMap).forEach(eEntry=>{
+    if(!eEntry.epic) return;
+    const productId=eEntry.epic.productId;
+    if(!productMap[productId]) productMap[productId]={product:ROADMAP_PRODUCTS.find(p=>p.id===productId),epics:[],stories:[]};
+    productMap[productId].epics.push(eEntry);
+    productMap[productId].stories.push(...eEntry.stories);
+  });
+  return Object.values(productMap).filter(p=>p.product)
+    .sort((a,b)=>(a.product.order||0)-(b.product.order||0));
+}
+function _tplToggleHierNode(level,id){
+  const set=level==='product'?_tplOpenProducts:level==='epic'?_tplOpenEpics:_tplOpenFeatures;
+  if(set.has(id)) set.delete(id); else set.add(id);
+  renderTestPlan();
+}
+function _tplHierHdrHtml(level,id,label,groupStories,extraClass){
+  const pct=_tplGroupPct(groupStories);
+  const badge=_tplPctBadgeStyle(pct);
+  const failCount=groupStories.filter(s=>_tplStoryVerification(s.id).openFail).length;
+  const openSet=level==='product'?_tplOpenProducts:level==='epic'?_tplOpenEpics:_tplOpenFeatures;
+  const isOpen=_tplOnlyOpenFailures||openSet.has(id);
+  return {isOpen, html:`<button class="tpl-hier-hdr${extraClass?' '+extraClass:''}" onclick="_tplToggleHierNode('${level}','${id}')">
+    <span class="material-icons-round tpl-hier-chev" style="font-size:15px">${isOpen?'expand_more':'chevron_right'}</span>
+    <span class="tpl-hier-label" title="${escH(label)}">${escH(label)}</span>
+    <span class="tpl-hier-count">${groupStories.length} requirement${groupStories.length===1?'':'s'}</span>
+    ${failCount?`<span class="tpl-hier-fail-badge">${failCount} failing</span>`:''}
+    <span class="tpl-hier-pct" style="color:${badge.fg};background:${badge.bg}">${pct}%</span>
+  </button>`};
+}
+function _tplFeatureAccordionHtml(fEntry){
+  const rows=_tplOnlyOpenFailures?fEntry.stories.filter(s=>_tplStoryVerification(s.id).openFail):fEntry.stories;
+  const {isOpen,html:hdr}=_tplHierHdrHtml('feature',fEntry.feature.id,fEntry.feature.name,fEntry.stories,'tpl-hier-hdr-feature');
+  let html=`<div class="tpl-hier-group tpl-hier-feature">${hdr}`;
+  if(isOpen) html+=`<div class="tpl-hier-body tpl-hier-body-leaf">${rows.map(s=>_tplReqRowHtml(s)).join('')||'<div class="rm-empty">No requirements match this filter.</div>'}</div>`;
+  html+=`</div>`;
+  return html;
+}
+function _tplEpicAccordionHtml(eEntry){
+  const {isOpen,html:hdr}=_tplHierHdrHtml('epic',eEntry.epic.id,eEntry.epic.name,eEntry.stories,'tpl-hier-hdr-epic');
+  let html=`<div class="tpl-hier-group tpl-hier-epic">${hdr}`;
+  if(isOpen){
+    html+=`<div class="tpl-hier-body">`;
+    html+=eEntry.features.slice().sort((a,b)=>(a.feature.order||0)-(b.feature.order||0))
+      .map(fEntry=>_tplFeatureAccordionHtml(fEntry)).join('');
+    html+=`</div>`;
+  }
+  html+=`</div>`;
+  return html;
+}
+function _tplProductAccordionHtml(pEntry){
+  const {isOpen,html:hdr}=_tplHierHdrHtml('product',pEntry.product.id,pEntry.product.name,pEntry.stories,'tpl-hier-hdr-product');
+  let html=`<div class="tpl-hier-group tpl-hier-product">${hdr}`;
+  if(isOpen){
+    html+=`<div class="tpl-hier-body">`;
+    html+=pEntry.epics.slice().sort((a,b)=>(a.epic.order||0)-(b.epic.order||0))
+      .map(eEntry=>_tplEpicAccordionHtml(eEntry)).join('');
+    html+=`</div>`;
+  }
+  html+=`</div>`;
+  return html;
+}
+function _tplToggleFailuresAccordion(){ _tplFailuresOpen=!_tplFailuresOpen; renderTestPlan(); }
+function _tplFailuresAccordionHtml(failingStories){
+  const isOpen=_tplFailuresOpen;
+  return `<div class="tpl-hier-group tpl-failures-group">
+    <button class="tpl-hier-hdr tpl-failures-hdr" onclick="_tplToggleFailuresAccordion()">
+      <span class="material-icons-round tpl-hier-chev" style="font-size:15px">${isOpen?'expand_more':'chevron_right'}</span>
+      <span class="material-icons-round" style="font-size:14px">error_outline</span>
+      <span class="tpl-hier-label">Open Failures</span>
+      <span class="tpl-hier-fail-badge">${failingStories.length}</span>
+    </button>
+    ${isOpen?`<div class="tpl-hier-body">${failingStories.map(s=>_tplReqRowHtml(s)).join('')}</div>`:''}
+  </div>`;
+}
+function _tplReqRowHtml(s){
+  const v=_tplStoryVerification(s.id);
+  const covered=_tplScenarioHasCoverage(s.id);
+  const pillC=v.verified?TPL_RESULT_COLOURS.Pass:(v.openFail?TPL_RESULT_COLOURS.Fail:{fg:'var(--wf-ns-fg)',bg:'var(--wf-ns-bg)'});
+  const pillLabel=v.verified?'✓ Verified':(v.openFail?`${v.passers.length}/2 — Fail open`:`${v.passers.length}/2 passed`);
+  const typeC=REQTYPE_C[s.type]||null;
+  const typeLabel=s.type||'Untyped';
+  return `<div class="tpl-req-row${v.openFail?' tpl-req-row-fail':''}">
+    <div class="tpl-req-row-main">
+      <div class="req-code-badge" title="Requirement ID">${escH(s.code||'—')}</div>
+      <div class="tpl-req-row-text">${escH(s.text)}</div>
+      <span class="tpl-verify-pill" style="${typeC?`color:${typeC};background:${typeC}1c`:'color:var(--text3);background:var(--md-surface-container)'}">${escH(typeLabel)}</span>
+    </div>
+    <div class="tpl-req-row-meta">
+      <div class="tpl-signoff-chips">
+        ${v.rows.map(r=>`<span class="tpl-signoff-chip ${r.result==='Pass'?'pass':'fail'}" title="${escH(r.testerEmail)} — ${r.result}${r.notes?': '+escH(r.notes):''} (${_cmtFmtDate(r.testedAt)})">${_cmtInitials(r.testerEmail)}</span>`).join('')}
+        ${!v.rows.length?'<span style="font-size:10px;color:var(--text3)">Not tested</span>':''}
+      </div>
+      <span class="tpl-verify-pill" style="color:${pillC.fg};background:${pillC.bg}">${pillLabel}</span>
+      <span class="tpl-coverage-icon" title="${covered?'Covered by a passed scenario':'No passed scenario linked'}">${covered?'✅':'—'}</span>
+      ${commentBadgeHtml('story',s.id,{label:s.text.slice(0,60)})}
+      <div data-requires-edit>${_tplMarkingStoryId===s.id?_tplMarkFormHtml(s.id):`<button class="tpl-mark-btn" onclick="_tplStartMarkStory('${s.id}')">${v.rows.length?'Retest':'Test this'}</button>`}</div>
+    </div>
+  </div>`;
+}
+function _tplRenderFunctionalTab(stories){
+  let html='';
+  const failingStories=stories.filter(s=>_tplStoryVerification(s.id).openFail);
+  if(failingStories.length) html+=_tplFailuresAccordionHtml(failingStories);
+
+  const scoped=_tplOnlyOpenFailures?failingStories:stories;
+  const tree=_tplBuildHierarchyTree(scoped);
+  if(!tree.length){
+    html+=`<div class="rm-empty">No requirements match this filter.</div>`;
+    return html;
+  }
+  html+=`<div class="tpl-hier-tree">${tree.map(pEntry=>_tplProductAccordionHtml(pEntry)).join('')}</div>`;
+  return html;
+}
+
+function _tplMarkFormHtml(storyId){
+  return `<div class="tpl-mark-form" onclick="event.stopPropagation()">
+    <textarea class="tpl-mark-notes" id="tpl-mark-notes-${storyId}" placeholder="Notes (optional, e.g. why it failed)…"></textarea>
+    <div class="tpl-mark-form-btns">
+      <button class="tpl-mark-btn tpl-pass-btn" onclick="_tplSubmitStoryResult('${storyId}','Pass')">Pass</button>
+      <button class="tpl-mark-btn tpl-fail-btn" onclick="_tplSubmitStoryResult('${storyId}','Fail')">Fail</button>
+      <button class="tpl-mark-btn" onclick="_tplCancelMarkStory()">Cancel</button>
+    </div>
+  </div>`;
+}
+
+function _tplRenderScenarioTab(stories){
+  let html=`<div class="tpl-scenario-list">`;
+  const addingNew=_tplScenarioDraft && _tplScenarioDraft.id===null;
+  html+=`<div style="display:flex;gap:8px;align-items:center">
+    <div data-requires-edit style="display:flex;gap:8px">
+      <button class="mbtn mbtn-save" onclick="${addingNew?'_tplCancelScenarioDraft()':'_tplStartNewScenario()'}">${addingNew?'− Cancel':'+ New Scenario'}</button>
+      <button class="mbtn mbtn-cancel" onclick="_tplToggleImport()">${_tplImportOpen?'− Cancel import':'⇪ Import from Markdown'}</button>
+    </div>
+    <button class="tpl-copy-btn" onclick="openScenarioPromptModal()" title="Copy the AI prompt template for generating more scenario packs">
+      <span class="material-icons-round" style="font-size:14px">chevron_right</span>
+    </button>
+  </div>`;
+  if(addingNew) html+=_tplScenarioDraftFormHtml();
+  if(_tplImportOpen) html+=_tplImportPanelHtml();
+
+  if(!TEST_SCENARIOS.length){
+    html+=`<div class="rm-empty"><div class="rm-empty-title">No scenarios yet</div><div class="rm-empty-sub">Add a scenario above — as a quick paste or a full step-by-step script — and list the requirements it exercises to track coverage.</div></div>`;
+  } else {
+    const inScopeIds=new Set(stories.map(s=>s.id));
+    let scenarios=TEST_SCENARIOS.filter(sc=>
+      TEST_SCENARIO_LINKS.some(l=>l.scenarioId===sc.id && inScopeIds.has(l.storyId)) ||
+      !TEST_SCENARIO_LINKS.some(l=>l.scenarioId===sc.id)
+    );
+    if(_tplOnlyOpenFailures) scenarios=scenarios.filter(sc=>sc.status==='Fail');
+    if(!scenarios.length){
+      html+=`<div class="rm-empty">No scenarios match this filter.</div>`;
+    }
+    scenarios.forEach(sc=>{ html+=_tplScenarioCardHtml(sc); });
+  }
+  html+=`</div>`;
+  return html;
+}
+
+// ── Scenario create/edit — a single shared "draft" covers both the
+// "+ New Scenario" form and editing an existing scenario in place, so the
+// same _tplScenarioDraftFormHtml() renders both. draft.id===null means a
+// new scenario is being composed; draft.id=<scenarioId> means that existing
+// scenario's card is in edit mode. Only one draft is open at a time — same
+// single-pointer convention as _tplMarkingStoryId/_tplMarkingScenarioId.
+function _tplBlankScenarioDraft(){
+  return {id:null, mode:'freeform', title:'', type:'', priority:'', objective:'', preconditions:'',
+    testData:'', overallExpected:'', text:'', reqCodes:'', steps:[]};
+}
+function _tplScenarioToDraft(sc){
+  let steps=[];
+  try{ steps = sc.stepsJson ? JSON.parse(sc.stepsJson) : []; }catch(e){ steps=[]; }
+  return {id:sc.id, mode:sc.mode||'freeform', title:sc.title||'', type:sc.type||'', priority:sc.priority||'',
+    objective:sc.objective||'', preconditions:sc.preconditions||'', testData:sc.testData||'',
+    overallExpected:sc.overallExpected||'', text:sc.text||'', reqCodes:sc.reqCodes||'',
+    steps: steps.map(s=>({action:s.action||'', expected:s.expected||'', reqCodes:s.reqCodes||''}))};
+}
+function _tplStartNewScenario(){
+  if(!canEdit()){showToast('View-only access — editing is disabled');return;}
+  _tplScenarioDraft=_tplBlankScenarioDraft();
+  _tplImportOpen=false;
+  renderTestPlan();
+}
+function _tplStartEditScenario(scenarioId){
+  if(!canEdit()){showToast('View-only access — editing is disabled');return;}
+  const sc=TEST_SCENARIOS.find(s=>s.id===scenarioId); if(!sc)return;
+  _tplScenarioDraft=_tplScenarioToDraft(sc);
+  _tplImportOpen=false;
+  renderTestPlan();
+}
+function _tplCancelScenarioDraft(){
+  _tplScenarioDraft=null;
+  renderTestPlan();
+}
+function _tplSetDraftMode(mode){
+  if(!_tplScenarioDraft)return;
+  _tplScenarioDraft.mode=mode;
+  renderTestPlan();
+}
+function _tplUpdDraftField(field,val){
+  if(!_tplScenarioDraft)return;
+  _tplScenarioDraft[field]=val;
+}
+function _tplUpdDraftStep(i,field,val){
+  if(!_tplScenarioDraft || !_tplScenarioDraft.steps[i])return;
+  _tplScenarioDraft.steps[i][field]=val;
+}
+function _tplAddDraftStep(){
+  if(!_tplScenarioDraft)return;
+  _tplScenarioDraft.steps.push({action:'',expected:'',reqCodes:''});
+  renderTestPlan();
+}
+function _tplRemoveDraftStep(i){
+  if(!_tplScenarioDraft)return;
+  _tplScenarioDraft.steps.splice(i,1);
+  renderTestPlan();
+}
+function _tplScenarioDraftFormHtml(){
+  const d=_tplScenarioDraft;
+  let html=`<div class="tpl-scenario-form" data-requires-edit>`;
+  html+=`<div class="tpl-subtab-toggle">
+    <button class="tpl-subtab-btn${d.mode==='freeform'?' active':''}" onclick="_tplSetDraftMode('freeform')">Quick Paste</button>
+    <button class="tpl-subtab-btn${d.mode==='structured'?' active':''}" onclick="_tplSetDraftMode('structured')">Structured Steps</button>
+  </div>`;
+  html+=`<input type="text" class="minput" placeholder="Scenario title (optional), e.g. SC-01 — Golden path" value="${escH(d.title)}" oninput="_tplUpdDraftField('title',this.value)">`;
+
+  if(d.mode==='structured'){
+    html+=`<div class="ne-grid2" style="gap:10px">
+      <select class="mselect" onchange="_tplUpdDraftField('type',this.value)">
+        <option value=""${!d.type?' selected':''}>Type — optional</option>
+        ${['Positive','Negative','Mixed'].map(t=>`<option value="${t}"${d.type===t?' selected':''}>${t}</option>`).join('')}
+      </select>
+      <select class="mselect" onchange="_tplUpdDraftField('priority',this.value)">
+        <option value=""${!d.priority?' selected':''}>Priority — optional</option>
+        ${['P1','P2','P3'].map(p=>`<option value="${p}"${d.priority===p?' selected':''}>${p}</option>`).join('')}
+      </select>
+    </div>`;
+    html+=`<textarea class="tpl-meta-textarea" rows="2" placeholder="Objective" oninput="_tplUpdDraftField('objective',this.value)">${escH(d.objective)}</textarea>`;
+    html+=`<textarea class="tpl-meta-textarea" rows="2" placeholder="Preconditions" oninput="_tplUpdDraftField('preconditions',this.value)">${escH(d.preconditions)}</textarea>`;
+    html+=`<textarea class="tpl-meta-textarea" rows="2" placeholder="Test data" oninput="_tplUpdDraftField('testData',this.value)">${escH(d.testData)}</textarea>`;
+    html+=`<div class="tpl-steps-list">`;
+    d.steps.forEach((step,i)=>{
+      html+=`<div class="tpl-step-row">
+        <div class="tpl-step-num">${i+1}</div>
+        <div class="tpl-step-fields">
+          <textarea class="tpl-meta-textarea" rows="2" placeholder="Action — what the tester does" oninput="_tplUpdDraftStep(${i},'action',this.value)">${escH(step.action)}</textarea>
+          <textarea class="tpl-meta-textarea" rows="2" placeholder="Expected result" oninput="_tplUpdDraftStep(${i},'expected',this.value)">${escH(step.expected)}</textarea>
+          <input type="text" class="minput" placeholder="Requirements covered, e.g. BOOK-PROD-001, BOOK-PROD-002" value="${escH(step.reqCodes)}" oninput="_tplUpdDraftStep(${i},'reqCodes',this.value)">
+        </div>
+        <button class="rm-story-del" onclick="_tplRemoveDraftStep(${i})" title="Remove step">×</button>
+      </div>`;
+    });
+    html+=`</div>`;
+    html+=`<button class="tpl-mark-btn" onclick="_tplAddDraftStep()">+ Add step</button>`;
+    html+=`<textarea class="tpl-meta-textarea" rows="2" placeholder="Overall expected result" oninput="_tplUpdDraftField('overallExpected',this.value)">${escH(d.overallExpected)}</textarea>`;
+  } else {
+    html+=`<textarea class="tpl-scenario-textarea" placeholder="Paste the scenario text here…" oninput="_tplUpdDraftField('text',this.value)">${escH(d.text)}</textarea>`;
+    html+=`<div style="font-size:10px;color:var(--text3)">Requirements covered, comma-separated:</div>
+    <input type="text" class="minput" placeholder="e.g. SEAR-PETA-001, SEAR-PETA-002" value="${escH(d.reqCodes)}" oninput="_tplUpdDraftField('reqCodes',this.value)">`;
+  }
+
+  html+=`<div style="display:flex;gap:8px">
+    ${d.id?`<button class="mbtn mbtn-danger" style="margin-right:auto" onclick="deleteScenarioEntry('${d.id}')">Delete scenario</button>`:''}
+    <button class="mbtn mbtn-save" onclick="_tplSaveScenarioDraft()">Save scenario</button>
+    <button class="mbtn mbtn-cancel" onclick="_tplCancelScenarioDraft()">Cancel</button>
+  </div>`;
+  html+=`</div>`;
+  return html;
+}
+// Creates/updates one scenario row from a draft object and syncs its
+// TEST_SCENARIO_LINKS to match the requirement codes found in it (steps'
+// codes unioned for structured mode, the single reqCodes field for
+// freeform). Shared by the single-scenario Save button and the bulk
+// markdown importer below — `seq` is an extra uniqueness token for the new-
+// scenario id so a tight import loop can't mint two ids in the same
+// millisecond (Date.now() alone isn't fine-grained enough for that).
+// Async and fully awaited (both the scenario write and the link batch)
+// rather than fire-and-forget: a scenario with many steps can easily cite
+// dozens of requirement codes, and firing that many individual concurrent
+// requests at the Apps Script backend blows past its concurrent-execution
+// limit and starts failing ("Sheet write error") — see dbUpsertScenarioLinksBatch.
+async function _tplPersistScenarioDraft(d, seq){
+  const now=new Date().toISOString();
+  let scenario;
+  if(d.id){
+    scenario=TEST_SCENARIOS.find(s=>s.id===d.id);
+    if(!scenario)return null;
+  } else {
+    scenario={id:'TS'+Date.now()+'_'+(seq!=null?seq:Math.floor(Math.random()*1e6)),
+      status:'Not Tested', lastTestedBy:'', lastTestedAt:'', notes:'',
+      createdBy:(gCurrentUser&&gCurrentUser.email||'').trim().toLowerCase(), createdAt:now};
+    TEST_SCENARIOS.push(scenario);
+  }
+  Object.assign(scenario,{
+    mode:d.mode, title:(d.title||'').trim(), type:d.type||'', priority:d.priority||'',
+    objective:(d.objective||'').trim(), preconditions:(d.preconditions||'').trim(), testData:(d.testData||'').trim(),
+    overallExpected:(d.overallExpected||'').trim(),
+    text: d.mode==='freeform' ? (d.text||'').trim() : '',
+    reqCodes: d.mode==='freeform' ? (d.reqCodes||'').trim() : '',
+    stepsJson: d.mode==='structured'
+      ? JSON.stringify(d.steps.map(s=>({action:(s.action||'').trim(),expected:(s.expected||'').trim(),reqCodes:(s.reqCodes||'').trim()})))
+      : '',
+  });
+  await dbUpsertScenario(scenario);
+
+  // Coverage is derived, not manually linked: structured mode unions every
+  // step's "Requirements covered" field; freeform mode uses its own single
+  // paste box. Either way this recomputes TEST_SCENARIO_LINKS to match.
+  // Link ids are the scenarioId+storyId composite (not Date.now()-based) so
+  // two scenarios saved in the same millisecond — as bulk import easily
+  // does — can never mint colliding link ids for the same requirement.
+  const codeSource = d.mode==='structured' ? d.steps.map(s=>s.reqCodes).join(',') : d.reqCodes;
+  const {matchedIds, unmatched} = _tplParseRequirementCodes(codeSource);
+  const desired=new Set(matchedIds);
+  const existing=TEST_SCENARIO_LINKS.filter(l=>l.scenarioId===scenario.id);
+  const existingStoryIds=new Set(existing.map(l=>l.storyId));
+
+  const toAdd=[...desired].filter(storyId=>!existingStoryIds.has(storyId))
+    .map(storyId=>({id:'TSL_'+scenario.id+'_'+storyId, scenarioId:scenario.id, storyId}));
+  toAdd.forEach(link=>TEST_SCENARIO_LINKS.push(link));
+  const toRemove=existing.filter(l=>!desired.has(l.storyId));
+  if(toRemove.length){
+    const removeIds=new Set(toRemove.map(l=>l.id));
+    TEST_SCENARIO_LINKS=TEST_SCENARIO_LINKS.filter(l=>!removeIds.has(l.id));
+  }
+
+  await dbUpsertScenarioLinksBatch(toAdd);
+  await dbDeleteScenarioLinksBatch(toRemove.map(l=>l.id));
+
+  return {scenario, unmatched};
+}
+async function _tplSaveScenarioDraft(){
+  if(!canEdit()){showToast('View-only access — editing is disabled');return;}
+  const d=_tplScenarioDraft;
+  if(!d)return;
+  if(d.mode==='freeform' && !d.text.trim()){showToast('Paste in the scenario text first','error');return;}
+  if(d.mode==='structured' && !d.steps.length){showToast('Add at least one step first','error');return;}
+
+  const result=await _tplPersistScenarioDraft(d);
+  if(!result)return;
+  _tplScenarioDraft=null;
+  renderTestPlan();
+  showToast(result.unmatched.length?`Scenario saved — ID(s) not found: ${result.unmatched.join(', ')}`:'Scenario saved');
+}
+
+// ── Bulk import: parses a pasted Test Scenario Pack markdown document (the
+// same "### SC-01 — Title" + Objective/Type/Priority/Preconditions/Test data
+// + step-table format the app's own scenario cards render) directly into
+// structured scenario drafts. Only blocks whose heading looks like a
+// scenario id (SC-<number>) are treated as scenarios — narrative sections,
+// the scenario index table, and the coverage appendix are all skipped
+// automatically since they don't match that heading pattern.
+function _tplParseScenarioMarkdown(text){
+  const scenarios=[];
+  const blocks=String(text||'').split(/\n(?=###\s)/);
+  blocks.forEach(block=>{
+    const headingMatch=block.match(/^###\s+(.+)$/m);
+    if(!headingMatch) return;
+    const heading=headingMatch[1].trim();
+    if(!/^SC-?\s*\d+/i.test(heading)) return;
+
+    const field=(label)=>{
+      const m=block.match(new RegExp('\\*\\*'+label+':\\*\\*\\s*([^\\n]+)'));
+      return m ? m[1].replace(/\*\*/g,'').trim() : '';
+    };
+    const objective=field('Objective');
+    const preconditions=field('Preconditions');
+    const testData=field('Test data');
+    const overallExpected=field('Overall expected result');
+
+    let type='', priority='';
+    const typeM=block.match(/\*\*Type:\*\*\s*([^\n·]+?)(?:\s*·|\s*\n|$)/);
+    if(typeM) type=typeM[1].replace(/\*\*/g,'').trim();
+    const prioM=block.match(/\*\*Priority:\*\*\s*(P\d)/i);
+    if(prioM) priority=prioM[1].toUpperCase();
+
+    // Step table rows — any "| ... |" line whose first cell is a step number
+    // (optionally suffixed, e.g. "6a"/"6b" for sub-steps); this alone is
+    // enough to skip the header row ("#"), the "|---|---|" separator, and
+    // any unrelated table elsewhere in the block (e.g. a coverage table
+    // trailing in from a non-"###" section heading further down the doc).
+    const steps=[];
+    block.split('\n').forEach(line=>{
+      if(!/^\s*\|.*\|\s*$/.test(line)) return;
+      const cells=line.split('|').slice(1,-1).map(c=>c.trim());
+      if(!cells.length || !/^\d+[a-z]?$/i.test(cells[0])) return;
+      steps.push({action:cells[1]||'', expected:cells[2]||'', reqCodes:cells[3]||''});
+    });
+
+    scenarios.push({id:null, mode:'structured', title:heading, type, priority,
+      objective, preconditions, testData, overallExpected, text:'', reqCodes:'', steps});
+  });
+  return scenarios;
+}
+function _tplToggleImport(){
+  if(!canEdit()){showToast('View-only access — editing is disabled');return;}
+  _tplImportOpen=!_tplImportOpen;
+  if(_tplImportOpen) _tplScenarioDraft=null;
+  renderTestPlan();
+}
+function _tplImportPanelHtml(){
+  return `<div class="tpl-scenario-form" data-requires-edit>
+    <div style="font-size:11px;color:var(--text2);line-height:1.5">Paste a Test Scenario Pack — or any subset of one — in the standard markdown format: each scenario as a <strong>### heading</strong> with <strong>Objective / Type / Priority / Preconditions / Test data</strong> lines and a step table (<code>#, Action, Expected result, Requirements covered</code>). You can paste the whole document; narrative sections and coverage tables are skipped automatically.</div>
+    <textarea class="tpl-scenario-textarea" id="tpl-import-markdown" style="min-height:220px" placeholder="Paste the whole .md file here…"></textarea>
+    <div style="display:flex;gap:8px">
+      <button class="mbtn mbtn-save" onclick="_tplImportScenariosFromMarkdown()">Parse &amp; Import</button>
+      <button class="mbtn mbtn-cancel" onclick="_tplToggleImport()">Cancel</button>
+    </div>
+  </div>`;
+}
+async function _tplImportScenariosFromMarkdown(){
+  if(!canEdit()){showToast('View-only access — editing is disabled');return;}
+  const text=eid('tpl-import-markdown')?.value||'';
+  const parsed=_tplParseScenarioMarkdown(text);
+  if(!parsed.length){showToast('No scenario blocks found — expected headings like "### SC-01 — Title"','error');return;}
+  let totalSteps=0;
+  const allUnmatched=new Set();
+  showToast(`Importing ${parsed.length} scenario(s)…`);
+  // Sequential, awaited — NOT Promise.all/fire-and-forget. Each scenario can
+  // cite requirement codes on every step; firing all scenarios' writes
+  // concurrently multiplies into hundreds of simultaneous requests and
+  // exceeds the Apps Script backend's concurrent-execution limit.
+  for(let i=0;i<parsed.length;i++){
+    const d=parsed[i];
+    totalSteps+=d.steps.length;
+    const result=await _tplPersistScenarioDraft(d,i);
+    if(result) result.unmatched.forEach(u=>allUnmatched.add(u));
+  }
+  _tplImportOpen=false;
+  renderTestPlan();
+  showToast(allUnmatched.size
+    ? `Imported ${parsed.length} scenario(s), ${totalSteps} step(s) — ${allUnmatched.size} requirement ID(s) not found`
+    : `Imported ${parsed.length} scenario(s), ${totalSteps} step(s)`);
+}
+
+function _tplScenarioCardHtml(sc){
+  const statusC=TPL_SCENARIO_STATUS_COLOURS[sc.status]||TPL_SCENARIO_STATUS_COLOURS['Not Tested'];
+  const links=TEST_SCENARIO_LINKS.filter(l=>l.scenarioId===sc.id);
+  const linkedStories=links.map(l=>ROADMAP_STORIES.find(s=>s.id===l.storyId)).filter(Boolean);
+  const isEditingThis=_tplScenarioDraft && _tplScenarioDraft.id===sc.id;
+  const isStructured=sc.mode==='structured';
+  const title=sc.title || (isStructured ? 'Untitled scenario' : (sc.text||'').slice(0,60));
+
+  let body;
+  if(isEditingThis){
+    body=_tplScenarioDraftFormHtml();
+  } else {
+    body=`<div class="tpl-scenario-title-row">
+      <div class="tpl-scenario-title">${escH(title)}</div>
+      ${sc.type?`<span class="tpl-req-chip">${escH(sc.type)}</span>`:''}
+      ${sc.priority?`<span class="tpl-req-chip">${escH(sc.priority)}</span>`:''}
+    </div>`;
+    if(isStructured){
+      if(sc.objective) body+=`<div class="tpl-scenario-meta"><strong>Objective:</strong> ${escH(sc.objective)}</div>`;
+      if(sc.preconditions) body+=`<div class="tpl-scenario-meta"><strong>Preconditions:</strong> ${escH(sc.preconditions)}</div>`;
+      if(sc.testData) body+=`<div class="tpl-scenario-meta"><strong>Test data:</strong> ${escH(sc.testData)}</div>`;
+      let steps=[]; try{ steps=sc.stepsJson?JSON.parse(sc.stepsJson):[]; }catch(e){}
+      if(steps.length){
+        body+=`<div class="tpl-step-table-scroll"><table class="tpl-step-table">
+          <thead><tr><th style="width:28px">#</th><th>Action</th><th>Expected result</th><th style="width:180px">Requirements</th></tr></thead>
+          <tbody>${steps.map((s,i)=>`<tr>
+            <td>${i+1}</td>
+            <td>${escH(s.action)}</td>
+            <td>${escH(s.expected)}</td>
+            <td>${escH(s.reqCodes)}</td>
+          </tr>`).join('')}</tbody>
+        </table></div>`;
+      } else {
+        body+=`<div style="font-size:11px;color:var(--text3)">No steps yet — click Edit to add some.</div>`;
+      }
+      if(sc.overallExpected) body+=`<div class="tpl-scenario-meta"><strong>Overall expected result:</strong> ${escH(sc.overallExpected)}</div>`;
+    } else {
+      body+=`<div class="tpl-scenario-text">${escH(sc.text)}</div>`;
+    }
+  }
+
+  return `<div class="tpl-scenario-card">
+    <div class="tpl-scenario-card-hd">
+      <span class="tpl-verify-pill" style="color:${statusC.fg};background:${statusC.bg}">${sc.status}</span>
+      ${sc.lastTestedBy?`<span style="font-size:10px;color:var(--text3)">by ${escH(sc.lastTestedBy)} · ${_cmtFmtDate(sc.lastTestedAt)}</span>`:''}
+      <span style="flex:1"></span>
+      ${!isStructured?`<button class="tpl-copy-btn" onclick="_tplCopyScenarioText('${sc.id}')" title="Copy scenario text"><span class="material-icons-round" style="font-size:12px">content_copy</span>Copy</button>`:''}
+      ${commentBadgeHtml('scenario',sc.id,{label:title.slice(0,60)})}
+      <button class="tpl-copy-btn" data-requires-edit onclick="${isEditingThis?'_tplCancelScenarioDraft()':`_tplStartEditScenario('${sc.id}')`}">${isEditingThis?'Cancel edit':'Edit'}</button>
+    </div>
+    ${body}
+    <div class="tpl-scenario-links">
+      ${linkedStories.map(s=>`<span class="tpl-req-chip">${escH(s.code||s.text.slice(0,30))}</span>`).join('')||'<span style="font-size:10px;color:var(--text3)">No requirements covered yet</span>'}
+    </div>
+    ${sc.notes?`<div style="font-size:11px;color:var(--text2)">Notes: ${escH(sc.notes)}</div>`:''}
+    ${!isEditingThis?`<div data-requires-edit>
+      ${_tplMarkingScenarioId===sc.id?_tplScenarioMarkFormHtml(sc.id):`<button class="tpl-mark-btn" onclick="_tplStartMarkScenario('${sc.id}')">${sc.status==='Not Tested'?'Test this':'Retest'}</button>`}
+    </div>`:''}
+  </div>`;
+}
+
+function _tplScenarioMarkFormHtml(scenarioId){
+  return `<div class="tpl-mark-form">
+    <textarea class="tpl-mark-notes" id="tpl-scenario-notes-${scenarioId}" placeholder="Notes (optional)…"></textarea>
+    <div class="tpl-mark-form-btns">
+      <button class="tpl-mark-btn tpl-pass-btn" onclick="_tplSubmitScenarioResult('${scenarioId}','Pass')">Pass</button>
+      <button class="tpl-mark-btn tpl-fail-btn" onclick="_tplSubmitScenarioResult('${scenarioId}','Fail')">Fail</button>
+      <button class="tpl-mark-btn" onclick="_tplCancelMarkScenario()">Cancel</button>
+    </div>
+  </div>`;
+}
+
+function _tplSetSubTab(v){_tplSubTab=v;_tplMarkingStoryId=null;_tplMarkingScenarioId=null;renderTestPlan();}
+function _tplSetSearch(v){_tplSearchQuery=v;renderTestPlan();}
+function _tplClearSearch(){_tplSearchQuery='';renderTestPlan();}
+function _tplSetFilterFeature(v){_tplFilterFeatureId=v;renderTestPlan();}
+function _tplToggleOnlyFailures(){_tplOnlyOpenFailures=!_tplOnlyOpenFailures;renderTestPlan();}
+
+function _tplStartMarkStory(storyId){
+  if(!canEdit()){showToast('View-only access — editing is disabled');return;}
+  if(!gCurrentUser){showToast('Sign in to record a test result');return;}
+  _tplMarkingStoryId=storyId;renderTestPlan();
+}
+function _tplCancelMarkStory(){_tplMarkingStoryId=null;renderTestPlan();}
+
+async function _tplSubmitStoryResult(storyId,result){
+  if(!canEdit()){showToast('View-only access — editing is disabled');return;}
+  if(!gCurrentUser){showToast('Sign in to record a test result');return;}
+  const email=gCurrentUser.email.trim().toLowerCase();
+  const id=storyId+'::'+email;
+  const notes=(eid('tpl-mark-notes-'+storyId)?.value||'').trim();
+  const now=new Date().toISOString();
+  let row=TEST_RESULTS.find(r=>r.id===id);
+  if(!row){row={id,storyId,testerEmail:email,result,notes,testedAt:now};TEST_RESULTS.push(row);}
+  else{row.result=result;row.notes=notes;row.testedAt=now;}
+  dbUpsertTestResult(row);
+  _tplMarkingStoryId=null;
+  renderTestPlan();
+  showToast(result==='Pass'?'Marked Pass':'Marked Fail');
+}
+
+function _tplStartMarkScenario(scenarioId){
+  if(!canEdit()){showToast('View-only access — editing is disabled');return;}
+  if(!gCurrentUser){showToast('Sign in to record a test result');return;}
+  _tplMarkingScenarioId=scenarioId;renderTestPlan();
+}
+function _tplCancelMarkScenario(){_tplMarkingScenarioId=null;renderTestPlan();}
+
+async function _tplSubmitScenarioResult(id,result){
+  if(!canEdit()){showToast('View-only access — editing is disabled');return;}
+  if(!gCurrentUser){showToast('Sign in to record a test result');return;}
+  const sc=TEST_SCENARIOS.find(s=>s.id===id);
+  if(!sc)return;
+  sc.status=result;
+  sc.notes=(eid('tpl-scenario-notes-'+id)?.value||'').trim();
+  sc.lastTestedBy=gCurrentUser.email.trim().toLowerCase();
+  sc.lastTestedAt=new Date().toISOString();
+  dbUpsertScenario(sc);
+  _tplMarkingScenarioId=null;
+  renderTestPlan();
+  showToast(result==='Pass'?'Scenario marked Pass':'Scenario marked Fail');
+}
+
+function _tplCopyScenarioText(id){
+  const sc=TEST_SCENARIOS.find(s=>s.id===id);
+  if(!sc)return;
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(sc.text).then(()=>showToast('Scenario text copied')).catch(()=>showToast('Could not copy — select text manually'));
+  } else {
+    showToast('Clipboard not available — select text manually');
+  }
+}
+
+function openScenarioPromptModal(){
+  const ta=eid('tplPromptText');
+  if(ta) ta.value=TPL_SCENARIO_PROMPT_TEMPLATE;
+  openModal('tplPromptModal');
+}
+function _tplCopyPromptTemplate(){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(TPL_SCENARIO_PROMPT_TEMPLATE).then(()=>showToast('Prompt template copied')).catch(()=>showToast('Could not copy — select text manually'));
+  } else {
+    showToast('Clipboard not available — select text manually');
+  }
+}
+
+// Parses a comma-separated Requirement ID list (e.g. pasted from a codes
+// list or an AI-generated scenario) against each story's displayed `code`
+// badge — case-insensitive, whitespace-trimmed. Returns matched story ids
+// plus any tokens that didn't match anything, so the caller can surface a
+// "N not found" warning rather than silently dropping typos.
+function _tplParseRequirementCodes(text){
+  const tokens=String(text||'').split(',').map(t=>t.trim()).filter(Boolean);
+  const matchedIds=[], unmatched=[];
+  tokens.forEach(tok=>{
+    const s=ROADMAP_STORIES.find(s=>s.code && s.code.toUpperCase()===tok.toUpperCase());
+    if(s) matchedIds.push(s.id); else unmatched.push(tok);
+  });
+  return {matchedIds, unmatched};
+}
+
+function deleteScenarioEntry(id){
+  if(!canEdit()){showToast('View-only access — editing is disabled');return;}
+  if(!confirm('Delete this scenario? This cannot be undone.'))return;
+  TEST_SCENARIOS=TEST_SCENARIOS.filter(s=>s.id!==id);
+  const orphanLinks=TEST_SCENARIO_LINKS.filter(l=>l.scenarioId===id);
+  TEST_SCENARIO_LINKS=TEST_SCENARIO_LINKS.filter(l=>l.scenarioId!==id);
+  dbDeleteScenario(id);
+  orphanLinks.forEach(l=>dbDeleteScenarioLink(l.id));
+  if(_tplScenarioDraft && _tplScenarioDraft.id===id) _tplScenarioDraft=null;
+  renderTestPlan();
+  showToast('Scenario deleted');
 }
 
 /* ─── PLATFORM / CLUSTER ────────────────────────────────────────────────── */
@@ -12959,25 +13974,12 @@ function _renderTrayEditTab(tab, id, body){
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
         ${trayStatusNames.map((name)=>{
           const complete=isStatusComplete(n,name);
-          const isCurrent=name===trayCurName&&!complete;
+          const isCurrent=name===trayCurName;
           const st=STATUS[name];
           const border=isCurrent?`2px solid ${st.fg}`:complete?`1.5px solid ${st.fg}`:'1.5px solid var(--md-outline-variant)';
           return`<div onclick="toggleNodeStatusComplete('${id}','${name.replace(/'/g,"\\'")}');_renderTrayEditTab(${_ref})"
-            style="padding:6px 12px;border-radius:20px;border:${border};background:${complete?st.bg:'var(--md-surface-container)'};cursor:pointer;font-size:10px;font-weight:700;color:${complete?st.fg:isCurrent?st.fg:'var(--text3)'};white-space:nowrap;transition:all .15s" title="${complete?'Done — click to uncheck':isCurrent?'Next step':'Not yet — click to check off'}">${complete?'✓ ':''}${escH(name)}</div>`;
+            style="padding:6px 12px;border-radius:20px;border:${border};background:${complete?st.bg:'var(--md-surface-container)'};cursor:pointer;font-size:10px;font-weight:700;color:${complete?st.fg:isCurrent?st.fg:'var(--text3)'};white-space:nowrap;transition:all .15s" title="${isCurrent?(complete?'Currently here — click to uncheck':'Next step — click to check off'):complete?'Done — click to uncheck':'Not yet — click to check off'}">${complete?'✓ ':''}${escH(name)}</div>`;
         }).join('')}
-      </div>
-      <div style="font-size:9px;color:var(--text3);margin-bottom:6px;font-weight:500;letter-spacing:.03em">SUB-TASKS — independent of status</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">
-        <div onclick="upd('${id}','cmsCreated',!${!!n.cmsCreated});_renderTrayEditTab(${_ref})"
-          style="padding:8px 10px;border-radius:8px;border:1.5px solid ${n.cmsCreated?'#2a5c6a':'var(--md-outline-variant)'};background:${n.cmsCreated?'#e0edf5':'var(--md-surface-container)'};cursor:pointer;display:flex;align-items:center;gap:6px">
-          <span class="material-icons-round" style="font-size:14px;color:${n.cmsCreated?'#2a5c6a':'var(--text3)'}">${n.cmsCreated?'check_box':'check_box_outline_blank'}</span>
-          <div><div style="font-size:10px;font-weight:700;color:${n.cmsCreated?'#2a5c6a':'var(--text2)'}">CMS Created</div><div style="font-size:8px;color:var(--text3)">Build complete</div></div>
-        </div>
-        <div onclick="upd('${id}','contentCreated',!${!!n.contentCreated});_renderTrayEditTab(${_ref})"
-          style="padding:8px 10px;border-radius:8px;border:1.5px solid ${n.contentCreated?'#2e4f7a':'var(--md-outline-variant)'};background:${n.contentCreated?'#e8eef8':'var(--md-surface-container)'};cursor:pointer;display:flex;align-items:center;gap:6px">
-          <span class="material-icons-round" style="font-size:14px;color:${n.contentCreated?'#2e4f7a':'var(--text3)'}">${n.contentCreated?'check_box':'check_box_outline_blank'}</span>
-          <div><div style="font-size:10px;font-weight:700;color:${n.contentCreated?'#2e4f7a':'var(--text2)'}">Content Created</div><div style="font-size:8px;color:var(--text3)">Authored &amp; approved</div></div>
-        </div>
       </div>
       ${_tUc?`<div style="background:#f5f0ff;border:1px solid #c8b8ef;border-radius:10px;padding:10px 12px;margin-bottom:10px">
         <div style="font-size:9px;font-weight:700;color:#5a3d7a;letter-spacing:.05em;margin-bottom:6px;display:flex;align-items:center;gap:5px"><span class="material-icons-round" style="font-size:12px">swap_horiz</span>URL CHANGE — REDIRECT REQUIRED</div>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- StrategicSitemapper  v58 -->
+<!-- StrategicSitemapper  v63 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -2004,6 +2004,7 @@ a.pt-url-val:hover{text-decoration:underline}
     </div>
     <button class="hbtn-icon hdr-burger-btn" id="hdrBurgerBtn" onclick="toggleHdrBurger(event)" data-tip="Menu" title="Menu"><span class="material-icons-outlined" style="font-size:18px">menu</span></button>
     <div class="h-sep"></div>
+    <div id="presencePillWrap"></div>
     <div id="userPillWrap"></div>
   </div>
 </header>
@@ -2248,7 +2249,7 @@ async function handleGoogleCredential(response) {
   let role = 'viewer'; // default — unknown users get viewer until table loaded
   let lookupFailed = false;
   try {
-    const data = await sheetPost({ action: 'getRoles' }, 20000);
+    const data = await sheetPost({ action: 'getRoles', idToken: response.credential }, 20000);
     if (data && data.roles) {
       ROLE_TABLE = data.roles; // { "alice@example.com": "admin", ... }
       role = ROLE_TABLE[email] || null;
@@ -2292,11 +2293,18 @@ async function handleGoogleCredential(response) {
   renderUserPill();
   applyRoleUI();
   showToast(`Signed in as ${payload.name} (${role})`);
-  loadFromSheets();
+  // Start presence AFTER the main data load finishes rather than alongside
+  // it — Apps Script Web Apps have a low concurrent-execution ceiling (see
+  // upsertRowsBatch's comment), so firing getAll + heartbeat + getPresence
+  // all at once on sign-in made them compete for execution slots right when
+  // load speed matters most. Presence isn't time-critical; a few seconds'
+  // delay showing who else is online is imperceptible.
+  loadFromSheets().then(startPresence);
 }
 
 function signOut() {
   _googleAuthHandled = false;
+  stopPresence();
   if (typeof google !== 'undefined' && google.accounts) {
     google.accounts.id.disableAutoSelect();
     google.accounts.id.revoke(gCurrentUser?.email || '', () => {});
@@ -2381,6 +2389,68 @@ function renderUserPill() {
     wrap.innerHTML = '';
   }
 }
+
+// ── PRESENCE — "who else is online" header avatars ──────────────────────────
+// Last-seen based (see the backend's heartbeat/getPresence, and its
+// PRESENCE_WINDOW_MINUTES) — not a live connection, refreshed on a timer.
+function renderPresenceBadges(users){
+  const wrap=document.getElementById('presencePillWrap');
+  if(!wrap) return;
+  if(!users||!users.length){ wrap.innerHTML=''; return; }
+  const MAX_SHOWN=5;
+  const shown=users.slice(0,MAX_SHOWN);
+  const extra=users.length-shown.length;
+  const circleStyle='width:26px;height:26px;border-radius:50%;border:2px solid var(--md-surface);margin-left:-8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--md-surface-container);overflow:hidden';
+  const avatarsHtml=shown.map(u=>{
+    const label=escH(u.name||u.email||'');
+    const img=u.picture
+      ? `<img src="${escH(u.picture)}" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+         <span class="material-icons-round" style="font-size:15px;display:none">account_circle</span>`
+      : `<span class="material-icons-round" style="font-size:15px">account_circle</span>`;
+    return `<span style="${circleStyle}" title="${label} — online">${img}</span>`;
+  }).join('');
+  const extraHtml = extra>0
+    ? `<span style="${circleStyle};font-size:10px;font-weight:700;color:var(--text2)" title="${extra} more online">+${extra}</span>`
+    : '';
+  wrap.innerHTML = `<div style="display:flex;align-items:center;margin-right:4px" title="${users.length} other${users.length===1?'':'s'} online">${avatarsHtml}${extraHtml}</div>`;
+}
+
+async function dbHeartbeat(){
+  if(!gCurrentUser) return;
+  try{
+    await sheetPost({action:'heartbeat', row:{name:gCurrentUser.name||'', picture:gCurrentUser.picture||'', lastSeen:new Date().toISOString()}});
+  }catch(e){ console.error('dbHeartbeat:',e); }
+}
+
+async function dbGetPresence(){
+  if(!gCurrentUser) return;
+  try{
+    const data=await sheetGet('getPresence');
+    const others=(data.users||[]).filter(u=>u.email && u.email!==gCurrentUser.email);
+    renderPresenceBadges(others);
+  }catch(e){ console.error('dbGetPresence:',e); }
+}
+
+let _presenceTimer=null;
+const PRESENCE_TICK_MS=90000;
+async function _presenceTick(){
+  // Skip backgrounded tabs — halves traffic from idle-but-open tabs, and a
+  // tab that isn't focused arguably isn't "actively online" anyway.
+  if(document.hidden) return;
+  await dbHeartbeat();
+  await dbGetPresence();
+}
+function startPresence(){
+  stopPresence();
+  _presenceTick();
+  _presenceTimer=setInterval(_presenceTick, PRESENCE_TICK_MS);
+}
+function stopPresence(){
+  if(_presenceTimer){ clearInterval(_presenceTimer); _presenceTimer=null; }
+  const wrap=document.getElementById('presencePillWrap');
+  if(wrap) wrap.innerHTML='';
+}
+
 function toggleUserMenu(e){
   if(e)e.stopPropagation();
   const dd=eid('hdrUserDropdown');
@@ -2471,11 +2541,18 @@ async function sheetPost(body, timeoutMs) {
   const controller = timeoutMs ? new AbortController() : null;
   const timer = timeoutMs ? setTimeout(()=>controller.abort(), timeoutMs) : null;
   try {
+    // Every write needs to prove who's calling — attach the current Google
+    // Sign-In ID token so the backend can verify it server-side (doPost's
+    // _requireRole_ — previously nothing checked this at all). Callers may
+    // pass their own idToken explicitly (the sign-in bootstrap call does,
+    // since gCurrentUser doesn't exist yet at that point); this only fills
+    // it in when the caller didn't.
+    const payload = (body && body.idToken !== undefined) ? body : { ...body, idToken: gCurrentUser?.credential };
     const res = await fetch(API_URL, {
       method: 'POST',
       redirect: 'follow',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(body),
+      body: JSON.stringify(payload),
       ...(controller ? {signal: controller.signal} : {}),
     });
     if (!res.ok) throw new Error(`POST HTTP ${res.status}`);
@@ -2490,6 +2567,18 @@ async function sheetPost(body, timeoutMs) {
   }
 }
 
+// GET counterpart to sheetPost — same idToken attachment and error-handling
+// contract, for the doGet actions (getAll/getComments/getActions/getRoles).
+async function sheetGet(action, params) {
+  const qs = new URLSearchParams({ action, _: Date.now(), ...(params||{}) });
+  if (gCurrentUser?.credential) qs.set('idToken', gCurrentUser.credential);
+  const res = await fetch(`${API_URL}?${qs.toString()}`, { redirect: 'follow' });
+  if (!res.ok) throw new Error(`GET HTTP ${res.status}`);
+  const json = await res.json();
+  if (json && json.error) throw new Error(json.error);
+  return json;
+}
+
 async function loadFromSheets() {
   showLoader('Loading from Sheets…');
   showToast('Loading from Sheets…');
@@ -2497,32 +2586,17 @@ async function loadFromSheets() {
   setLoaderStep('connect','active');
   if(typeof _trRowOrderCache!=='undefined') _trRowOrderCache={};
   try {
-    // Fire the main data fetch and the comments fetch together instead of one
-    // after the other — halves the number of sequential GAS round-trips this
-    // startup path needs to wait on (GAS cold-starts make each one expensive).
-    const dataUrl     = `${API_URL}?action=getAll&_=${Date.now()}`;
-    const commentsUrl = `${API_URL}?action=getComments&_=${Date.now()}`;
-    const [res, commentsRes] = await Promise.all([
-      fetch(dataUrl, { redirect: 'follow' }),
-      fetch(commentsUrl, { redirect: 'follow' }),
-    ]);
     setLoaderStep('connect','done');
     setLoaderStep('data','active');
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    if (data.error) throw new Error(data.error);
+    const data = await sheetGet('getAll');
     setLoaderStep('data','done');
 
     setLoaderStep('comments','active');
-    try {
-      if (!commentsRes.ok) throw new Error(`HTTP ${commentsRes.status}`);
-      const commentsData = await commentsRes.json();
-      if (commentsData.error) throw new Error(commentsData.error);
-      COMMENTS_ALL = commentsData.comments || [];
-      _cmtIndex();
-    } catch(cErr) {
-      console.warn('Comments load failed (continuing without them):', cErr);
-    }
+    // getAll already returns the full Comments sheet — reuse it instead of a
+    // separate getComments round trip (that used to read Comments from the
+    // spreadsheet a second time on every app load and then discard this copy).
+    COMMENTS_ALL = data.comments || [];
+    _cmtIndex();
     setLoaderStep('comments','done');
     setLoaderStep('render','active');
 
@@ -2827,53 +2901,56 @@ async function loadFromSheets() {
 }
 
 // ── WRITE-THROUGH HELPERS — called immediately on every local mutation ─────
+// Build a clean Nodes-sheet row — never pass undefined; use '' for missing
+// strings, keep parentId as-is. Shared by dbUpsertNode (single) and
+// dbUpsertNodesBatch (many-at-once, used by syncToSheets) so the two never
+// drift out of sync on which fields get written.
+function _nodeToRow(node) {
+  return {
+    id:          node.id          || '',
+    parentId:    node.parentId    || '',
+    nodeType:    node.nodeType    || 'page',
+    title:       node.title       || '',
+    slug:        node.slug        || '',
+    newSlug:     node.newSlug     || '',
+    cms:         node.cms         || '',
+    owner:       node.owner       || '',
+    status:      node.status      || '',
+    completedStatuses: (node.completedStatuses||[]).join(','),
+    signOff:          node.signOff ? 'TRUE' : 'FALSE',
+    accessible:       node.accessible ? 'TRUE' : 'FALSE',
+    seoOptimised:     node.seoOptimised ? 'TRUE' : 'FALSE',
+    psiPerformance:   node.psiPerformance   != null ? node.psiPerformance   : '',
+    psiAccessibility: node.psiAccessibility != null ? node.psiAccessibility : '',
+    psiSeo:           node.psiSeo           != null ? node.psiSeo           : '',
+    psiBestPractices: node.psiBestPractices  != null ? node.psiBestPractices  : '',
+    psiLcp:           node.psiLcp           != null ? node.psiLcp           : '',
+    psiCls:           node.psiCls           != null ? node.psiCls           : '',
+    psiTbt:           node.psiTbt           != null ? node.psiTbt           : '',
+    psiFcp:           node.psiFcp           != null ? node.psiFcp           : '',
+    psiDesktopPerf:   node.psiDesktopPerf   != null ? node.psiDesktopPerf   : '',
+    psiFieldCategory: node.psiFieldCategory  || '',
+    psiChecked:       node.psiChecked || '',
+    phase:       node.phase       || '',
+    notes:       node.notes       || '',
+    redirectFrom:node.redirectFrom|| '',
+    redirectTo:  node.redirectTo  || '',
+    decommissioned: node.decommissioned ? 'TRUE' : 'FALSE',
+    decommissionUrl: node.decommissionUrl || '',
+    bgImg:       node.bgImg       || '',
+    badgeImg:    node.badgeImg    || '',
+    badgeLabel:  node.badgeLabel  || '',
+    variantOf:   node.variantOf  || '',
+    roadmapProductId: node.roadmapProductId || '',
+    roadmapFeatureId: node.roadmapFeatureId || '',
+    cmsCreated:      node.cmsCreated      ? 'TRUE' : 'FALSE',
+    contentCreated:  node.contentCreated  ? 'TRUE' : 'FALSE',
+    redirectCreated: node.redirectCreated ? 'TRUE' : 'FALSE',
+    diff:        '',
+  };
+}
 async function dbUpsertNode(node) {
-  try {
-    // Build a clean row — never pass undefined; use '' for missing strings, keep parentId as-is
-    const row = {
-      id:          node.id          || '',
-      parentId:    node.parentId    || '',
-      nodeType:    node.nodeType    || 'page',
-      title:       node.title       || '',
-      slug:        node.slug        || '',
-      newSlug:     node.newSlug     || '',
-      cms:         node.cms         || '',
-      owner:       node.owner       || '',
-      status:      node.status      || '',
-      completedStatuses: (node.completedStatuses||[]).join(','),
-      signOff:          node.signOff ? 'TRUE' : 'FALSE',
-      accessible:       node.accessible ? 'TRUE' : 'FALSE',
-      seoOptimised:     node.seoOptimised ? 'TRUE' : 'FALSE',
-      psiPerformance:   node.psiPerformance   != null ? node.psiPerformance   : '',
-      psiAccessibility: node.psiAccessibility != null ? node.psiAccessibility : '',
-      psiSeo:           node.psiSeo           != null ? node.psiSeo           : '',
-      psiBestPractices: node.psiBestPractices  != null ? node.psiBestPractices  : '',
-      psiLcp:           node.psiLcp           != null ? node.psiLcp           : '',
-      psiCls:           node.psiCls           != null ? node.psiCls           : '',
-      psiTbt:           node.psiTbt           != null ? node.psiTbt           : '',
-      psiFcp:           node.psiFcp           != null ? node.psiFcp           : '',
-      psiDesktopPerf:   node.psiDesktopPerf   != null ? node.psiDesktopPerf   : '',
-      psiFieldCategory: node.psiFieldCategory  || '',
-      psiChecked:       node.psiChecked || '',
-      phase:       node.phase       || '',
-      notes:       node.notes       || '',
-      redirectFrom:node.redirectFrom|| '',
-      redirectTo:  node.redirectTo  || '',
-      decommissioned: node.decommissioned ? 'TRUE' : 'FALSE',
-      decommissionUrl: node.decommissionUrl || '',
-      bgImg:       node.bgImg       || '',
-      badgeImg:    node.badgeImg    || '',
-      badgeLabel:  node.badgeLabel  || '',
-      variantOf:   node.variantOf  || '',
-      roadmapProductId: node.roadmapProductId || '',
-      roadmapFeatureId: node.roadmapFeatureId || '',
-      cmsCreated:      node.cmsCreated      ? 'TRUE' : 'FALSE',
-      contentCreated:  node.contentCreated  ? 'TRUE' : 'FALSE',
-      redirectCreated: node.redirectCreated ? 'TRUE' : 'FALSE',
-      diff:        '',
-    };
-    await sheetPost({ action:'upsertNode', row });
-  }
+  try { await sheetPost({ action:'upsertNode', row: _nodeToRow(node) }); }
   catch(e) { console.error('dbUpsertNode:', e); showToast('Sheet write error: '+e.message); }
 }
 async function dbDeleteNode(id) {
@@ -3007,7 +3084,6 @@ async function dbUpsertTestResult(r){try{await sheetPost({action:'upsertTestResu
 async function dbUpsertScenario(sc){try{await sheetPost({action:'upsertScenario',row:{id:sc.id,title:sc.title||'',mode:sc.mode||'freeform',type:sc.type||'',priority:sc.priority||'',objective:sc.objective||'',preconditions:sc.preconditions||'',testData:sc.testData||'',stepsJson:sc.stepsJson||'',overallExpected:sc.overallExpected||'',reqCodes:sc.reqCodes||'',text:sc.text||'',status:sc.status||'Not Tested',lastTestedBy:sc.lastTestedBy||'',lastTestedAt:sc.lastTestedAt||'',notes:sc.notes||'',createdBy:sc.createdBy||'',createdAt:sc.createdAt||''}});}catch(e){console.error('dbUpsertScenario:',e);showToast('Sheet write error: '+e.message);}}
 async function dbDeleteScenario(id){try{await sheetPost({action:'deleteScenario',id});}catch(e){console.error('dbDeleteScenario:',e);showToast('Sheet write error: '+e.message);}}
 async function dbUpsertScenarioLink(l){try{await sheetPost({action:'upsertScenarioLink',row:{id:l.id,scenarioId:l.scenarioId,storyId:l.storyId}});}catch(e){console.error('dbUpsertScenarioLink:',e);showToast('Sheet write error: '+e.message);}}
-async function dbDeleteScenarioLink(id){try{await sheetPost({action:'deleteScenarioLink',id});}catch(e){console.error('dbDeleteScenarioLink:',e);showToast('Sheet write error: '+e.message);}}
 // Batch variants — one HTTP round-trip for many link rows, instead of one per
 // row. A single scenario can cite requirement codes on every step, easily
 // producing dozens of links; firing that many concurrent individual requests
@@ -3015,13 +3091,35 @@ async function dbDeleteScenarioLink(id){try{await sheetPost({action:'deleteScena
 // starts failing ("Sheet write error"). Used by _tplPersistScenarioDraft.
 async function dbUpsertScenarioLinksBatch(links){if(!links.length)return;try{await sheetPost({action:'upsertScenarioLinksBatch',rows:links.map(l=>({id:l.id,scenarioId:l.scenarioId,storyId:l.storyId}))});}catch(e){console.error('dbUpsertScenarioLinksBatch:',e);showToast('Sheet write error: '+e.message);}}
 async function dbDeleteScenarioLinksBatch(ids){if(!ids.length)return;try{await sheetPost({action:'deleteScenarioLinksBatch',ids});}catch(e){console.error('dbDeleteScenarioLinksBatch:',e);showToast('Sheet write error: '+e.message);}}
+
+// More batch variants — same one-round-trip-instead-of-N reasoning as the
+// ScenarioLinks pair above. Used by syncToSheets() (full-state push) and the
+// cascading-delete call sites (deleting a Product/Epic/Feature/node with
+// children used to fire one request per row).
+async function dbUpsertNodesBatch(nodes){if(!nodes.length)return;try{await sheetPost({action:'upsertNodesBatch',rows:nodes.map(_nodeToRow)});}catch(e){console.error('dbUpsertNodesBatch:',e);showToast('Sheet write error: '+e.message);}}
+async function dbDeleteNodesBatch(ids){if(!ids.length)return;try{await sheetPost({action:'deleteNodesBatch',ids});}catch(e){console.error('dbDeleteNodesBatch:',e);showToast('Sheet write error: '+e.message);}}
+async function dbUpsertLinksBatch(rows){if(!rows.length)return;try{await sheetPost({action:'upsertLinksBatch',rows});}catch(e){console.error('dbUpsertLinksBatch:',e);showToast('Sheet write error: '+e.message);}}
+async function dbUpsertCtasBatch(rows){if(!rows.length)return;try{await sheetPost({action:'upsertCtasBatch',rows});}catch(e){console.error('dbUpsertCtasBatch:',e);showToast('Sheet write error: '+e.message);}}
+async function dbUpsertCompsBatch(comps){if(!comps.length)return;try{await sheetPost({action:'upsertCompsBatch',rows:comps.map(c=>({id:c.id,name:c.name,code:c.code||'',aka:c.aka||'',imageUrl:c.imageUrl||''}))});}catch(e){console.error('dbUpsertCompsBatch:',e);showToast('Sheet write error: '+e.message);}}
+async function dbUpsertNodeCompsBatch(rows){if(!rows.length)return;try{await sheetPost({action:'upsertNodeCompsBatch',rows});}catch(e){console.error('dbUpsertNodeCompsBatch:',e);showToast('Sheet write error: '+e.message);}}
+async function dbDeleteNodeDocsBatch(ids){if(!ids.length)return;try{await sheetPost({action:'deleteNodeDocsBatch',ids});}catch(e){console.error('dbDeleteNodeDocsBatch:',e);showToast('Sheet write error: '+e.message);}}
+async function dbUpsertPhasesBatch(phases){if(!phases.length)return;try{await sheetPost({action:'upsertPhasesBatch',rows:phases});}catch(e){console.error('dbUpsertPhasesBatch:',e);showToast('Sheet write error: '+e.message);}}
+async function dbUpsertLayersBatch(rows){if(!rows.length)return;try{await sheetPost({action:'upsertLayersBatch',rows});}catch(e){console.error('dbUpsertLayersBatch:',e);showToast('Sheet write error: '+e.message);}}
+async function dbUpsertConfigBatch(rows){if(!rows.length)return;try{await sheetPost({action:'upsertConfigBatch',rows});}catch(e){console.error('dbUpsertConfigBatch:',e);showToast('Sheet write error: '+e.message);}}
+async function dbDeleteConfigBatch(ids){if(!ids.length)return;try{await sheetPost({action:'deleteConfigBatch',ids});}catch(e){console.error('dbDeleteConfigBatch:',e);showToast('Sheet write error: '+e.message);}}
+async function dbDeleteEpicsBatch(ids){if(!ids.length)return;try{await sheetPost({action:'deleteEpicsBatch',ids});}catch(e){console.error('dbDeleteEpicsBatch:',e);showToast('Sheet write error: '+e.message);}}
+async function dbDeleteFeaturesBatch(ids){if(!ids.length)return;try{await sheetPost({action:'deleteFeaturesBatch',ids});}catch(e){console.error('dbDeleteFeaturesBatch:',e);showToast('Sheet write error: '+e.message);}}
+async function dbDeleteStoriesBatch(ids){if(!ids.length)return;try{await sheetPost({action:'deleteStoriesBatch',ids});}catch(e){console.error('dbDeleteStoriesBatch:',e);showToast('Sheet write error: '+e.message);}}
+async function dbUpsertStepsBatch(rows){if(!rows.length)return;try{await sheetPost({action:'upsertStepsBatch',rows});}catch(e){console.error('dbUpsertStepsBatch:',e);showToast('Sheet write error: '+e.message);}}
+
 async function dbUpsertJourney(journey) {
   try {
     await sheetPost({ action:'upsertJourney', row: {id:journey.id, name:journey.name, colour:journey.colour, desc:journey.desc||''} });
-    for (let i=0; i<journey.steps.length; i++) {
-      const s=journey.steps[i];
-      await sheetPost({ action:'upsertStep', row: {id:journey.id+'_'+i, journeyId:journey.id, nodeId:s.nodeId, order:i+1, label:s.label||''} });
-    }
+    // One batched write for all steps instead of one request per step —
+    // adding a single step to a 20-step journey used to re-send all 21 rows
+    // as 21 sequential requests since every step's write went out individually.
+    const stepRows = journey.steps.map((s,i) => ({id:journey.id+'_'+i, journeyId:journey.id, nodeId:s.nodeId, order:i+1, label:s.label||''}));
+    await dbUpsertStepsBatch(stepRows);
   } catch(e) { console.error('dbUpsertJourney:', e); showToast('Sheet write error: '+e.message); }
 }
 async function dbUpsertPhase(phase) {
@@ -3170,34 +3268,6 @@ function dsButton(label,opts){
   return `<button type="button" class="ds-btn ${variant} ${size}${squared}"${onclickAttr}${disabledAttr}${extraStyle}>${iconLead}${escH(label)}${iconTrail}</button>`;
 }
 
-function dsChip(label,opts){
-  opts=opts||{};
-  const activeCls=opts.active?' active':'';
-  const dot=opts.dotColor?`<span style="width:8px;height:8px;border-radius:2px;background:${opts.dotColor};flex-shrink:0"></span>`:'';
-  const icon=opts.icon?`<span class="material-icons-round" style="font-size:1rem">${opts.icon}</span>`:'';
-  const onclickAttr=opts.onclick?` onclick="${opts.onclick}"`:'';
-  return `<button type="button" class="ds-chip${activeCls}"${onclickAttr}>${dot}${icon}${escH(label)}</button>`;
-}
-
-const DS_BADGE_TONES={
-  neutral: {fg:'var(--text3)',              bg:'var(--md-surface-container)'},
-  navy:    {fg:'var(--brand-primary)',       bg:'var(--brand-primary-light)'},
-  accent:  {fg:'var(--brand-accent-dark)',   bg:'var(--brand-accent-soft)'},
-  live:    {fg:'var(--wf-live-fg)',          bg:'var(--wf-live-bg)'},
-  progress:{fg:'var(--wf-ip-fg)',            bg:'var(--wf-ip-bg)'},
-  warning: {fg:'var(--rag-amber-fg)',        bg:'var(--rag-amber-bg)'},
-  risk:    {fg:'var(--rag-red-fg)',          bg:'var(--rag-red-bg)'},
-};
-function dsBadge(label,opts){
-  opts=opts||{};
-  const t=DS_BADGE_TONES[opts.tone||'neutral']||DS_BADGE_TONES.neutral;
-  const solid=!!opts.solid;
-  const bg=solid?t.fg:t.bg, fg=solid?'#fff':t.fg;
-  const dot=opts.dot?`<span class="ds-badge-dot" style="background:${solid?'#fff':t.fg}"></span>`:'';
-  const icon=opts.icon?`<span class="material-icons-round" style="font-size:.85rem">${opts.icon}</span>`:'';
-  return `<span class="ds-badge" style="background:${bg};color:${fg}">${dot}${icon}${escH(label)}</span>`;
-}
-
 // Adapted from the DS's StatusPill — identical pill+dot recipe, but driven by
 // this app's dynamic, user-configurable STATUS colors rather than the design
 // system's fixed nine-step ladder (kept freely configurable per Settings work).
@@ -3209,43 +3279,6 @@ function dsStatusPill(name,opts){
   // before this field existed, so old Config data renders exactly as before.
   const dot=opts.dot===false?'':`<span class="ds-status-pill-dot" style="background:${st.fg}"></span>`;
   return `<span class="ds-status-pill${sizeCls}" style="background:${st.bg};color:${st.txt||st.fg}">${dot}${escH(opts.label||name)}</span>`;
-}
-
-// Ports ProgressRing's conic-gradient technique and progress ramp exactly.
-function dsProgressRing(value,opts){
-  opts=opts||{};
-  const v=Math.max(0,Math.min(100,Number(value)||0));
-  const size=opts.size||32, thickness=opts.thickness||4;
-  const doneGreen=opts.doneGreen!==false;
-  const stop=v>=100&&doneGreen?'var(--progress-done)'
-    :v>=75?'var(--progress-100)'
-    :v>=50?'var(--progress-75)'
-    :v>=25?'var(--progress-50)'
-    :'var(--progress-25)';
-  const inner=size-thickness*2;
-  const showLabel=opts.showLabel!==false;
-  const labelFs=Math.max(8,size*0.26);
-  return `<span class="ds-progress-ring" style="width:${size}px;height:${size}px;background:conic-gradient(${stop} ${v*3.6}deg,var(--progress-track) 0)">
-    <span class="ds-progress-ring-inner" style="width:${inner}px;height:${inner}px">
-      ${showLabel?`<span class="ds-progress-ring-label" style="font-size:${labelFs}px">${Math.round(v)}</span>`:''}
-    </span>
-  </span>`;
-}
-
-const DS_RAG={
-  green:{label:'On track',  fg:'var(--rag-green-fg)', bg:'var(--rag-green-bg)'},
-  amber:{label:'At risk',   fg:'var(--rag-amber-fg)', bg:'var(--rag-amber-bg)'},
-  red:  {label:'Blocked',   fg:'var(--rag-red-fg)',   bg:'var(--rag-red-bg)'},
-  none: {label:'No status', fg:'var(--rag-none-fg)',  bg:'var(--rag-none-bg)'},
-};
-function dsHealth(status,opts){
-  opts=opts||{};
-  const r=DS_RAG[status]||DS_RAG.none;
-  if(opts.variant==='pill'){
-    return `<span class="ds-status-pill" style="background:${r.bg};color:${r.fg}"><span class="ds-status-pill-dot" style="background:${r.fg}"></span>${escH(opts.label||r.label)}</span>`;
-  }
-  const size=opts.size||9;
-  return `<span class="ds-health-dot" title="${escH(r.label)}" style="width:${size}px;height:${size}px;background:${r.fg}"></span>`;
 }
 
 let OWNER_C={Marketing:'#B5683C',Product:'#2D4A6B',Engineering:'#2E7D6B',Legal:'#6B5394',Support:'#A23F4D'};
@@ -3480,12 +3513,9 @@ let LAYERS={
    STATE
 ═══════════════════════════════════════════ */
 let selNodeId=null;
-let drawerTab='overview';
 let editingNodeId=null;
 let editingJourneyId=null;
 let activeJourneyId=null;
-let addingLinkFor=null;
-let addingCtaFor=null;
 let addingCompFor=null;
 let addingStepFor=null;
 let navOpen=false;
@@ -3493,7 +3523,6 @@ let ctaExpanded={};
 let extlinkExpanded={};
 // linesVisible mirrors LAYERS.links.on — controlled by the Page Links pill.
 let linesVisible=LAYERS.links?.on??true;
-let pendingUrlForNode=null;
 let selNmType='page';
 
 // ── IA view layout settings (in-memory, configurable in Settings) ──
@@ -3603,9 +3632,43 @@ function _debounce(fn, ms){
 
 // Visual re-render debounced 250ms — batches rapid consecutive upd() calls so
 // typing in a text field or clicking through statuses doesn't re-render every time.
-// DB write (dbUpsertNode) still happens immediately for data integrity.
 const _deferredRender = _debounce(()=>{ renderCanvas(); renderMetrics(); }, 250);
 const gn = id => _nodeMap.get(id);
+
+// ── Debounced per-node write coalescer ──────────────────────────────────────
+// upd() used to call dbUpsertNode() synchronously on every single field blur —
+// editing 8 fields in one tray/modal session fired 8 separate full round
+// trips. This coalesces rapid consecutive edits to the SAME node into one
+// write instead. Data integrity is preserved the same way the render debounce
+// above already assumes: nothing is ever skipped, only delayed briefly, and
+// every exit point that could otherwise strand a pending edit (closing the
+// node modal/tray, leaving the page) flushes immediately — see
+// _flushNodeWrite/_flushAllNodeWrites call sites in closeNodeModal, closeTray,
+// and the beforeunload listener near the bottom of the file.
+const _dirtyNodeWriteTimers = new Map(); // nodeId -> setTimeout handle
+const NODE_WRITE_DEBOUNCE_MS = 600;
+function _scheduleNodeWrite(n){
+  const id = n.id;
+  if(_dirtyNodeWriteTimers.has(id)) clearTimeout(_dirtyNodeWriteTimers.get(id));
+  _dirtyNodeWriteTimers.set(id, setTimeout(()=>{
+    _dirtyNodeWriteTimers.delete(id);
+    dbUpsertNode(n);
+  }, NODE_WRITE_DEBOUNCE_MS));
+}
+function _flushNodeWrite(id){
+  if(!_dirtyNodeWriteTimers.has(id)) return;
+  clearTimeout(_dirtyNodeWriteTimers.get(id));
+  _dirtyNodeWriteTimers.delete(id);
+  const n = gn(id);
+  if(n) dbUpsertNode(n);
+}
+function _flushAllNodeWrites(){
+  for(const id of Array.from(_dirtyNodeWriteTimers.keys())) _flushNodeWrite(id);
+}
+// Best-effort safety net: catch any pending write that outlives the debounce
+// window if the tab is closed before closeNodeModal/closeTray had a chance to
+// flush it (e.g. closing mid-edit rather than via the Close button).
+window.addEventListener('beforeunload', _flushAllNodeWrites);
 
 // ── URL change detection — promoted out of renderTransformationReport() so
 // the Redirect Tracker view can reuse the exact same "what counts as a
@@ -3679,11 +3742,9 @@ async function rdrVerifyNow(rows){
 }
 
 const gpRoots=()=>NODES.filter(n=>!n.parentId&&n.nodeType==='page');
-const tpRoots=()=>NODES.filter(n=>!n.parentId&&n.nodeType!=='page');
 
 // ── Migration Action helpers ───────────────────────────────────────────────
 function migrActionsForNode(nodeId){ return MIGRATION_ACTIONS.filter(a=>a.nodeId===nodeId); }
-function migrActionsForPhase(phaseId){ return MIGRATION_ACTIONS.filter(a=>a.phaseId===phaseId); }
 function addMigrationAction(nodeId, phaseId, actionType, fromUrl, toUrl, reason=''){
   const id='MA'+Date.now().toString().slice(-8);
   const action={id, nodeId, phaseId, actionType, fromUrl:fromUrl||'', toUrl:toUrl||'', reason, createdAt:Date.now()};
@@ -3699,20 +3760,6 @@ function addMigrationAction(nodeId, phaseId, actionType, fromUrl, toUrl, reason=
     n.decommissioned=true; n.decommissionUrl=toUrl; n.redirectTo=toUrl; dbUpsertNode(n);
   }
   return action;
-}
-function removeMigrationAction(actionId){
-  const a=MIGRATION_ACTIONS.find(x=>x.id===actionId);
-  MIGRATION_ACTIONS=MIGRATION_ACTIONS.filter(x=>x.id!==actionId);
-  // Sync legacy node fields
-  if(a){
-    const n=gn(a.nodeId);
-    if(n){
-      const remaining=migrActionsForNode(a.nodeId);
-      const lastRedir=remaining.filter(x=>x.actionType==='redirect'||x.actionType==='url-change').slice(-1)[0];
-      n.redirectFrom=lastRedir?.fromUrl||null; n.redirectTo=lastRedir?.toUrl||null;
-      dbUpsertNode(n);
-    }
-  }
 }
 // Seed MIGRATION_ACTIONS from legacy node redirect fields (called after load)
 function seedMigrationActionsFromNodes(){
@@ -3730,11 +3777,6 @@ function seedMigrationActionsFromNodes(){
 function lvl(node){let l=1,c=node;while(c.parentId){l++;c=gn(c.parentId);if(!c)break}return l}
 function ini(s){return String(s||'').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}
 function tU(u,n=22){if(!u)return'—';return u.length>n?u.slice(0,n)+'…':u}
-function getRootId(n){
-  let cur=n,safety=20;
-  while(cur&&cur.parentId&&safety-->0){const p=gn(cur.parentId);if(!p)break;cur=p;}
-  return cur?cur.id:n.id;
-}
 
 // ── VISIBILITY PROJECTION ─────────────────────────────────────────────────
 // IMPORTANT ARCHITECTURAL RULE:
@@ -3844,11 +3886,7 @@ function _cmtApplyNewComment(res){
 
 async function loadAllComments(){
   try{
-    const url=`${API_URL}?action=getComments&_=${Date.now()}`;
-    const res=await fetch(url,{redirect:'follow'});
-    if(!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data=await res.json();
-    if(data.error) throw new Error(data.error);
+    const data = await sheetGet('getComments');
     COMMENTS_ALL=data.comments||[];
     _cmtIndex();
   }catch(e){
@@ -4016,6 +4054,13 @@ async function _cmtAdd(text,parentId,btn){
 function _cmtStartEdit(id){ _cmtEditingId=id; _cmtReplyTo=null; renderCommentsPanel(); }
 function _cmtCancelEdit(){ _cmtEditingId=null; renderCommentsPanel(); }
 async function _cmtSaveEdit(id,btn){
+  // Same ownership rule renderCommentsPanel() uses to decide whether to show
+  // the Edit button at all — enforced here too so calling this directly
+  // (bypassing the button) can't edit someone else's comment. The backend
+  // now enforces this as well; this check just avoids a failed round trip.
+  const existing=COMMENTS_ALL.find(x=>x.id===id);
+  const mine=existing&&gCurrentUser&&existing.authorEmail===gCurrentUser.email;
+  if(!mine&&!isAdmin()){ showToast('You can only edit your own comments'); return; }
   const input=eid('cmt-edit-'+id);
   const text=(input.value||'').trim();
   if(!text) return;
@@ -4034,6 +4079,9 @@ async function _cmtSaveEdit(id,btn){
 }
 
 async function _cmtDelete(id){
+  const existing=COMMENTS_ALL.find(x=>x.id===id);
+  const mine=existing&&gCurrentUser&&existing.authorEmail===gCurrentUser.email;
+  if(!mine&&!isAdmin()){ showToast('You can only delete your own comments'); return; }
   if(!confirm('Delete this comment? Replies to it will become top-level comments.')) return;
   try{
     await sheetPost({action:'deleteComment',id});
@@ -4143,23 +4191,6 @@ function togglePhase(id){
   curPhase=[...selectedPhases].filter(p=>p!=='LIVE').pop()||'PH0'; // keep compat
   layerFilter={key:null,value:null};renderPhaseBar();renderMetrics();renderLayerBar();renderCanvas();
   if(curView==='testplan') renderTestPlan();
-}
-function toggleLines(){
-  linesVisible=!linesVisible;
-  // Refresh the layer bar so the checkbox in the dropdown updates
-  renderLayerBar();
-  // Refresh open dropdown panel if it's showing
-  const panel=eid('layerDDPanel');
-  if(panel && panel.style.display!=='none' && _currentLayerDDKey){
-    const content=(window._layerDDContent||{})[_currentLayerDDKey]||'';
-    if(content){const st=panel.scrollTop;panel.innerHTML=content;panel.scrollTop=st;}
-  }
-  if(linesVisible){
-    const vnSet=new Set(visNodes().map(n=>n.id));
-    drawNavLines(vnSet);
-  } else {
-    syncSvgSize();
-  }
 }
 function switchPhase(id){curPhase=id;selectedPhases=new Set([id]);layerFilter={key:null,value:null};renderPhaseBar();renderMetrics();renderLayerBar();renderCanvas();if(curView==='testplan') renderTestPlan();}
 
@@ -5046,20 +5077,6 @@ function buildCard(node,jSet){
   return el;
 }
 
-function toggleCtaExpand(nodeId,e){
-  e.stopPropagation();
-  ctaExpanded[nodeId]=!ctaExpanded[nodeId];
-  renderCanvas();
-  // Double-rAF: first frame lets the browser commit layout/paint for the
-  // newly expanded accordion; second frame reads stable getBoundingClientRect
-  // values so the router anchors to correct pill positions.
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    _routingInfra = null;
-    const vnSet=new Set(visNodes().map(n=>n.id));
-    drawNavLines(vnSet);
-  }));
-}
-
 function toggleExtlinkExpand(nodeId,e){
   e.stopPropagation();
   extlinkExpanded[nodeId]=!extlinkExpanded[nodeId];
@@ -5070,14 +5087,6 @@ function toggleExtlinkExpand(nodeId,e){
     const vnSet=new Set(visNodes().map(n=>n.id));
     drawNavLines(vnSet);
   }));
-}
-
-function ctaClick(nodeId,ctaId,e){
-  e.stopPropagation();
-  const cta=(CTAS[nodeId]||[]).find(c=>c.id===ctaId);
-  if(!cta)return;
-  if(cta.targetId)selPage(cta.targetId);
-  else showToast(`CTA → ${cta.url}`);
 }
 
 function extlinkClick(nodeId,linkId,e){
@@ -5125,9 +5134,6 @@ function getCardRect(id){
   _cardLayout.set(cid,result); // cache so next call is free
   return result;
 }
-
-// primeRectCache kept as a no-op so scroll handler still compiles
-function primeRectCache(){}
 
 // Build an orthogonal elbow path between two rects — simple fallback for journey/focus views
 function elbowPath(a, b){
@@ -5703,11 +5709,6 @@ function buildCardClipPath(/* vnSet — no longer needed, kept for call-site com
   return group; // caller appends nav-line paths into this group
 }
 
-// ── drawBoundaryRings: DISABLED ──────────────────────────────────────────────
-// Boundary highlighting is now handled entirely via CSS class `.conn-highlight`
-// applied directly to `.page-card` elements. No secondary SVG ring layer needed.
-function drawBoundaryRings(/* vnSet — retired */){ /* no-op */ }
-
 function highlightBoundary(id, color){
   // Apply CSS class-based highlight directly to the card element.
   // This eliminates the duplicate SVG ring overlay.
@@ -5810,12 +5811,6 @@ function clearPinnedLine(){
    Lines bundle: same gutter segments merge into
    a thicker line (log scale by count).
 ═══════════════════════════════════════════ */
-
-// Logarithmic line thickness: 1 line=1.5px, 5≈3.5px, 20≈6px
-function bundleWidth(count){
-  // Thinner base line; logarithmic bundle growth capped tighter in dense layout
-  return Math.max(1.2, 1.2 + Math.log(count) * 1.2);
-}
 
 // Stroke colour per link type — with layer visibility awareness
 function linkStroke(type, layerOn){
@@ -6012,8 +6007,8 @@ function drawNavLines(vnSet){
     svg.appendChild(hit);          // hit target → connSvg (z-index:4), above cards for interaction
   });
 
-  // Boundary rings are now handled via .conn-highlight CSS class on card elements.
-  // drawBoundaryRings is a no-op; CSS transitions handle all highlight state.
+  // Boundary rings are now handled via .conn-highlight CSS class on card elements;
+  // CSS transitions handle all highlight state.
 
   syncSvgSize();
   updateMinimap();
@@ -6036,18 +6031,10 @@ function syncSvgSize(){
 // ── Tree connectors: no longer draw parent-child lines ──
 function drawConnectors(vnSet){ syncSvgSize(); }
 
-// ── Legacy stubs kept for call sites in other views ──
-function drawCtaLines(vnSet){}
-function drawExtlinkLines(vnSet){}
-
-// No-op for API compat
-function drawLinkArrows(vnSet){}
-
 // Drag disabled — layout is algorithm-controlled
 function enableCardDrag(el, nodeId){ /* no-op */ }
 // No-op stubs kept for any remaining call sites
 const nodeManualPos = {};
-let dragState = null;
 
 /* ═══════════════════════════════════════════
    DRAWER
@@ -6063,7 +6050,6 @@ function scrollToCard(id){
   el.style.boxShadow='0 0 0 3px rgba(107,61,30,.5), 0 4px 20px rgba(107,61,30,.2)';
   setTimeout(()=>{el.style.boxShadow=''},900);
 }
-function selPage(id){selNodeId=id;renderCanvas();requestAnimationFrame(()=>scrollToCard(id))}
 
 
 function updIP(inp,prev,nodeId,field){
@@ -6094,7 +6080,7 @@ function upd(id,field,val){
   // a product) in sync with the fields it mirrors.
   if((field==='phase'||field==='title') && n.roadmapFeatureId) _rmSyncNodeVariantFeature(n);
   _rebuildNodeMap(); // keep O(1) lookup consistent after field mutation
-  dbUpsertNode(n);
+  _scheduleNodeWrite(n);
   _deferredRender();
   // Refresh header badges in open modal
   if(editingNodeId===id) refreshNeHeader(id);
@@ -6243,8 +6229,6 @@ function togDecommission(id){
   renderNeTab('transformation');
   _deferredRender();
 }
-function delLink(pid,lid){if(!LINKS[pid])return;LINKS[pid]=LINKS[pid].filter(l=>l.id!==lid);renderNeTab('links');_deferredRender();}
-function delCta(pid,cid){if(!CTAS[pid])return;CTAS[pid]=CTAS[pid].filter(c=>c.id!==cid);renderNeTab('ctas');_deferredRender();}
 function delComp(nodeId,assignId){
   if(!NODE_COMPS[nodeId])return;
   NODE_COMPS[nodeId]=NODE_COMPS[nodeId].filter(nc=>nc.id!==assignId);
@@ -6642,6 +6626,7 @@ function renderNeTab(tab){
 }
 
 function closeNodeModal(){
+  if(editingNodeId) _flushNodeWrite(editingNodeId);
   selNodeId=null;
   closeModal('nodeModal');
   renderCanvas();
@@ -6656,6 +6641,7 @@ function closeNodeModal(){
 // the canonical node. The canonical title/identity is always preserved.
 // Variants only store what CHANGES — the canvas always renders the canonical card.
 function createPhaseVariant(baseId, phaseId){
+  if(!canEdit()){showToast('View-only access — editing is disabled');return;}
   const base=gn(baseId);if(!base){showToast('Base node not found');return}
   const ph=PHASES.find(p=>p.id===phaseId);if(!ph){return}
 
@@ -6691,6 +6677,7 @@ function createPhaseVariant(baseId, phaseId){
 }
 
 function deleteVariant(variantId){
+  if(!canEdit()){showToast('View-only access — editing is disabled');return;}
   if(!confirm('Delete this phase variant? The base node is kept.'))return;
   const idx=NODES.findIndex(n=>n.id===variantId);
   if(idx===-1)return;
@@ -6701,8 +6688,8 @@ function deleteVariant(variantId){
   if(CTAS[variantId])delete CTAS[variantId];
   if(LINKS[variantId])delete LINKS[variantId];
   if(NODE_COMPS[variantId])delete NODE_COMPS[variantId];
-  if(NODE_DOCS[variantId]){ NODE_DOCS[variantId].forEach(d=>dbDeleteNodeDoc(d.id)); delete NODE_DOCS[variantId]; }
-  sheetPost({action:'deleteNode',id:variantId});
+  if(NODE_DOCS[variantId]){ dbDeleteNodeDocsBatch(NODE_DOCS[variantId].map(d=>d.id)); delete NODE_DOCS[variantId]; }
+  sheetPost({action:'deleteNode',id:variantId}).catch(e=>showToast('⚠️ Variant removed locally but the Sheet delete failed: '+e.message));
   renderCanvas();renderMetrics();renderNeTab('phase variants');showToast('Variant deleted');
 }
 
@@ -6843,33 +6830,6 @@ function delNodeDoc(nodeId, docId){
   if(trayBody&&eid('tray-panel')?.style.display!=='none') _renderTrayEditTab('phase variants',nodeId,trayBody);
 }
 
-// Compute diff between a variant and its base, returning an object of changed fields
-function computeVariantDiff(variant){
-  const base=variant.variantOf?gn(variant.variantOf):null;
-  if(!base)return{};
-  const fields=['title','slug','newSlug','cms','owner','status','notes','redirectFrom','redirectTo','bgImg','badgeImg','badgeLabel'];
-  const changes={};
-  fields.forEach(f=>{
-    const bv=base[f]||'';const vv=variant[f]||'';
-    if(bv!==vv)changes[f]={from:bv,to:vv};
-  });
-  // CTAs diff
-  const bCtas=CTAS[base.id]||[];const vCtas=CTAS[variant.id]||[];
-  if(JSON.stringify(bCtas.map(c=>c.label))!==JSON.stringify(vCtas.map(c=>c.label))){
-    changes.ctas={from:bCtas.map(c=>c.label),to:vCtas.map(c=>c.label)};
-  }
-  // Links diff
-  const bLinks=LINKS[base.id]||[];const vLinks=LINKS[variant.id]||[];
-  if(JSON.stringify(bLinks.map(l=>l.label))!==JSON.stringify(vLinks.map(l=>l.label))){
-    changes.links={from:bLinks.map(l=>l.label),to:vLinks.map(l=>l.label)};
-  }
-  // Components diff
-  const bComps=getNodeComps(base.id);const vComps=getNodeComps(variant.id);
-  if(bComps.length!==vComps.length||(JSON.stringify(bComps.map(c=>c.name))!==JSON.stringify(vComps.map(c=>c.name)))){
-    changes.components={from:bComps.map(c=>c.name),to:vComps.map(c=>c.name)};
-  }
-  return changes;
-}
 
 // Human-readable field label map
 const DIFF_LABELS={title:'Title',slug:'As-Is URL',newSlug:'To-Be URL',cms:'System',owner:'Owner',status:'Status',notes:'Notes',redirectFrom:'Redirect from',redirectTo:'Redirect to',bgImg:'Bg image',badgeImg:'Badge image',badgeLabel:'Badge label',ctas:'CTAs',links:'Links',components:'Components'};
@@ -6927,13 +6887,6 @@ function saveNode(){if(!canEdit()){showToast('View-only access — editing is di
   }
   renderCanvas();renderMetrics();
 }
-
-function popParentSel(sel){/* legacy compat — no-op, handled inline */}
-function popPhaseSel(sel){/* legacy compat — no-op, handled inline */}
-function popOwnerSel(sel){/* legacy compat — no-op, handled inline */}
-function popCmsSel(sel){/* legacy compat — no-op, handled inline */}
-
-
 
 /* ═══════════════════════════════════════════
    PHASE MODAL
@@ -7260,11 +7213,8 @@ function delConn(pid, lid, sheet){
   _deferredRender();
 }
 
-// Legacy shims so old references in tray/phase-variant diff still work
-function openLinkModal(pid){ openConnModal(pid); }
-function openCtaModal(pid){ openConnModal(pid); }
+// Legacy shim so old references in tray/phase-variant diff still work
 function delLink(pid,lid){ delConn(pid,lid,'Links'); }
-function delCta(pid,cid){ delConn(pid,cid,'CTAs'); }
 function getNodeComps(nodeId){
   return (NODE_COMPS[nodeId]||[]).map(nc=>{
     const lib=COMP_LIBRARY.find(l=>l.id===nc.componentId)||{name:nc.componentId||'?',code:'',aka:'',imageUrl:''};
@@ -7272,12 +7222,6 @@ function getNodeComps(nodeId){
   });
 }
 function getCompImageUrl(c){ return c.imageUrl||''; }
-function compThumbHtml(c,size=28){
-  const url=c.imageUrl||'';
-  return url
-    ? `<div class="dcomp-icon" style="width:${size}px;height:${size}px"><img src="${escH(url)}" alt="" onerror="this.parentNode.innerHTML='${(c.name[0]||'?').toUpperCase()}'"></div>`
-    : `<div class="dcomp-icon" style="width:${size}px;height:${size}px">${escH((c.name[0]||'?').toUpperCase())}</div>`;
-}
 
 /* ═══════════════════════════════════════════
    COMP MODAL
@@ -8017,80 +7961,6 @@ function renderEcosystem(){
   });
 }
 
-
-/* ─── JOURNEY SWIM-LANE ─────────────────────────────────────────────────── */
-function renderJourneyView(){
-  const wrap=eid('viewJourney');
-  wrap.innerHTML='';
-  if(!JOURNEYS.length){
-    wrap.innerHTML='<div class="jv-empty">No journeys defined yet. Add one using the 🧳 Journeys panel.</div>';
-    return;
-  }
-  const vn=visNodes();const vnSet=new Set(vn.map(n=>n.id));
-  const div=document.createElement('div');div.className='journey-view';
-
-  JOURNEYS.forEach(j=>{
-    const steps=(JOURNEY_STEPS[j.id]||[]).sort((a,b)=>a.order-b.order);
-    if(!steps.length)return;
-
-    const lane=document.createElement('div');lane.className='jv-lane';
-
-    // Lane label
-    const lbl=document.createElement('div');lbl.className='jv-lane-label';
-    lbl.innerHTML=`<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${j.colour};margin-right:5px;vertical-align:middle"></span>${escH(j.name)}`;
-    lane.appendChild(lbl);
-
-    const stepsWrap=document.createElement('div');stepsWrap.className='jv-lane-steps';
-
-    steps.forEach((step,i)=>{
-      const n=gn(step.nodeId);
-      if(!n)return;
-      const ph=PHASES.find(p=>p.id===n.phase)||{colour:'#9c8b78',name:'—'};
-      const tp=TP_TYPES[n.nodeType]||TP_TYPES.page;
-      const card=document.createElement('div');
-      card.className='jv-card'+(selNodeId===n.id?' active-j':'');
-      card.innerHTML=`<div class="jv-card-phase" style="background:${ph.colour}">${ph.name}</div>
-        <div style="font-size:13px;margin-bottom:3px">${tp.icon}</div>
-        <div class="jv-card-title">${escH(n.title)}</div>
-        <div class="jv-card-url">${escH(n.slug||n.newSlug||'')}</div>
-        ${step.label?`<div class="jv-card-label">${escH(step.label)}</div>`:''}`;
-      card.onclick=()=>openTray(n.id);
-      card.ondblclick=()=>openEditNode(n.id);
-
-      const stepWrap=document.createElement('div');stepWrap.className='jv-step-wrap';
-      stepWrap.appendChild(card);
-      stepsWrap.appendChild(stepWrap);
-
-      if(i<steps.length-1){
-        const conn=document.createElement('div');conn.className='jv-connector';
-        conn.style.borderTop=`2px solid ${j.colour}`;
-        conn.style.opacity='.6';
-        stepsWrap.appendChild(conn);
-      }
-    });
-
-    lane.appendChild(stepsWrap);
-    div.appendChild(lane);
-  });
-
-  wrap.appendChild(div);
-}
-
-/* Focus view removed — was unreachable dead code */
-
-function redrawFocusLines(svg,petalPos,W,H){
-  svg.innerHTML='';
-  svg.setAttribute('width',W); svg.setAttribute('height',H);
-  petalPos.forEach(p=>{
-    const line=document.createElementNS('http://www.w3.org/2000/svg','line');
-    line.setAttribute('x1',p.x1); line.setAttribute('y1',p.y1);
-    line.setAttribute('x2',p.x2); line.setAttribute('y2',p.y2);
-    line.setAttribute('stroke',p.colour.replace('1)','0.35)'));
-    line.setAttribute('stroke-width',p.sw||'1.5');
-    if(p.dash)line.setAttribute('stroke-dasharray',p.dash);
-    svg.appendChild(line);
-  });
-}
 
 /* ─── AUDIT / MATRIX ────────────────────────────────────────────────────── */
 function renderAuditView(){
@@ -9429,9 +9299,9 @@ function deleteRmProduct(id){
   const epicIds=ROADMAP_EPICS.filter(e=>e.productId===id).map(e=>e.id);
   const featureIds=ROADMAP_FEATURES.filter(f=>epicIds.includes(f.epicId)).map(f=>f.id);
   const storyIds=ROADMAP_STORIES.filter(s=>featureIds.includes(s.featureId)).map(s=>s.id);
-  storyIds.forEach(dbDeleteStory);
-  featureIds.forEach(dbDeleteFeature);
-  epicIds.forEach(dbDeleteEpic);
+  dbDeleteStoriesBatch(storyIds);
+  dbDeleteFeaturesBatch(featureIds);
+  dbDeleteEpicsBatch(epicIds);
   dbDeleteProduct(id);
   ROADMAP_STORIES=ROADMAP_STORIES.filter(s=>!featureIds.includes(s.featureId));
   ROADMAP_FEATURES=ROADMAP_FEATURES.filter(f=>!epicIds.includes(f.epicId));
@@ -9446,8 +9316,8 @@ function deleteRmEpic(id){
   if(!confirm(`Delete functional area "${ep.name}" and all its features and requirements? This cannot be undone.`))return;
   const featureIds=ROADMAP_FEATURES.filter(f=>f.epicId===id).map(f=>f.id);
   const storyIds=ROADMAP_STORIES.filter(s=>featureIds.includes(s.featureId)).map(s=>s.id);
-  storyIds.forEach(dbDeleteStory);
-  featureIds.forEach(dbDeleteFeature);
+  dbDeleteStoriesBatch(storyIds);
+  dbDeleteFeaturesBatch(featureIds);
   dbDeleteEpic(id);
   ROADMAP_STORIES=ROADMAP_STORIES.filter(s=>!featureIds.includes(s.featureId));
   ROADMAP_FEATURES=ROADMAP_FEATURES.filter(f=>f.epicId!==id);
@@ -9459,7 +9329,7 @@ function deleteRmFeature(id){
   const f=ROADMAP_FEATURES.find(f=>f.id===id); if(!f)return;
   if(!confirm(`Delete feature "${f.name}" and all its requirements? This cannot be undone.`))return;
   const storyIds=ROADMAP_STORIES.filter(s=>s.featureId===id).map(s=>s.id);
-  storyIds.forEach(dbDeleteStory);
+  dbDeleteStoriesBatch(storyIds);
   dbDeleteFeature(id);
   ROADMAP_STORIES=ROADMAP_STORIES.filter(s=>s.featureId!==id);
   ROADMAP_FEATURES=ROADMAP_FEATURES.filter(f=>f.id!==id);
@@ -10269,10 +10139,6 @@ function _rdrStatusBadgeHtml(nodeId){
 function rdrVerifyRow(nodeId){
   const row=rdrCollectRows().find(r=>r.node.id===nodeId);
   if(row) rdrVerifyNow([row]);
-}
-function rdrVerifyPhase(phaseId){
-  const rows=rdrCollectRows().filter(r=>r.phaseId===phaseId);
-  rdrVerifyNow(rows);
 }
 function rdrVerifyAllVisible(){
   const rows=rdrCollectRows().filter(r=>selectedPhases.has(r.phaseId));
@@ -11324,7 +11190,7 @@ function deleteScenarioEntry(id){
   const orphanLinks=TEST_SCENARIO_LINKS.filter(l=>l.scenarioId===id);
   TEST_SCENARIO_LINKS=TEST_SCENARIO_LINKS.filter(l=>l.scenarioId!==id);
   dbDeleteScenario(id);
-  orphanLinks.forEach(l=>dbDeleteScenarioLink(l.id));
+  dbDeleteScenarioLinksBatch(orphanLinks.map(l=>l.id));
   if(_tplScenarioDraft && _tplScenarioDraft.id===id) _tplScenarioDraft=null;
   renderTestPlan();
   showToast('Scenario deleted');
@@ -11665,13 +11531,7 @@ async function saveCrawlConfigFromUI(){
   };
 
   try{
-    const res = await fetch(API_URL,{
-      method:'POST',
-      headers:{'Content-Type':'text/plain'},
-      body: JSON.stringify({ action:'saveCrawlConfig', config })
-    });
-    const data = await res.json();
-    if(data.error) throw new Error(data.error);
+    await sheetPost({ action:'saveCrawlConfig', config });
 
     // Update local state so next crawl uses new config immediately
     CRAWL_CONFIG = config;
@@ -12083,15 +11943,12 @@ function setLoaderStep(key,state){
   if(icon) icon.textContent = state==='done' ? '✓' : '';
 }
 function updateLoaderLogo(){
-  // If user has set a logo, show it spinning; else show brand initial
+  // Always the app's own mark here, never the client's uploaded logo — the
+  // spinner is app chrome, not a place for customer branding.
   const el = document.getElementById('loaderLogoEl');
   if(!el) return;
-  if(logoImgUrl){
-    el.innerHTML = `<img src="${logoImgUrl}" style="width:100%;height:100%;object-fit:contain;border-radius:18px">`;
-  } else {
-    el.innerHTML = '<img src="assets/logo/mark-white.svg" alt="" style="width:62%;height:62%;object-fit:contain">';
-    el.style.background = brandSettings.primary;
-  }
+  el.innerHTML = '<img src="assets/logo/mark-white.svg" alt="" style="width:62%;height:62%;object-fit:contain">';
+  el.style.background = brandSettings.primary;
 }
 
 function renderLogoTab(){
@@ -12301,31 +12158,42 @@ async function saveSettings(){
   WELCOME_NOTE = settingsHOME.welcomeNote || '';
   HOMEPAGE_VIEW_META = JSON.parse(JSON.stringify(settingsHOME.meta));
   _stampStatusOrder();
-  // 4. Write everything to Config sheet
+  // 4. Write everything to Config sheet — batched into one request per
+  // upsert/delete pass instead of one request per key. Saving a Settings
+  // panel with several CMS types, statuses, owners and Jira mappings used to
+  // fire 30-50+ sequential round trips for a single click of "Save".
   try {
-    for(const [k,v] of Object.entries(CMS))       await dbUpsertConfig('cms_'+k,     JSON.stringify(v));
-    for(const [k,v] of Object.entries(STATUS))    await dbUpsertConfig('status_'+k,  JSON.stringify(v));
-    for(const [k,v] of Object.entries(OWNER_C))   await dbUpsertConfig('owner_'+k,   v);
-    for(const [k,v] of Object.entries(REQTYPE_C)) await dbUpsertConfig('reqtype_'+k, v);
-    for(const [k,v] of Object.entries(JIRA_TYPE_MAP)) await dbUpsertConfig('jira_map_'+k, v);
-    await dbUpsertConfig('home_welcome_note', WELCOME_NOTE);
+    const configRows = [
+      ...Object.entries(CMS).map(([k,v])           => ({key:'cms_'+k,       value: JSON.stringify(v)})),
+      ...Object.entries(STATUS).map(([k,v])        => ({key:'status_'+k,    value: JSON.stringify(v)})),
+      ...Object.entries(OWNER_C).map(([k,v])       => ({key:'owner_'+k,     value: v})),
+      ...Object.entries(REQTYPE_C).map(([k,v])     => ({key:'reqtype_'+k,   value: v})),
+      ...Object.entries(JIRA_TYPE_MAP).map(([k,v]) => ({key:'jira_map_'+k,  value: v})),
+      ...Object.entries(brandSettings).map(([k,v]) => ({key:'brand_'+k,     value: v})),
+      {key:'home_welcome_note', value: WELCOME_NOTE},
+      {key:'logo_url',  value: logoImgUrl},
+      {key:'logo_text', value: logoLabelText},
+    ];
     for(const [id,meta] of Object.entries(HOMEPAGE_VIEW_META)){
-      if(meta.icon) await dbUpsertConfig('home_icon_'+id, meta.icon);
-      if(meta.desc) await dbUpsertConfig('home_desc_'+id, meta.desc);
+      if(meta.icon) configRows.push({key:'home_icon_'+id, value: meta.icon});
+      if(meta.desc) configRows.push({key:'home_desc_'+id, value: meta.desc});
     }
+    await dbUpsertConfigBatch(configRows);
+
     // Clean up rows for anything renamed or removed since the panel opened —
-    // upsert above only ever touches rows for keys that still exist, so a
-    // renamed/deleted entry's old row would otherwise linger in Config and
+    // the upsert above only ever touches rows for keys that still exist, so
+    // a renamed/deleted entry's old row would otherwise linger in Config and
     // reappear as a ghost entry on the next reload.
-    for(const k of settingsOrigKeys.cms.filter(k=>!CMS.hasOwnProperty(k)))         await dbDeleteConfig('cms_'+k);
-    for(const k of settingsOrigKeys.status.filter(k=>!STATUS.hasOwnProperty(k)))   await dbDeleteConfig('status_'+k);
-    for(const k of settingsOrigKeys.owner.filter(k=>!OWNER_C.hasOwnProperty(k)))   await dbDeleteConfig('owner_'+k);
-    for(const k of settingsOrigKeys.reqtype.filter(k=>!REQTYPE_C.hasOwnProperty(k))) await dbDeleteConfig('reqtype_'+k);
+    const removedConfigKeys = [
+      ...settingsOrigKeys.cms.filter(k=>!CMS.hasOwnProperty(k)).map(k=>'cms_'+k),
+      ...settingsOrigKeys.status.filter(k=>!STATUS.hasOwnProperty(k)).map(k=>'status_'+k),
+      ...settingsOrigKeys.owner.filter(k=>!OWNER_C.hasOwnProperty(k)).map(k=>'owner_'+k),
+      ...settingsOrigKeys.reqtype.filter(k=>!REQTYPE_C.hasOwnProperty(k)).map(k=>'reqtype_'+k),
+    ];
+    await dbDeleteConfigBatch(removedConfigKeys);
     settingsOrigKeys = { cms:Object.keys(CMS), owner:Object.keys(OWNER_C), status:Object.keys(STATUS), reqtype:Object.keys(REQTYPE_C) };
-    await dbUpsertConfig('logo_url',  logoImgUrl);
-    await dbUpsertConfig('logo_text', logoLabelText);
-    for(const [k,v] of Object.entries(brandSettings)) await dbUpsertConfig('brand_'+k, v);
-    for(const lib of COMP_LIBRARY) await dbUpsertComp(lib);
+
+    await dbUpsertCompsBatch(COMP_LIBRARY);
     applyBrandColours();
     updateLoaderLogo();
     // Confirmation: the small inline message is easy to miss (11px text at
@@ -12465,8 +12333,6 @@ function openAddNode(defaultType){
   openModal('nodeModal');
 }
 
-function openNodeEdit(id){ openEditNode(id); }
-
 function _renderTray(){
   const nodeId=trayNodeId;
   const n=gn(nodeId);
@@ -12511,11 +12377,6 @@ function _renderTray(){
 
   // Body
   _renderTrayTab('info', nodeId);
-}
-
-function switchTrayTab(tab){
-  trayTab=tab;
-  _renderTray();
 }
 
 // ── TRAY HEALTH PANEL ────────────────────────────────────────────────────────
@@ -12880,7 +12741,7 @@ function deleteTrayNode(){
   // Remove canonical node + all its overlays
   const idsToDelete = [id, ...overlays.map(v=>v.id)];
   NODES = NODES.filter(n=>!idsToDelete.includes(n.id));
-  idsToDelete.forEach(did=>dbDeleteNode(did));
+  dbDeleteNodesBatch(idsToDelete);
   // Remove migration actions for this node
   MIGRATION_ACTIONS = MIGRATION_ACTIONS.filter(a=>!idsToDelete.includes(a.nodeId));
   closeTray();
@@ -12895,42 +12756,18 @@ async function headerCheckAllUrls(){
   if(btn){ btn.disabled=true; btn.innerHTML='<span class="material-icons-round" style="font-size:18px;animation:spin .8s linear infinite">sync</span>'; }
   showToast('Full URL health check started — checking all sheets…');
   try{
-    const res = await fetch(API_URL,{
-      method:'POST',
-      headers:{'Content-Type':'text/plain'},
-      body: JSON.stringify({ action:'urlCheckerAll' })
-    });
-    const data = await res.json();
-    if(data.error) throw new Error(data.error);
+    const data = await sheetPost({ action:'urlCheckerAll' });
     showToast(`URL check complete: ${data.totalChecked||0} checked across ${data.batches||1} batch(es), ${data.totalErrors||0} error(s)`);
-    await loadFromSheets();
+    // Merge the refreshed URL-check fields into existing state instead of a
+    // full loadFromSheets() reload — same lightweight path trayCheckUrl()
+    // already uses for the single-node case, so a batch check no longer
+    // triggers the full loader overlay + wholesale NODES/LINKS/CTAs replace.
+    await loadNodesSilent();
     if(trayNodeId) _renderTray();
   } catch(err){
     showToast('URL check failed: '+err.message,'error');
   } finally{
     if(btn){ btn.disabled=false; btn.innerHTML='<span class="material-icons-round" style="font-size:18px">link</span>'; }
-  }
-}
-
-// Global URL health check: runs the backend batch checker across all sheets
-// (Links, CTAs, Nodes). Shows progress via the toast, then reloads data.
-async function checkAllUrls(){
-  showToast('URL health check started — this may take a moment...');
-  try{
-    const res=await fetch(API_URL,{
-      method:'POST',
-      headers:{'Content-Type':'text/plain'},
-      body:JSON.stringify({action:'urlCheckerBatch'})
-    });
-    const data=await res.json();
-    if(data.error) throw new Error(data.error);
-    const msg=`URL check complete: ${data.checked||0} checked, ${data.errors||0} error(s), ${data.remaining||0} remaining`;
-    showToast(msg);
-    // Reload so node cards and tray reflect updated statuses
-    await loadFromSheets();
-    if(trayNodeId) _renderTray();
-  } catch(err){
-    showToast('URL check failed: '+err.message,'error');
   }
 }
 
@@ -12956,13 +12793,7 @@ async function trayAuditPageLinks(){
   if(btn){btn.disabled=true;btn.innerHTML='<span class="material-icons-round" style="font-size:13px;animation:spin .8s linear infinite">sync</span><span class="tray-btn-label">Auditing…</span>';}
 
   try{
-    const res=await fetch(API_URL,{
-      method:'POST',
-      headers:{'Content-Type':'text/plain'},
-      body:JSON.stringify({action:'crawlPageAndAudit',url})
-    });
-    const data=await res.json();
-    if(data.error) throw new Error(data.error);
+    const data = await sheetPost({action:'crawlPageAndAudit',url});
 
     // Reload findings so tray reflects new rows
     await loadFromSheetsSilent();
@@ -13031,13 +12862,7 @@ async function trayCheckUrl(){
     // Use urlCheckerBatch (picks up all unchecked/stale across sheets).
     // Pass forceAll:true so the Apps Script ignores the stale-hours threshold
     // and checks this node's URLs even if recently run.
-    const res=await fetch(API_URL,{
-      method:'POST',
-      headers:{'Content-Type':'text/plain'},
-      body:JSON.stringify({action:'urlCheckerForSheet',sheet:'Nodes',forceAll:true})
-    });
-    const data=await res.json();
-    if(data.error) throw new Error(data.error);
+    const data = await sheetPost({action:'urlCheckerForSheet',sheet:'Nodes',forceAll:true});
 
     const checked=data.checked||0;
     if(checked===0 && relativeOnly){
@@ -13070,16 +12895,6 @@ async function trayCheckUrl(){
 //  Opens the existing connection modal pre-filled with detected data,
 //  then auto-resolves the Action as 'resolved' on save.
 // ═══════════════════════════════════════════════════════════════════════════
-
-/**
- * Called from the promote button (add_link icon) in the Actions table row.
- * Looks up the action by id and delegates to _promoteAction().
- */
-function promoteActionToLink(id){
-  const a = SHEET_ACTIONS.find(x=>x.id===id);
-  if(!a){ showToast('Action not found','error'); return; }
-  _promoteAction(a);
-}
 
 /**
  * Called from the "Add to Links sheet" button inside the action edit modal.
@@ -13253,41 +13068,6 @@ async function _resolvePromotedAction(){
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  CREATE NODE FROM ACTION
-//  Opens the Add Node modal pre-filled with the action's found URL.
-//  Sets _pendingNodeActionId so saveNode auto-resolves the action on save.
-// ═══════════════════════════════════════════════════════════════════════════
-function createNodeFromAction(actionId){
-  if(!canEdit()){ showToast('View-only access'); return; }
-  const a = SHEET_ACTIONS.find(x=>x.id===actionId);
-  if(!a){ showToast('Action not found','error'); return; }
-
-  // If a node with this slug already exists, just open it and resolve
-  const norm = (a.foundUrl||'').toLowerCase().replace(/\/+$/,'');
-  const existing = NODES.find(n=>
-    (n.slug    && n.slug.toLowerCase().replace(/\/+$/,'')===norm) ||
-    (n.newSlug && n.newSlug.toLowerCase().replace(/\/+$/,'')===norm)
-  );
-  if(existing){
-    showToast('A node with this URL already exists — opening it');
-    openEditNode(existing.id);
-    return;
-  }
-
-  // Store so saveNode can auto-resolve after the node is created
-  window._pendingNodeActionId = actionId;
-
-  // Open Add Node modal then pre-fill fields
-  openAddNode('page');
-  setTimeout(()=>{
-    const titleEl = eid('ne-title');
-    const slugEl  = eid('ne-slug');
-    if(titleEl && !titleEl.value) titleEl.value = a.linkLabel || a.foundUrl || '';
-    if(slugEl  && !slugEl.value)  slugEl.value  = a.foundUrl  || '';
-  }, 80);
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
 //  ACTION MODAL — CRUD  (Create / Read / Update / Delete)
 //  openActionModal(id, prefillSourceUrl)
 //    id=null           → create mode  (prefills sourceUrl if provided)
@@ -13439,13 +13219,7 @@ async function saveSheetAction(){
   if(saveBtn){ saveBtn.disabled=true; saveBtn.textContent='Saving…'; }
 
   try{
-    const res = await fetch(API_URL,{
-      method:'POST',
-      headers:{'Content-Type':'text/plain'},
-      body: JSON.stringify({ action:'upsertAction', row })
-    });
-    const data = await res.json();
-    if(data.error) throw new Error(data.error);
+    await sheetPost({ action:'upsertAction', row });
 
     closeActionModal();
     await loadFromSheetsSilent();
@@ -13469,13 +13243,7 @@ async function deleteSheetAction(){
   if(deleteBtn){ deleteBtn.disabled=true; deleteBtn.textContent='Deleting…'; }
 
   try{
-    const res = await fetch(API_URL,{
-      method:'POST',
-      headers:{'Content-Type':'text/plain'},
-      body: JSON.stringify({ action:'deleteAction', id: _actionModalId })
-    });
-    const data = await res.json();
-    if(data.error) throw new Error(data.error);
+    await sheetPost({ action:'deleteAction', id: _actionModalId });
 
     // Remove from local state immediately
     SHEET_ACTIONS = SHEET_ACTIONS.filter(a=>a.id!==_actionModalId);
@@ -13502,11 +13270,7 @@ async function bulkUpdateActionStatus(sourceUrl, status){
   try{
     // Fire updates in parallel
     await Promise.all(targets.map(a=>
-      fetch(API_URL,{
-        method:'POST',
-        headers:{'Content-Type':'text/plain'},
-        body:JSON.stringify({ action:'updateActionStatus', id:a.id, status })
-      }).then(r=>r.json())
+      sheetPost({ action:'updateActionStatus', id:a.id, status })
     ));
 
     // Update local state
@@ -13524,23 +13288,6 @@ async function bulkUpdateActionStatus(sourceUrl, status){
 //  PAGE AUDIT — crawlPageAndAudit integration
 // ═══════════════════════════════════════════════════════════════════════
 
-/**
- * Called from the "Audit page links" button in the Edit Node modal footer.
- * Uses the node's slug (preferring newSlug as the live URL if set).
- * Switches to Action Report view and runs the audit.
- */
-async function auditNodePageLinks(){
-  const n = gn(editingNodeId);
-  if(!n){ showToast('No node selected'); return; }
-  const url = (n.newSlug&&n.newSlug.startsWith('http')) ? n.newSlug
-            : (n.slug&&n.slug.startsWith('http'))       ? n.slug
-            : null;
-  if(!url){ showToast('Node has no absolute URL to audit'); return; }
-  closeNodeModal();
-  _arSection='global';_actionReportNodeFilter=null;
-  switchView('actionreport');
-  setTimeout(()=>{ runPageAudit(url); }, 120);
-}
 
 /**
  * Core POST call for crawlPageAndAudit. Can be called with a URL
@@ -13559,13 +13306,7 @@ async function runPageAudit(pageUrl){
   if(btn){   btn.disabled=true; btn.innerHTML='<span class="material-icons-round" style="font-size:14px;animation:spin .8s linear infinite">sync</span> Crawling…'; }
 
   try{
-    const res = await fetch(API_URL,{
-      method:'POST',
-      headers:{'Content-Type':'text/plain'},
-      body: JSON.stringify({ action:'crawlPageAndAudit', url: pageUrl })
-    });
-    const data = await res.json();
-    if(data.error) throw new Error(data.error);
+    const data = await sheetPost({ action:'crawlPageAndAudit', url: pageUrl });
 
     // Reload data so SHEET_ACTIONS reflects new rows
     await loadFromSheetsSilent();
@@ -13609,11 +13350,7 @@ async function runPageAudit(pageUrl){
  */
 async function loadNodesSilent(){
   try{
-    const url=`${API_URL}?action=getAll&_=${Date.now()}`;
-    const res=await fetch(url,{redirect:'follow'});
-    if(!res.ok) return;
-    const data=await res.json();
-    if(data.error) return;
+    const data = await sheetGet('getAll');
     if(data.nodes){
       // Merge into the EXISTING NODES by id — this only exists to refresh the
       // URL-check fields after a health check, so it must never wholesale-replace
@@ -13646,15 +13383,13 @@ async function loadNodesSilent(){
 
 /**
  * Loads fresh data from Sheets without showing the full loader overlay.
- * Used after an audit to refresh SHEET_ACTIONS.
+ * Used after an audit to refresh SHEET_ACTIONS. Uses the lightweight
+ * 'getActions' endpoint (reads only the Actions sheet) instead of 'getAll'
+ * (reads every sheet) since that's the only data this function touches.
  */
 async function loadFromSheetsSilent(){
   try{
-    const url = `${API_URL}?action=getAll&_=${Date.now()}`;
-    const res = await fetch(url, { redirect:'follow' });
-    if(!res.ok) return;
-    const data = await res.json();
-    if(data.error) return;
+    const data = await sheetGet('getActions');
     // Always overwrite — including when the sheet is cleared (data.actions === [])
     SHEET_ACTIONS = (data.actions||[]).map(r=>({
       id: String(r.id||''), sourceNodeId: r.sourceNodeId||'',
@@ -13676,13 +13411,7 @@ async function loadFromSheetsSilent(){
  */
 async function updateSheetActionStatus(id, status){
   try{
-    const res = await fetch(API_URL,{
-      method:'POST',
-      headers:{'Content-Type':'text/plain'},
-      body: JSON.stringify({ action:'updateActionStatus', id, status })
-    });
-    const data = await res.json();
-    if(data.error) throw new Error(data.error);
+    await sheetPost({ action:'updateActionStatus', id, status });
     // Update local copy
     const a = SHEET_ACTIONS.find(a=>a.id===id);
     if(a){ a.status=status; if(status==='resolved'||status==='dismissed') a.resolvedAt=new Date().toISOString(); }
@@ -14102,6 +13831,7 @@ if(tab==='components'){
 
 
 function closeTray(){
+  if(trayNodeId) _flushNodeWrite(trayNodeId);
   eid('nodeTray').classList.remove('open');
   selNodeId=null;
   renderCanvas();
@@ -14411,26 +14141,51 @@ eid('minimapCanvas') && eid('minimapCanvas').addEventListener('click', e=>{
 async function syncToSheets() {
   showToast('Syncing all to Sheets…');
   try {
-    for (const node of NODES) await dbUpsertNode(node);
-    // Sync Links: write only entries from the Links sheet (_sheet='Links' or undefined)
-    for (const [src,ls] of Object.entries(LINKS)) for (const l of ls){
-      if(!l._sheet||l._sheet==='Links') await dbUpsertLink(src, l);
-      else if(l._sheet==='CTAs') await dbUpsertCta(src, {...l, ctaType:l.type});
+    // Batched: one request per entity type instead of one per row. A
+    // mid-size sitemap (100+ nodes, 200+ links) used to turn this single
+    // button click into hundreds of sequential round trips.
+    await dbUpsertNodesBatch(NODES);
+
+    // Split Links-sheet vs CTAs-sheet rows the same way the old per-row loop did.
+    const linkRows = [], ctaRows = [];
+    for (const [src,ls] of Object.entries(LINKS)) for (const l of ls) {
+      if (!l._sheet || l._sheet==='Links') {
+        linkRows.push({...l, sourceNodeId:src, scope: l.scope||'internal'});
+      } else if (l._sheet==='CTAs') {
+        const cta = {...l, ctaType:l.type};
+        const safeUrl = (cta.url||'').startsWith('+') ? "'" + cta.url : (cta.url||'');
+        ctaRows.push({...cta, url: safeUrl, nodeId:src});
+      }
     }
-    for (const lib of COMP_LIBRARY) await dbUpsertComp(lib);
-    for (const [nid,ncs] of Object.entries(NODE_COMPS)) for (const nc of ncs) await dbUpsertNodeComp(nid, nc);
+    await dbUpsertLinksBatch(linkRows);
+    await dbUpsertCtasBatch(ctaRows);
+
+    await dbUpsertCompsBatch(COMP_LIBRARY);
+
+    const nodeCompRows = [];
+    for (const [nid,ncs] of Object.entries(NODE_COMPS)) for (const nc of ncs) nodeCompRows.push({id:nc.id, nodeId:nid, componentId:nc.componentId});
+    await dbUpsertNodeCompsBatch(nodeCompRows);
+
+    // Journeys are typically few, so per-journey calls are fine — each one
+    // internally batches its own steps (see dbUpsertJourney).
     for (const j of JOURNEYS) await dbUpsertJourney(j);
-    for (const p of PHASES)   await dbUpsertPhase(p);
-    // Sync layers
-    for (const [k, l] of Object.entries(LAYERS)) await dbUpsertLayer(k, l);
-    // Sync config (CMS, Status, Owner)
+
+    await dbUpsertPhasesBatch(PHASES);
+
+    const layerRows = Object.entries(LAYERS).map(([key,l]) => ({key, label:l.label, on: l.on?'TRUE':'FALSE', colour:l.colour}));
+    await dbUpsertLayersBatch(layerRows);
+
     _stampStatusOrder();
-    for (const [k, v] of Object.entries(CMS))    await dbUpsertConfig('cms_'+k, JSON.stringify(v));
-    for (const [k, v] of Object.entries(STATUS))  await dbUpsertConfig('status_'+k, JSON.stringify(v));
-    for (const [k, v] of Object.entries(OWNER_C)) await dbUpsertConfig('owner_'+k, v);
-    for (const [k, v] of Object.entries(REQTYPE_C)) await dbUpsertConfig('reqtype_'+k, v);
-    await dbUpsertConfig('logo_url',  logoImgUrl);
-    await dbUpsertConfig('logo_text', logoLabelText);
+    const configRows = [
+      ...Object.entries(CMS).map(([k,v])       => ({key:'cms_'+k,     value: JSON.stringify(v)})),
+      ...Object.entries(STATUS).map(([k,v])    => ({key:'status_'+k,  value: JSON.stringify(v)})),
+      ...Object.entries(OWNER_C).map(([k,v])   => ({key:'owner_'+k,   value: v})),
+      ...Object.entries(REQTYPE_C).map(([k,v]) => ({key:'reqtype_'+k, value: v})),
+      {key:'logo_url',  value: logoImgUrl},
+      {key:'logo_text', value: logoLabelText},
+    ];
+    await dbUpsertConfigBatch(configRows);
+
     showToast(`✓ Synced ${NODES.length} nodes + layers + config to Sheets`);
   } catch(e) { showToast('Sync failed: ' + e.message); }
 }

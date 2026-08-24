@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- StrategicSitemapper  v63 -->
+<!-- StrategicSitemapper  v80 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -24,6 +24,17 @@
   --brand-accent:#FF6B57;          /* coral — ACCENT ONLY (scarce pops) */
   --brand-accent-dark:#F2543E;
   --brand-accent-soft:#FFEBE7;
+  /* Fixed copies of the ABOVE defaults, used only by the pre-sign-in auth
+     overlay — applyBrandColours() overwrites --brand-accent* with the signed-
+     in account's own custom branding (loaded from Config) and never resets
+     it, so a login that fails AFTER a prior successful sign-in in the same
+     tab was showing that leftover client colour instead of a consistent
+     look. The auth screen already shows the app's own generic navy mark
+     (not the client's logo), so it should never inherit per-account
+     branding at all — these two vars are intentionally never touched by
+     applyBrandColours(). */
+  --auth-accent:#FF6B57;
+  --auth-accent-soft:#FFEBE7;
 
   --md-bg:#F6F7F9;
   --md-surface:#ffffff;
@@ -734,12 +745,12 @@ header{height:56px;background:var(--md-surface);border-bottom:1px solid var(--md
 .auth-overlay.hidden{display:none}
 .auth-card{background:var(--md-surface);border:1px solid rgba(255,255,255,.5);border-radius:24px;padding:40px 44px 34px;text-align:center;box-shadow:0 30px 70px rgba(8,17,36,.5);max-width:404px;width:90%}
 .auth-mark{width:60px;height:60px;display:block;margin:0 auto 16px;padding:11px;background:var(--brand-primary-light);border-radius:16px}
-.auth-eyebrow{font-size:11px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:var(--brand-accent);margin-bottom:8px}
+.auth-eyebrow{font-size:11px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:var(--auth-accent);margin-bottom:8px}
 .auth-title{font-family:var(--font-display);font-size:25px;font-weight:800;letter-spacing:-.4px;color:var(--brand-primary);margin-bottom:8px}
 .auth-sub{font-size:13px;color:var(--text2);margin-bottom:24px;line-height:1.6}
 /* Start screen — same premium navy backdrop as the auth overlay, but a wide
    two-column grouped grid of view tiles instead of a narrow login card. */
-.start-screen{position:fixed;inset:0;background:radial-gradient(rgba(255,255,255,.05) 1px,transparent 1px) 0 0/22px 22px,radial-gradient(1100px 720px at 50% -12%,#22406C 0%,#15294F 46%,#0E1C39 100%);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;z-index:998;padding:5vh 20px}
+.start-screen{position:fixed;top:56px;right:0;bottom:0;left:0;background:radial-gradient(rgba(255,255,255,.05) 1px,transparent 1px) 0 0/22px 22px,radial-gradient(1100px 720px at 50% -12%,#22406C 0%,#15294F 46%,#0E1C39 100%);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;z-index:998;padding:5vh 20px}
 .start-screen.hidden{display:none}
 .start-screen-inner{max-width:980px;width:94vw;text-align:center;margin:auto}
 .start-mark{width:56px;height:56px;display:block;margin:0 auto 16px;padding:10px;background:var(--brand-primary-light);border-radius:16px}
@@ -761,6 +772,8 @@ header{height:56px;background:var(--md-surface);border-bottom:1px solid var(--md
 .role-badge{font-size:8px;font-weight:700;padding:1px 6px;border-radius:8px;text-transform:uppercase;letter-spacing:.4px;flex-shrink:0}
 .role-badge.admin{background:var(--brand-primary-light);color:var(--brand-primary)}
 .role-badge.editor{background:#E2F0EC;color:#2E7D6B}
+.role-badge.tester{background:#E5EEFA;color:#2C5F9E}
+.role-badge.developer{background:#F5E9DA;color:#8A5A22}
 .role-badge.viewer{background:#EEF0F3;color:#5B6477}
 /* RBAC admin panel */
 .rbac-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:900;backdrop-filter:blur(4px)}
@@ -906,7 +919,7 @@ header{height:56px;background:var(--md-surface);border-bottom:1px solid var(--md
 /* ── ACTION REPORT LEFT NAV ── */
 .ar-left-nav{width:240px;min-width:200px;flex-shrink:0;background:var(--md-surface);border-right:1px solid var(--md-outline-variant);display:flex;flex-direction:column;overflow-y:auto;z-index:30}
 .ar-nav-hd{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);padding:10px 14px 4px;flex-shrink:0}
-.ar-nav-item{display:flex;align-items:center;gap:6px;width:100%;padding:7px 14px;border:none;background:none;cursor:pointer;font-size:11px;color:var(--md-on-surface);text-align:left;transition:background .15s;line-height:1.3}
+.ar-nav-item{display:flex;align-items:center;gap:6px;width:100%;padding:7px 14px;border:none;background:none;cursor:pointer;font-family:var(--font-body);font-size:11px;color:var(--md-on-surface);text-align:left;transition:background .15s;line-height:1.3}
 .ar-nav-item:hover{background:var(--md-surface-variant)}
 .ar-nav-item.active{background:rgba(66,133,244,.12);color:var(--brand-primary);font-weight:600}
 .ar-nav-count{margin-left:auto;font-size:8px;font-weight:700;padding:1px 6px;border-radius:8px;flex-shrink:0}
@@ -1513,16 +1526,54 @@ a.pt-url-val:hover{text-decoration:underline}
    accordion — all verbatim. Only genuinely new pieces get their own rules
    here, prefixed .tpl- (Test Plan — "tp-" is already taken by the
    touchpoint-type convention, TP_TYPES/.tp-icon-strip). ────────────────── */
+.tpl-product-tabs{padding:0 20px;border-bottom:1px solid var(--border);background:var(--white)}
+/* Green/red completion dots — shared by the Summary accordion and the left
+   nav (see _tplDotHtml). Fixed width regardless of state so labels stay
+   aligned whether a row has a visible dot or not. */
+.tpl-dot{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;flex-shrink:0;font-size:8px;font-weight:700;color:#fff;line-height:1}
+.tpl-dot-green{background:var(--rag-green-fg)}
+.tpl-dot-red{background:var(--rag-red-fg)}
+.tpl-dot-placeholder{background:transparent}
+/* Summary accordion's per-product rows */
+.tpl-summary-products{display:flex;flex-direction:column;gap:4px}
+.tpl-summary-product-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;cursor:pointer;transition:background .12s}
+.tpl-summary-product-row:hover{background:var(--md-surface-container)}
+.tpl-summary-product-name{font-size:12px;font-weight:600;color:var(--ink);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tpl-summary-product-count{font-size:10px;color:var(--text3);flex-shrink:0;white-space:nowrap}
+/* Left nav — reuses .ar-left-nav/.ar-nav-item (Action Report's shell) as its
+   base; these add the Test Plan-specific two-level (product/area) look. */
+.tpl-left-nav{overflow-x:hidden}
+.tpl-nav-body{display:flex;flex-direction:column;padding:6px 0}
+.tpl-nav-product{font-weight:700;color:var(--ink);border-top:1px solid var(--md-outline-variant);margin-top:2px;padding-top:9px}
+.tpl-nav-product:first-child{border-top:none;margin-top:0}
+.tpl-nav-epic{padding-left:28px;font-size:10.5px}
+.tpl-nav-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tpl-nav-count{font-size:9px;color:var(--text3);flex-shrink:0;white-space:nowrap}
 .tpl-subtab-toggle{display:flex;gap:2px;background:var(--md-surface-container);border-radius:10px;padding:3px;flex-shrink:0}
-.tpl-subtab-btn{border:none;background:transparent;padding:7px 14px;border-radius:8px;font-family:var(--font-body);font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .15s}
+.tpl-subtab-btn{border:none;background:transparent;padding:7px 14px;border-radius:8px;font-family:var(--font-body);font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .15s;min-width:0}
 .tpl-subtab-btn.active{background:var(--white);color:var(--brand-primary);box-shadow:var(--el-1)}
-.tpl-only-fail-toggle{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);cursor:pointer;user-select:none}
+/* The left-nav's 3-way toggle (Functional/Scenario/Snags) lives inside the
+   240px-wide .ar-left-nav — the default padding/font above was sized for
+   wider contexts (the scenario editor's mode toggle, the RBAC role picker)
+   and didn't fit three labels there, so the third button got clipped by
+   .tpl-left-nav's overflow-x:hidden. Tighter, scoped to this instance only. */
+.tpl-nav-toggle-header{padding-left:10px;padding-right:10px}
+.tpl-nav-toggle-header .tpl-subtab-btn{padding:6px 4px;font-size:10.5px}
 .tpl-hier-tree{display:flex;flex-direction:column;gap:8px;padding:14px 20px}
 .tpl-hier-group{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--white)}
 .tpl-hier-hdr{display:flex;align-items:center;gap:8px;width:100%;background:var(--md-surface-container);border:none;padding:9px 12px;cursor:pointer;font-family:var(--font-body);font-size:12px;font-weight:700;color:var(--ink);text-align:left;transition:background .12s}
 .tpl-hier-hdr:hover{background:var(--brand-primary-light)}
-.tpl-hier-hdr-epic{background:var(--md-surface);font-weight:600;font-size:11.5px}
-.tpl-hier-hdr-feature{background:var(--white);font-weight:600;font-size:11px;border-bottom:1px solid var(--border)}
+/* Epic/feature headers stay pinned to the top of the scrolling content while
+   their own section is in view, then get pushed off by the next one — same
+   sticky-swimlane mechanism the Product Roadmap uses (.rm-swimlane-sticky).
+   That only works if nothing between the sticky element and the scrolling
+   .req-content ancestor clips it, so — same as Roadmap's own swimlane
+   container (.rm-swimlane-label uses border-radius:0 for exactly this
+   reason) — these two groups give up the rounded-corner/overflow:hidden
+   treatment other .tpl-hier-group variants (e.g. Open Failures) still have. */
+.tpl-hier-epic,.tpl-hier-feature{border-radius:0;overflow:visible}
+.tpl-hier-hdr-epic{background:var(--md-surface);font-weight:600;font-size:11.5px;position:sticky;top:0;z-index:4}
+.tpl-hier-hdr-feature{background:var(--white);font-weight:600;font-size:11px;border-bottom:1px solid var(--border);position:sticky;top:36px;z-index:3}
 .tpl-hier-chev{color:var(--text3);flex-shrink:0}
 .tpl-hier-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tpl-hier-count{font-size:10px;font-weight:600;color:var(--text3);flex-shrink:0;white-space:nowrap}
@@ -1545,11 +1596,19 @@ a.pt-url-val:hover{text-decoration:underline}
 .tpl-signoff-chip.fail{background:var(--rag-red-fg)}
 .tpl-verify-pill{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700}
 .tpl-coverage-icon{font-size:16px;line-height:1}
-.tpl-mark-btn{padding:6px 14px;border-radius:8px;border:1px solid var(--md-outline-variant);background:var(--md-surface);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s}
+.tpl-mark-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:8px;border:1px solid var(--md-outline-variant);background:var(--md-surface);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;font-family:var(--font-body)}
 .tpl-mark-btn:hover{border-color:var(--brand-primary);color:var(--brand-primary)}
-.tpl-mark-form{display:flex;flex-direction:column;gap:6px;padding:8px;background:var(--md-surface-container);border-radius:10px}
-.tpl-mark-form-btns{display:flex;gap:6px}
-.tpl-mark-notes{width:100%;box-sizing:border-box;min-height:50px;padding:6px 8px;border:1px solid var(--md-outline-variant);border-radius:6px;background:var(--md-surface);font-size:11px;font-family:var(--font-body);resize:vertical}
+/* Prominent "Test this"/"Retest" trigger — same solid navy treatment as the
+   header's Sync Sheets button (.hbtn-icon.primary-icon) / .mbtn-save, so it
+   reads as the primary call-to-action on each row rather than a minor link. */
+.tpl-mark-btn-primary{background:var(--brand-primary);color:#fff;border-color:transparent;padding:7px 16px;font-size:11.5px;box-shadow:var(--el-1)}
+.tpl-mark-btn-primary:hover{background:var(--brand-primary-dark);color:#fff;box-shadow:var(--el-2)}
+/* Full-width once open (see _tplReqRowHtml — it's its own row now, not
+   squeezed into .tpl-req-row-meta alongside the chips), with room for a much
+   bigger notes textarea so there's actually space to comment comfortably. */
+.tpl-mark-form{display:flex;flex-direction:column;gap:8px;padding:12px;background:var(--md-surface-container);border-radius:10px;width:100%;box-sizing:border-box}
+.tpl-mark-form-btns{display:flex;gap:8px}
+.tpl-mark-notes{width:100%;box-sizing:border-box;min-height:96px;padding:10px 12px;border:1px solid var(--md-outline-variant);border-radius:8px;background:var(--md-surface);font-size:12px;font-family:var(--font-body);resize:vertical}
 .tpl-pass-btn{background:var(--rag-green-bg);color:var(--rag-green-fg);border-color:transparent}
 .tpl-fail-btn{background:var(--rag-red-bg);color:var(--rag-red-fg);border-color:transparent}
 .tpl-scenario-list{display:flex;flex-direction:column;gap:14px;padding:16px 20px}
@@ -1593,7 +1652,7 @@ a.pt-url-val:hover{text-decoration:underline}
     <div class="auth-title">Strategic Sitemapper</div>
     <div class="auth-sub">Sign in with your Google account to continue. Access is managed by your workspace admin.</div>
     <div id="googleSignInBtn" style="display:flex;justify-content:center"></div>
-    <div id="authDeniedMsg" style="display:none;margin-top:18px;padding:12px 16px;background:var(--brand-accent-soft);border-radius:12px;text-align:left">
+    <div id="authDeniedMsg" style="display:none;margin-top:18px;padding:12px 16px;background:var(--auth-accent-soft);border-radius:12px;text-align:left">
       <div style="font-size:12px;font-weight:700;color:#C2503F;margin-bottom:4px">Access not granted</div>
       <div style="font-size:11px;color:#9A5A4E;line-height:1.5"><span id="authDeniedEmail" style="font-family:var(--font-mono)"></span> has not been given access to this workspace. Please contact an admin to be added.</div>
     </div>
@@ -1737,11 +1796,28 @@ a.pt-url-val:hover{text-decoration:underline}
     <div class="mfield"><label>Name</label><input class="minput" id="rme-name" placeholder="e.g. Flight Search"></div>
     <div class="mfield"><label>Description</label><input class="minput" id="rme-desc" placeholder="One-line summary"></div>
     <div class="mfield"><label>Colour</label><div class="ph-colour-row" id="rmEpicColourRow"></div></div>
+    <div class="mfield">
+      <label>Also test on (Test Plan only)</label>
+      <div style="font-size:10px;color:var(--text3);margin-bottom:6px">This functional area's requirements will also need to be tested against these products, in addition to its home product above. Does not change the Roadmap.</div>
+      <div id="rmEpicTestProductsRow" style="display:flex;flex-direction:column;gap:4px"></div>
+    </div>
   </div>
   <div class="mfoot">
     <button class="mbtn mbtn-danger" id="rme-delete-btn" style="display:none;margin-right:auto" onclick="deleteRmEpic(_rmEditingEpicId)">Delete functional area</button>
     <button class="mbtn mbtn-cancel" onclick="closeModal('rmEpicModal')">Cancel</button>
     <button class="mbtn mbtn-save" onclick="saveRmEpic()">Save</button>
+  </div>
+</div>
+</div>
+
+<!-- Snags: Add Snag Modal — manual entry, "found and submitted through other means" -->
+<div class="modal-bg" id="addSnagModal">
+<div class="modal">
+  <div class="mhead"><h3>Add Snag</h3><button class="mclose" onclick="closeModal('addSnagModal')">✕</button></div>
+  <div class="mbody" id="addSnagModalBody"></div>
+  <div class="mfoot">
+    <button class="mbtn mbtn-cancel" onclick="closeModal('addSnagModal')">Cancel</button>
+    <button class="mbtn mbtn-save" onclick="saveAddSnagModal()">Add Snag</button>
   </div>
 </div>
 </div>
@@ -2038,6 +2114,9 @@ a.pt-url-val:hover{text-decoration:underline}
   <!-- ACTION REPORT LEFT NAV (shown only in Action Report view) -->
   <div id="arLeftNav" class="ar-left-nav" style="display:none"></div>
 
+  <!-- TEST PLAN LEFT NAV (shown only in Test Plan view) -->
+  <div id="tplLeftNav" class="ar-left-nav tpl-left-nav" style="display:none"></div>
+
   <!-- CANVAS AREA -->
   <div class="canvas-area">
     <!-- IA View (default) -->
@@ -2140,6 +2219,8 @@ a.pt-url-val:hover{text-decoration:underline}
         <input id="rbacEmailInput" type="email" placeholder="user@domain.com" style="flex:1;min-width:180px;font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid var(--md-outline-variant);background:var(--md-surface-variant);color:var(--text);font-family:var(--font-mono)">
         <select id="rbacRoleInput" style="font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid var(--md-outline-variant);background:var(--md-surface-variant);color:var(--text)">
           <option value="editor">Editor</option>
+          <option value="tester">Tester</option>
+          <option value="developer">Developer</option>
           <option value="viewer">Viewer</option>
           <option value="admin">Admin</option>
         </select>
@@ -2149,9 +2230,12 @@ a.pt-url-val:hover{text-decoration:underline}
         <strong style="color:var(--text2)">Role permissions:</strong><br>
         🔴 <strong>Admin</strong> — full access, can manage roles and sync to Sheets<br>
         🔵 <strong>Editor</strong> — can add/edit nodes, links, journeys; cannot manage roles<br>
+        🔷 <strong>Tester</strong> — can record Test Plan Pass/Fail results with notes; cannot edit anything else<br>
+        🟠 <strong>Developer</strong> — can squash snags on the Test Plan's Snags tab; cannot edit anything else<br>
         🟢 <strong>Viewer</strong> — read-only access; cannot edit anything
       </div>
     </div>
+    <div id="viewAccessSection" style="margin-top:18px;padding-top:14px;border-top:1px solid var(--md-outline-variant)"></div>
   </div>
 </div>
 
@@ -2166,16 +2250,19 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbwBMW_AlaqVfl-3DRk7q0JO
 // ── GOOGLE OAUTH + RBAC ───────────────────────────────────────────────────
 // Authentication: Google Identity Services (OAuth2 / OIDC).
 // Authorization: role table stored in the Google Sheet (not in the HTML).
-//   Roles: 'admin' | 'editor' | 'viewer'
+//   Roles: 'admin' | 'editor' | 'tester' | 'developer' | 'viewer'
 //   Admins can grant/revoke roles for any email via the RBAC panel.
 //   The role table is fetched from Sheets on every sign-in so it's always current.
 //   No email addresses are hard-coded here.
+//   Separately, VIEW_ACCESS (below) controls which app VIEWS each role can see —
+//   an admin-editable, per-role setting (also managed from the RBAC panel),
+//   independent of the role's write permissions above.
 
 const GOOGLE_CLIENT_ID = '914810667585-rgmmn53ftl35cgm0psib2nn29e1omev0.apps.googleusercontent.com';
 
 let gCurrentUser = null; // { name, email, picture, credential, role }
 
-// RBAC role table — loaded from Sheets: { email: 'admin'|'editor'|'viewer' }
+// RBAC role table — loaded from Sheets: { email: 'admin'|'editor'|'tester'|'developer'|'viewer' }
 let ROLE_TABLE = {};
 
 // ── Role helpers ──────────────────────────────────────────────────────────
@@ -2183,6 +2270,27 @@ function currentRole(){ return gCurrentUser?.role || 'viewer'; }
 function isAdmin()  { return currentRole()==='admin'; }
 function isEditor() { return currentRole()==='admin'||currentRole()==='editor'; }
 function canEdit()  { return isEditor(); }
+// Tester: a narrow role that can only record Test Plan results (Pass/Fail +
+// notes), nothing else — NOT folded into isEditor()/canEdit() since that
+// would also unlock the ~30 existing data-requires-edit controls app-wide
+// (roadmap/requirements/settings edits etc.). Which VIEWS a tester (or any
+// other role) can reach is a separate, admin-configurable concern — see
+// VIEW_ACCESS / viewAllowedForRole() below, not this function.
+function isTester()    { return currentRole()==='tester'; }
+function canMarkTests(){ return isEditor()||isTester(); }
+// Developer: a narrow role like Tester, but for the Snags tab specifically —
+// can only Squash a snag (enter a resolution note, send it back for
+// retesting), nothing else. Deliberately excluded from canMarkTests() —
+// per the user's explicit choice, Developers don't also mark Pass/Fail on
+// functional tests, keeping the tester/developer split clean.
+function isDeveloper()    { return currentRole()==='developer'; }
+function canSquashSnags() { return isEditor()||isDeveloper(); }
+// Reporting a snag (the "+ Add Snag" manual-entry button, and implicitly the
+// auto-report path when a functional test Fails) is open to anyone who can
+// do EITHER half of the snag lifecycle — testers naturally hit this via
+// Fail already; developers may also spot something outside the formal test
+// flow.
+function canReportSnags() { return isEditor()||isTester()||isDeveloper(); }
 
 // Apply role restrictions to the UI — called after sign-in
 function applyRoleUI(){
@@ -2194,6 +2302,19 @@ function applyRoleUI(){
   // Hide admin-only controls
   document.querySelectorAll('[data-requires-admin]').forEach(el=>{
     el.style.display = isAdmin() ? '' : 'none';
+  });
+  // Test Plan's "Test this"/Pass/Fail/Cancel controls — visible to editors/
+  // admins (as before) AND testers, but not plain viewers.
+  document.querySelectorAll('[data-requires-test]').forEach(el=>{
+    el.style.display = canMarkTests() ? '' : 'none';
+  });
+  // Snags tab's "Squash" controls — Developers and editors/admins only.
+  document.querySelectorAll('[data-requires-squash]').forEach(el=>{
+    el.style.display = canSquashSnags() ? '' : 'none';
+  });
+  // "+ Add Snag" (manual entry) — anyone who can test, squash, or edit.
+  document.querySelectorAll('[data-requires-snag-report]').forEach(el=>{
+    el.style.display = canReportSnags() ? '' : 'none';
   });
 }
 
@@ -2286,10 +2407,21 @@ async function handleGoogleCredential(response) {
     picture:    payload.picture,
     credential: response.credential,
     role,
+    // payload.exp is the JWT's standard expiry claim, seconds since epoch —
+    // lets isSessionExpired() catch a stale token proactively instead of
+    // only finding out after a write silently fails. See sheetPost.
+    tokenExpiresAt: payload.exp ? payload.exp * 1000 : null,
   };
+  _sessionExpiredHandled = false;
 
   hideAuthOverlay();
-  showStartScreen();
+  // If this role can only reach exactly one view (Tester's built-in default
+  // is just Test Plan — see allowedViewIds()), skip the homepage and land
+  // there directly rather than showing a start screen with a single tile.
+  // Generic by role, not hard-coded to Tester specifically.
+  const onlyView = allowedViewIds(role);
+  if (onlyView.length === 1) switchView(onlyView[0]);
+  else showStartScreen();
   renderUserPill();
   applyRoleUI();
   showToast(`Signed in as ${payload.name} (${role})`);
@@ -2317,6 +2449,42 @@ function signOut() {
   showAuthOverlay();
 }
 
+// ── SESSION EXPIRY ────────────────────────────────────────────────────────
+// A Google ID token is only valid ~1 hour (see the backend's own ACCESS
+// CONTROL comment block). Without this, a user who keeps interacting after
+// their token expires just keeps optimistically updating LOCAL state — every
+// db* write goes through sheetPost/sheetGet, which would reject the request
+// server-side, but most call sites fire those writes without awaiting them,
+// so the failure was easy to miss entirely (console-only). Two layers:
+//  1. A periodic poll (below) catches expiry proactively, before the user
+//     even attempts another action — the auth overlay is a full-screen,
+//     unmissable block (z-index 999, no pointer-events passthrough), so once
+//     it's up, no further edits can be made at all.
+//  2. sheetPost/sheetGet also check on every call as a backstop, in case the
+//     poll hasn't fired yet (e.g. a backgrounded tab, where browsers throttle
+//     timers) — this still fires before the network request goes out, so a
+//     doomed write is never sent, but it can't undo a local optimistic
+//     mutation that already happened earlier in the same click handler.
+const SESSION_EXPIRY_BUFFER_MS = 30000; // treat as expired this long before the JWT's real exp
+const SESSION_POLL_MS = 20000; // < the buffer, so the poll always catches it before real expiry
+function isSessionExpired(){
+  return !!(gCurrentUser && gCurrentUser.tokenExpiresAt && Date.now() >= gCurrentUser.tokenExpiresAt - SESSION_EXPIRY_BUFFER_MS);
+}
+let _sessionExpiredHandled = false;
+function _handleSessionExpired(){
+  if (_sessionExpiredHandled || !gCurrentUser) return;
+  _sessionExpiredHandled = true;
+  stopPresence();
+  if (typeof google !== 'undefined' && google.accounts) google.accounts.id.disableAutoSelect();
+  gCurrentUser = null;
+  ROLE_TABLE = {};
+  renderUserPill();
+  applyRoleUI();
+  showToast('Your session expired — please sign in again to keep saving changes.');
+  showAuthOverlay();
+}
+setInterval(()=>{ if (isSessionExpired()) _handleSessionExpired(); }, SESSION_POLL_MS);
+
 function hideAuthOverlay() { document.getElementById('authOverlay').classList.add('hidden'); }
 function showAuthOverlay() { document.getElementById('authOverlay').classList.remove('hidden'); }
 
@@ -2328,10 +2496,14 @@ function showStartScreen(){
   if(note) note.textContent=WELCOME_NOTE||'';
   const cols=eid('startColumns');
   if(cols){
-    cols.innerHTML=HOMEPAGE_GROUPS.map(group=>`
+    const allowed=allowedViewIds(currentRole());
+    cols.innerHTML=HOMEPAGE_GROUPS.map(group=>{
+      const views=group.views.filter(id=>allowed.includes(id));
+      if(!views.length) return ''; // whole group hidden if none of its views are permitted
+      return `
       <div class="start-col">
         <div class="start-group-title">${escH(group.title)}</div>
-        <div class="start-grid">${group.views.map(id=>{
+        <div class="start-grid">${views.map(id=>{
           const opt=VIEW_OPTIONS.find(o=>o.id===id);
           if(!opt) return '';
           const meta=HOMEPAGE_VIEW_META[id]||{};
@@ -2345,7 +2517,8 @@ function showStartScreen(){
             <span class="start-tile-arrow material-icons-round" style="font-size:18px">chevron_right</span>
           </div>`;
         }).join('')}</div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
   }
   eid('startScreen').classList.remove('hidden');
 }
@@ -2359,7 +2532,7 @@ function renderUserPill() {
   if (!wrap) return;
   if (gCurrentUser) {
     const role = currentRole();
-    const roleClass = role==='admin'?'admin':role==='editor'?'editor':'viewer';
+    const roleClass = role==='admin'?'admin':role==='editor'?'editor':role==='tester'?'tester':role==='developer'?'developer':'viewer';
     const name = gCurrentUser.name||gCurrentUser.email;
     // Only ever show a real Google account photo; anything else (demo mode,
     // an account with no photo, or a failed image load) falls back to a
@@ -2467,7 +2640,57 @@ document.addEventListener('click',closeUserMenu);
 function openRbacPanel(){
   if(!isAdmin()){ showToast('Admin access required'); return; }
   renderRbacList();
+  renderViewAccessSection();
   eid('rbacOverlay').classList.remove('hidden');
+}
+
+// ── View Access editor — which VIEW_OPTIONS each role can navigate to.
+// Admin excluded from the role picker on purpose: admins always see
+// everything, and letting an admin restrict their own account here would be
+// a self-lockout footgun with no recovery path short of editing the Sheet
+// directly.
+let _viewAccessRole='tester';
+function _viewAccessSelectRole(role){ _viewAccessRole=role; renderViewAccessSection(); }
+function renderViewAccessSection(){
+  const wrap=eid('viewAccessSection');
+  if(!wrap)return;
+  const role=_viewAccessRole;
+  // Reuses allowedViewIds() rather than duplicating its tester/developer
+  // built-in-default logic here — one source of truth for "what does this
+  // role see with no explicit config."
+  const allowed=new Set(allowedViewIds(role));
+  const isUnrestricted=!VIEW_ACCESS[role];
+  wrap.innerHTML=`
+    <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px">View access</div>
+    <div style="font-size:10px;color:var(--text3);margin-bottom:10px">Choose which views each role can navigate to. A role with every box checked is unrestricted (sees everything, including any new view added later).</div>
+    <div class="tpl-subtab-toggle" style="display:inline-flex;margin-bottom:10px">
+      ${['editor','tester','developer','viewer'].map(r=>`<button class="tpl-subtab-btn${role===r?' active':''}" onclick="_viewAccessSelectRole('${r}')">${r.charAt(0).toUpperCase()+r.slice(1)}</button>`).join('')}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px;background:var(--md-surface-container);border-radius:8px">
+      ${VIEW_OPTIONS.filter(o=>o.id!=='home').map(o=>`
+        <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);cursor:pointer">
+          <input type="checkbox" id="va-cb-${o.id}" ${allowed.has(o.id)?'checked':''}>
+          ${escH(o.label)}
+        </label>`).join('')}
+    </div>
+    ${isUnrestricted?`<div style="font-size:10px;color:var(--text3);margin-top:6px">${role.charAt(0).toUpperCase()+role.slice(1)} is currently unrestricted (no explicit setting saved yet)${(role==='tester'||role==='developer')?' — shown pre-checked to Test Plan only as the built-in default':''}.</div>`:''}
+    <button class="mbtn mbtn-save" style="margin-top:10px" onclick="saveViewAccess()">Save view access</button>
+  `;
+}
+async function saveViewAccess(){
+  const role=_viewAccessRole;
+  const allIds=VIEW_OPTIONS.filter(o=>o.id!=='home').map(o=>o.id);
+  const checked=allIds.filter(id=>eid('va-cb-'+id)?.checked);
+  // All checked (or none unchecked) = unrestricted, stored as an empty value
+  // so "never configured" and "explicitly cleared" both read back the same
+  // way (see the config-parsing loop in loadFromSheets).
+  if(!checked.length){ showToast('Select at least one view'); return; }
+  const unrestricted = checked.length===allIds.length;
+  if(unrestricted) delete VIEW_ACCESS[role];
+  else VIEW_ACCESS[role] = checked;
+  await dbUpsertConfigBatch([{key:'viewaccess_'+role, value: unrestricted?'':checked.join(',')}]);
+  renderViewAccessSection();
+  showToast(`Saved view access for ${role}`);
 }
 
 function renderRbacList(){
@@ -2479,7 +2702,7 @@ function renderRbacList(){
     return;
   }
   list.innerHTML=entries.map(([email,role])=>{
-    const rc=role==='admin'?'admin':role==='editor'?'editor':'viewer';
+    const rc=role==='admin'?'admin':role==='editor'?'editor':role==='tester'?'tester':role==='developer'?'developer':'viewer';
     const isSelf=email===gCurrentUser?.email;
     return `<div class="rbac-row">
       <span class="rbac-email" title="${email}">${email}</span>
@@ -2487,6 +2710,8 @@ function renderRbacList(){
       <select class="rbac-select" onchange="rbacChangeRole('${email}',this.value)" ${isSelf?'disabled title="Cannot change your own role"':''}>
         <option value="admin" ${role==='admin'?'selected':''}>Admin</option>
         <option value="editor" ${role==='editor'?'selected':''}>Editor</option>
+        <option value="tester" ${role==='tester'?'selected':''}>Tester</option>
+        <option value="developer" ${role==='developer'?'selected':''}>Developer</option>
         <option value="viewer" ${role==='viewer'?'selected':''}>Viewer</option>
       </select>
       <button class="rbac-remove" onclick="rbacRemoveUser('${email}')" ${isSelf?'disabled title="Cannot remove yourself"':''}>✕</button>
@@ -2534,6 +2759,15 @@ async function rbacSaveToSheets(){
 // GAS doPost reads e.postData.contents. Sending as text/plain avoids a CORS
 // preflight that GAS cannot answer, keeping it a "simple request".
 async function sheetPost(body, timeoutMs) {
+  // gCurrentUser is null during the sign-in bootstrap call itself (it passes
+  // its own idToken explicitly — see below), so this can't block sign-in.
+  // Every other write goes through here, so this one check is what stops a
+  // doomed request from ever reaching the network once the token's stale —
+  // see the SESSION EXPIRY block above signOut().
+  if (gCurrentUser && isSessionExpired()) {
+    _handleSessionExpired();
+    throw new Error('Session expired — not saved. Please sign in again.');
+  }
   // timeoutMs is optional — every existing call site omits it and keeps the
   // previous no-timeout behaviour; only time-sensitive callers (sign-in) pass
   // one, since Apps Script Web Apps can otherwise hang indefinitely on a cold
@@ -2570,6 +2804,10 @@ async function sheetPost(body, timeoutMs) {
 // GET counterpart to sheetPost — same idToken attachment and error-handling
 // contract, for the doGet actions (getAll/getComments/getActions/getRoles).
 async function sheetGet(action, params) {
+  if (gCurrentUser && isSessionExpired()) {
+    _handleSessionExpired();
+    throw new Error('Session expired — please sign in again.');
+  }
   const qs = new URLSearchParams({ action, _: Date.now(), ...(params||{}) });
   if (gCurrentUser?.credential) qs.set('idToken', gCurrentUser.credential);
   const res = await fetch(`${API_URL}?${qs.toString()}`, { redirect: 'follow' });
@@ -2717,14 +2955,17 @@ async function loadFromSheets() {
     // in-memory data behind), always reassign here so deleting the very last
     // product/epic/feature/story and reloading correctly empties these arrays.
     ROADMAP_PRODUCTS = (data.products||[]).map(r=>({id:String(r.id||''),name:r.name||'',desc:r.desc||'',order:Number(r.order)||0,jiraKey:r.jiraKey||''})).sort((a,b)=>a.order-b.order);
-    ROADMAP_EPICS    = (data.epics||[]).map(r=>({id:String(r.id||''),productId:String(r.productId||''),name:r.name||'',desc:r.desc||'',colour:r.colour||EPIC_COLOURS[0],order:Number(r.order)||0,jiraKey:r.jiraKey||''})).sort((a,b)=>a.order-b.order);
+    ROADMAP_EPICS    = (data.epics||[]).map(r=>({id:String(r.id||''),productId:String(r.productId||''),name:r.name||'',desc:r.desc||'',colour:r.colour||EPIC_COLOURS[0],order:Number(r.order)||0,jiraKey:r.jiraKey||'',testProductIds:String(r.testProductIds||'').split(',').map(s=>s.trim()).filter(Boolean)})).sort((a,b)=>a.order-b.order);
     ROADMAP_FEATURES = (data.features||[]).map(r=>({id:String(r.id||''),epicId:String(r.epicId||''),phaseId:String(r.phaseId||''),name:r.name||'',desc:r.desc||'',icon:r.icon||ROADMAP_ICONS[0],status:r.status||'Planned',stretch:r.stretch==='TRUE'||r.stretch===true,order:Number(r.order)||0,jiraKey:r.jiraKey||''})).sort((a,b)=>a.order-b.order);
     ROADMAP_STORIES  = (data.stories||[]).map(r=>({id:String(r.id||''),code:r.code||'',featureId:String(r.featureId||''),text:r.text||'',stretch:r.stretch==='TRUE'||r.stretch===true,type:r.type||'',devStatus:r.devStatus||'Not Started',testStatus:r.testStatus||'Not Started',owner:r.owner||'',source:r.source||'',order:Number(r.order)||0,jiraKey:r.jiraKey||''})).sort((a,b)=>a.order-b.order);
-    TEST_RESULTS = (data.testResults||[]).map(r=>({id:String(r.id||''),storyId:String(r.storyId||''),testerEmail:String(r.testerEmail||'').trim().toLowerCase(),result:r.result||'',notes:r.notes||'',testedAt:r.testedAt||null}));
-    TEST_SCENARIOS = (data.scenarios||[]).map(r=>({id:String(r.id||''),title:r.title||'',mode:r.mode||'freeform',type:r.type||'',priority:r.priority||'',objective:r.objective||'',preconditions:r.preconditions||'',testData:r.testData||'',stepsJson:r.stepsJson||'',overallExpected:r.overallExpected||'',reqCodes:r.reqCodes||'',text:r.text||'',status:r.status||'Not Tested',lastTestedBy:String(r.lastTestedBy||'').trim().toLowerCase(),lastTestedAt:r.lastTestedAt||null,notes:r.notes||'',createdBy:String(r.createdBy||'').trim().toLowerCase(),createdAt:r.createdAt||null}));
+    TEST_RESULTS = (data.testResults||[]).map(r=>({id:String(r.id||''),storyId:String(r.storyId||''),testerEmail:String(r.testerEmail||'').trim().toLowerCase(),result:r.result||'',notes:r.notes||'',testedAt:r.testedAt||null,productId:String(r.productId||'')}));
+    TEST_SCENARIOS = (data.scenarios||[]).map(r=>({id:String(r.id||''),code:r.code||'',title:r.title||'',mode:r.mode||'freeform',type:r.type||'',priority:r.priority||'',phaseId:String(r.phaseId||''),objective:r.objective||'',preconditions:r.preconditions||'',testData:r.testData||'',stepsJson:r.stepsJson||'',overallExpected:r.overallExpected||'',reqCodes:r.reqCodes||'',text:r.text||'',status:r.status||'Not Tested',lastTestedBy:String(r.lastTestedBy||'').trim().toLowerCase(),lastTestedAt:r.lastTestedAt||null,notes:r.notes||'',createdBy:String(r.createdBy||'').trim().toLowerCase(),createdAt:r.createdAt||null}));
     TEST_SCENARIO_LINKS = (data.scenarioLinks||[]).map(r=>({id:String(r.id||''),scenarioId:String(r.scenarioId||''),storyId:String(r.storyId||'')}));
+    SNAGS = (data.snags||[]).map(r=>({id:String(r.id||''),storyId:String(r.storyId||''),productId:String(r.productId||''),epicId:String(r.epicId||''),title:r.title||'',status:r.status||'Open',source:r.source||'test',reporterEmail:String(r.reporterEmail||'').trim().toLowerCase(),cycleCount:Number(r.cycleCount)||1,createdAt:r.createdAt||null,resolvedBy:String(r.resolvedBy||'').trim().toLowerCase(),resolvedAt:r.resolvedAt||null,updatedAt:r.updatedAt||null}));
     if (_rmActiveProductId && !ROADMAP_PRODUCTS.find(p=>p.id===_rmActiveProductId)) _rmActiveProductId=null;
     if (!_rmActiveProductId && ROADMAP_PRODUCTS.length) _rmActiveProductId=ROADMAP_PRODUCTS[0].id;
+    if (_tplActiveProductId && _tplActiveProductId!=='ALL' && !ROADMAP_PRODUCTS.find(p=>p.id===_tplActiveProductId)) _tplActiveProductId=null;
+    if (!_tplActiveProductId && ROADMAP_PRODUCTS.length) _tplActiveProductId=ROADMAP_PRODUCTS[0].id;
 
     // Load layers — sheet is the source of truth for label and colour.
     // Runtime on/off state is preserved ONLY if the sheet value is missing/blank.
@@ -2764,7 +3005,7 @@ async function loadFromSheets() {
     // Values for cms_ and status_ are JSON: {"fg":"#hex","bg":"#hex"} and optionally "lbl"
     // Values for owner_ are plain hex colour strings
     if (data.config && data.config.length) {
-      const newCMS = {}, newSTATUS = {}, newOWNER = {}, newREQTYPE = {}, newJIRAMAP = {}, newHOMEMETA = {};
+      const newCMS = {}, newSTATUS = {}, newOWNER = {}, newREQTYPE = {}, newJIRAMAP = {}, newHOMEMETA = {}, newVIEWACCESS = {};
       data.config.forEach(r => {
         const key = String(r.key || '').trim();
         const val = String(r.value || '').trim();
@@ -2803,6 +3044,9 @@ async function loadFromSheets() {
           const id = key.slice(10);
           if (!newHOMEMETA[id]) newHOMEMETA[id] = {};
           newHOMEMETA[id].desc = val;
+        } else if (key.startsWith('viewaccess_')) {
+          const role = key.slice(11);
+          newVIEWACCESS[role] = val.split(',').map(s=>s.trim()).filter(Boolean);
         } else if (key === 'logo_url') {
           logoImgUrl = val;
         } else if (key === 'logo_text') {
@@ -2823,6 +3067,10 @@ async function loadFromSheets() {
           HOMEPAGE_VIEW_META[id] = Object.assign({}, HOMEPAGE_VIEW_META[id]||{}, newHOMEMETA[id]);
         }
       }
+      // Unconditional (unlike CMS/OWNER above) — if an admin clears every
+      // viewaccess_ row, a reload should reflect "unrestricted" rather than
+      // keep a stale restriction cached from earlier in the session.
+      VIEW_ACCESS = newVIEWACCESS;
       if (Object.keys(newSTATUS).length) {
         // The Config sheet's row order isn't necessarily the pipeline order the user
         // configured (saving a status updates its existing row in place rather than
@@ -3005,7 +3253,7 @@ async function dbDeleteProjectDoc(id) {
 }
 async function dbUpsertProduct(p){try{await sheetPost({action:'upsertProduct',row:{id:p.id,name:p.name||'',desc:p.desc||'',order:p.order||0,jiraKey:p.jiraKey||''}});}catch(e){console.error('dbUpsertProduct:',e);showToast('Sheet write error: '+e.message);}}
 async function dbDeleteProduct(id){try{await sheetPost({action:'deleteProduct',id});}catch(e){console.error('dbDeleteProduct:',e);showToast('Sheet write error: '+e.message);}}
-async function dbUpsertEpic(ep){try{await sheetPost({action:'upsertEpic',row:{id:ep.id,productId:ep.productId,name:ep.name||'',desc:ep.desc||'',colour:ep.colour||EPIC_COLOURS[0],order:ep.order||0,jiraKey:ep.jiraKey||''}});}catch(e){console.error('dbUpsertEpic:',e);showToast('Sheet write error: '+e.message);}}
+async function dbUpsertEpic(ep){try{await sheetPost({action:'upsertEpic',row:{id:ep.id,productId:ep.productId,name:ep.name||'',desc:ep.desc||'',colour:ep.colour||EPIC_COLOURS[0],order:ep.order||0,jiraKey:ep.jiraKey||'',testProductIds:(ep.testProductIds||[]).join(',')}});}catch(e){console.error('dbUpsertEpic:',e);showToast('Sheet write error: '+e.message);}}
 async function dbDeleteEpic(id){try{await sheetPost({action:'deleteEpic',id});}catch(e){console.error('dbDeleteEpic:',e);showToast('Sheet write error: '+e.message);}}
 async function dbUpsertFeature(f){try{await sheetPost({action:'upsertFeature',row:{id:f.id,epicId:f.epicId,phaseId:f.phaseId||'',name:f.name||'',desc:f.desc||'',icon:f.icon||ROADMAP_ICONS[0],status:f.status||'Planned',stretch:f.stretch?'TRUE':'FALSE',order:f.order||0,jiraKey:f.jiraKey||''}});}catch(e){console.error('dbUpsertFeature:',e);showToast('Sheet write error: '+e.message);}}
 async function dbDeleteFeature(id){try{await sheetPost({action:'deleteFeature',id});}catch(e){console.error('dbDeleteFeature:',e);showToast('Sheet write error: '+e.message);}}
@@ -3080,8 +3328,25 @@ function updNodeRoadmapProduct(id, productId){
 }
 async function dbUpsertStory(s){try{await sheetPost({action:'upsertStory',row:{id:s.id,code:s.code||'',featureId:s.featureId,text:s.text||'',stretch:s.stretch?'TRUE':'FALSE',type:s.type||'',devStatus:s.devStatus||'Not Started',testStatus:s.testStatus||'Not Started',owner:s.owner||'',source:s.source||'',order:s.order||0,jiraKey:s.jiraKey||''}});}catch(e){console.error('dbUpsertStory:',e);showToast('Sheet write error: '+e.message);}}
 async function dbDeleteStory(id){try{await sheetPost({action:'deleteStory',id});}catch(e){console.error('dbDeleteStory:',e);showToast('Sheet write error: '+e.message);}}
-async function dbUpsertTestResult(r){try{await sheetPost({action:'upsertTestResult',row:{id:r.id,storyId:r.storyId,testerEmail:r.testerEmail,result:r.result,notes:r.notes||'',testedAt:r.testedAt}});}catch(e){console.error('dbUpsertTestResult:',e);showToast('Sheet write error: '+e.message);}}
-async function dbUpsertScenario(sc){try{await sheetPost({action:'upsertScenario',row:{id:sc.id,title:sc.title||'',mode:sc.mode||'freeform',type:sc.type||'',priority:sc.priority||'',objective:sc.objective||'',preconditions:sc.preconditions||'',testData:sc.testData||'',stepsJson:sc.stepsJson||'',overallExpected:sc.overallExpected||'',reqCodes:sc.reqCodes||'',text:sc.text||'',status:sc.status||'Not Tested',lastTestedBy:sc.lastTestedBy||'',lastTestedAt:sc.lastTestedAt||'',notes:sc.notes||'',createdBy:sc.createdBy||'',createdAt:sc.createdAt||''}});}catch(e){console.error('dbUpsertScenario:',e);showToast('Sheet write error: '+e.message);}}
+async function dbUpsertTestResult(r){try{await sheetPost({action:'upsertTestResult',row:{id:r.id,storyId:r.storyId,testerEmail:r.testerEmail,result:r.result,notes:r.notes||'',testedAt:r.testedAt,productId:r.productId||''}});}catch(e){console.error('dbUpsertTestResult:',e);showToast('Sheet write error: '+e.message);}}
+// Report or reopen a snag — the backend forces status:'Open' regardless of
+// what's sent here (see the doPost case), so this can never resolve one;
+// only dbSquashSnag can.
+async function dbUpsertSnag(sn){try{await sheetPost({action:'upsertSnag',row:{id:sn.id,storyId:sn.storyId||'',productId:sn.productId||'',epicId:sn.epicId||'',title:sn.title||'',status:sn.status||'Open',source:sn.source||'test',reporterEmail:sn.reporterEmail||'',cycleCount:sn.cycleCount||1,createdAt:sn.createdAt||'',resolvedBy:sn.resolvedBy||'',resolvedAt:sn.resolvedAt||'',updatedAt:sn.updatedAt||''}});}catch(e){console.error('dbUpsertSnag:',e);showToast('Sheet write error: '+e.message);}}
+// Narrow counterpart to dbUpsertSnag — the one action a Developer actually
+// takes (mark resolved). Hits the backend's squashSnag action, which checks
+// the caller's role server-side (Developer/Editor/Admin only — Tester and
+// Developer share a backend rank, so this can't be a pure rank check),
+// stamps resolvedBy from the server-verified email, and resets this
+// requirement's prior test results for this product in the same call —
+// there's no separate delete action to call afterward any more.
+async function dbSquashSnag(id){try{await sheetPost({action:'squashSnag',id});}catch(e){console.error('dbSquashSnag:',e);showToast('Sheet write error: '+e.message);}}
+async function dbUpsertScenario(sc){try{await sheetPost({action:'upsertScenario',row:{id:sc.id,code:sc.code||'',title:sc.title||'',mode:sc.mode||'freeform',type:sc.type||'',priority:sc.priority||'',phaseId:sc.phaseId||'',objective:sc.objective||'',preconditions:sc.preconditions||'',testData:sc.testData||'',stepsJson:sc.stepsJson||'',overallExpected:sc.overallExpected||'',reqCodes:sc.reqCodes||'',text:sc.text||'',status:sc.status||'Not Tested',lastTestedBy:sc.lastTestedBy||'',lastTestedAt:sc.lastTestedAt||'',notes:sc.notes||'',createdBy:sc.createdBy||'',createdAt:sc.createdAt||''}});}catch(e){console.error('dbUpsertScenario:',e);showToast('Sheet write error: '+e.message);}}
+// Narrow counterpart to dbUpsertScenario — used when only recording a Pass/
+// Fail result (Test Plan's "Test this"), not editing scenario content. Hits
+// the backend's markScenarioResult action ('viewer'-rank, so Testers can call
+// it) instead of the full-row upsertScenario ('editor'-rank).
+async function dbMarkScenarioResult(id,result,notes){try{await sheetPost({action:'markScenarioResult',id,result,notes:notes||''});}catch(e){console.error('dbMarkScenarioResult:',e);showToast('Sheet write error: '+e.message);}}
 async function dbDeleteScenario(id){try{await sheetPost({action:'deleteScenario',id});}catch(e){console.error('dbDeleteScenario:',e);showToast('Sheet write error: '+e.message);}}
 async function dbUpsertScenarioLink(l){try{await sheetPost({action:'upsertScenarioLink',row:{id:l.id,scenarioId:l.scenarioId,storyId:l.storyId}});}catch(e){console.error('dbUpsertScenarioLink:',e);showToast('Sheet write error: '+e.message);}}
 // Batch variants — one HTTP round-trip for many link rows, instead of one per
@@ -3370,9 +3635,15 @@ let _rmFeatureModalCtx={epicId:null, phaseId:null}; // implicit context + pre-fi
 // TEST PLAN: functional-requirement test results + free-text scenario tests,
 // scoped to Functional Requirement Stories. "TPL" prefix (not "TP") deliberately
 // avoids collision with the existing TP_TYPES/.tp-* touchpoint-type convention.
-let TEST_RESULTS=[];        // [{id,storyId,testerEmail,result,notes,testedAt}] — one row per (story,tester), upserted on retest
+let TEST_RESULTS=[];        // [{id,storyId,testerEmail,result,notes,testedAt,productId}] — one row per (story,tester), upserted on retest. productId is '' on pre-migration rows.
 let TEST_SCENARIOS=[];      // [{id,text,status,lastTestedBy,lastTestedAt,notes,createdBy,createdAt}]
 let TEST_SCENARIO_LINKS=[]; // [{id,scenarioId,storyId}] — many-to-many, mirrors NODE_COMPS
+// [{id,storyId,productId,epicId,title,status,source,reporterEmail,cycleCount,
+//   createdAt,resolvedBy,resolvedAt,updatedAt}] — storyId/title are mutually
+// meaningful: a 'test' snag (auto-created from a failed functional test) has
+// storyId set and blank title (shows the requirement's own text instead); a
+// 'manual' snag has no storyId and relies on title. See the Snags tab.
+let SNAGS=[];
 const TPL_RESULT_COLOURS={
   'Pass':{fg:'var(--rag-green-fg)',bg:'var(--rag-green-bg)'},
   'Fail':{fg:'var(--rag-red-fg)',  bg:'var(--rag-red-bg)'},
@@ -3455,21 +3726,37 @@ exact shape.
 (Paste your actual list of requirement codes alongside this prompt so the tool
 references real codes instead of guessing.)`;
 let _tplSubTab='functional';       // 'functional' | 'scenario'
-let _tplFilterFeatureId='';
 let _tplSearchQuery='';
-let _tplOnlyOpenFailures=false;
-let _tplMarkingStoryId=null;       // storyId whose inline Pass/Fail form is expanded
-let _tplMarkingScenarioId=null;    // scenarioId whose inline Pass/Fail form is expanded
+// Composite storyId+'::'+productId — since a Functional Area can now need
+// testing across more than one product (see _tplEpicTestProductIds), the
+// SAME story renders once per relevant product section, so "which inline
+// form is open" has to be keyed by (story, product), not story alone.
+let _tplMarkingKey=null;
+let _tplMarkingScenarioId=null;    // scenarioId whose inline Pass/Fail form is expanded — scenarios stay single-execution, not product-split
 let _tplScenarioDraft=null;        // {id:null|scenarioId, mode, title, ..., steps:[]} — see _tplBlankScenarioDraft()
 let _tplImportOpen=false;          // markdown bulk-import panel open/closed
-// Functional Tests hierarchy accordion state — Product > Functional Area
-// (Epic) > Feature, each collapsed by default so the tree starts compact;
-// Open Failures defaults OPEN since finding failures is the point of it.
+// Functional Tests hierarchy accordion state. Restructured to match the
+// Product Roadmap's own layout: a product tab bar (see _tplActiveProductId)
+// replaces the old Product-level accordion — products aren't collapsible on
+// the Roadmap either, only epics are — so only Epic/Feature keep accordion
+// state. "Closed" sets (not "open" sets) so everything starts OPEN by
+// default, same inverted-default convention as Roadmap's own _rmClosedEpics.
+// Keys are composite (epicId/featureId + '::' + productId) since a shared
+// Functional Area can now appear under more than one product section, each
+// independently collapsible.
 let _tplSummaryOpen=false;
-let _tplFailuresOpen=true;
-let _tplOpenProducts=new Set();
-let _tplOpenEpics=new Set();
-let _tplOpenFeatures=new Set();
+// Open Failures accordion — one per product section now (was a single global
+// bool) — Set of productIds whose section is closed; default empty = open,
+// same convention as the rest.
+let _tplClosedFailureSections=new Set();
+let _tplClosedEpics=new Set();
+let _tplClosedFeatures=new Set();
+let _tplClosedScenarios=new Set(); // collapsed scenario cards — see _tplToggleScenario
+let _tplScenarioNavView='sequence'; // 'sequence' | 'status' — the left nav's Scenario list toggle
+// Which product's board is currently shown — defaults to the first product
+// once ROADMAP_PRODUCTS loads (see loadFromSheets), or 'ALL' for every
+// product at once, mirroring _rmActiveProductId's own default behaviour.
+let _tplActiveProductId=null;
 
 // JOURNEYS: [{id, name, colour, desc, steps:[{nodeId, label}]}]
 let JOURNEYS=[];
@@ -3693,33 +3980,60 @@ const autoFillRedirects=v=>{
 // ── Find redirect target node by URL ──
 const findByUrl=url=>url?NODES.find(n=>n.slug===url||n.newSlug===url):null;
 
-// ── Redirect Tracker row resolution — covers both populations: (1) phase
-// variants whose URL is changing, (2) decommissioned canonicals that never
-// went through the phase-variant workflow (invisible to Transformation
-// Report, which only iterates variants). ──
+// ── Redirect Tracker row resolution — covers three populations, matching
+// the Transformation Report's own "transforming" count exactly (variants +
+// pages new-in-phase) plus decommissioned canonicals with no variant at all
+// (which the Transformation Report doesn't count, but still need tracking):
+//   (1) phase variants whose URL is changing → kind:'redirect'
+//   (2) decommissioned canonicals (with or without a variant) → kind:
+//       'decommission' if a target URL is already set, else 'missing'
+//   (3) transforming pages with NEITHER a resolved URL change NOR a
+//       decommission target → kind:'missing' — previously this returned
+//       null and the row silently never appeared, which is exactly backwards:
+//       these are the pages that most need to be seen, since they're the
+//       ones still missing a redirect.
+//   (4) pages introduced directly in a later phase (no Phase 0 predecessor)
+//       → kind:'new' — nothing to redirect FROM, shown for completeness
+//       only, excluded from the "% complete" stat below.
+// Never returns null for a node actually passed to it by rdrCollectRows.
 function rdrResolve(n){
   const canon=n.variantOf?gn(n.variantOf):n;
   if(!canon) return null;
+  const oldUrl=(canon.slug||'').trim();
   if(canon.decommissioned){
-    const oldUrl=(canon.slug||'').trim();
     const newUrl=(canon.redirectTo||canon.decommissionUrl||'').trim();
-    if(!oldUrl) return null;
-    return {kind:'decommission', oldUrl, newUrl, canon, node:n};
+    return {kind:newUrl?'decommission':'missing', oldUrl, newUrl, canon, node:n};
   }
   if(n.variantOf){
     const uc=hasUrlChange(n);
     if(uc) return {kind:'redirect', oldUrl:uc.oldUrl, newUrl:uc.newUrl, canon, node:n};
+    return {kind:'missing', oldUrl, newUrl:'', canon, node:n};
   }
-  return null;
+  // Reached only for "new in phase" canonicals (rdrCollectRows only calls
+  // this branch for those) — no predecessor URL exists, so there's nothing
+  // to redirect from; purely informational.
+  return {kind:'new', oldUrl:'', newUrl:(n.slug||'').trim(), canon, node:n};
 }
 function rdrCollectRows(){
   const pages=NODES.filter(n=>n.nodeType==='page');
   const variants=pages.filter(n=>n.variantOf);
   const transformingIds=new Set(variants.map(v=>v.variantOf));
+  const originPhaseId=PHASES[0]?.id;
+  const newInPhase=pages.filter(n=>!n.variantOf&&n.phase&&n.phase!==originPhaseId);
+  newInPhase.forEach(n=>transformingIds.add(n.id));
   const rows=[];
+  // Every phase variant — always produces a row now (see rdrResolve), so a
+  // transforming page with no redirect configured yet shows as a visible
+  // gap instead of silently disappearing from this list.
   variants.forEach(v=>{ const r=rdrResolve(v); if(r) rows.push({...r, phaseId:v.phase||'', rowNode:v}); });
+  // Decommissioned canonicals that never went through the phase-variant
+  // workflow (no variant row at all) — invisible to the loop above.
   pages.filter(n=>!n.variantOf&&n.decommissioned&&!transformingIds.has(n.id))
        .forEach(n=>{ const r=rdrResolve(n); if(r) rows.push({...r, phaseId:n.phase||'', rowNode:n}); });
+  // Pages introduced directly in a later phase — the exact same population
+  // the Transformation Report counts as "new in phase", so its total lines
+  // up 1:1 with what's shown here.
+  newInPhase.forEach(n=>{ const r=rdrResolve(n); if(r) rows.push({...r, phaseId:n.phase||'', rowNode:n}); });
   return rows;
 }
 
@@ -3882,6 +4196,26 @@ function _cmtApplyNewComment(res){
   COMMENTS_ALL.push(res.row);
   _cmtIndex();
   return true;
+}
+
+// System-generated comment, posted without the Comments panel being open —
+// used by the Snags workflow (_tplSubmitStoryResult on Fail, _tplSubmitSquash
+// on resolve) so a tester's fail note and a developer's squash note land in
+// the SAME thread as any human-written comments on that requirement, in
+// order, with author+timestamp already handled by the existing Comments
+// feature — see the "Comments location" decision behind this. Goes through
+// the exact same addComment backend action as a normal comment (server-
+// stamps authorEmail), just without any panel UI to update afterward.
+async function _tplPostAutoComment(entityType,entityId,text){
+  if(!gCurrentUser) return;
+  try{
+    const res=await sheetPost({action:'addComment',row:{
+      entityType, entityId, text, authorEmail:gCurrentUser.email, parentId:'', mentions:[],
+    }});
+    _cmtApplyNewComment(res);
+  }catch(e){
+    console.error('_tplPostAutoComment:',e);
+  }
 }
 
 async function loadAllComments(){
@@ -4883,7 +5217,14 @@ function buildCard(node,jSet){
   const extL=links.filter(l=>l.type==='External').length;
   const ctas=CTAS[node.id]||[];
   const comps=getNodeComps(node.id);
-  const hasRedir=node.redirectFrom&&node.redirectTo;
+  // Was `redirectFrom && redirectTo` (both on the SAME node) — but
+  // autoFillRedirects() deliberately splits these across two different node
+  // objects (redirectFrom on the variant, redirectTo on the canonical), and
+  // cards only ever render the canonical/projected node, never the raw
+  // variant. That AND check could never be satisfied for a page that went
+  // through the normal redirect-creation flow, so the ↳ chip never showed.
+  // Either field being set on THIS node is enough to mean "redirect involved".
+  const hasRedir=!!(node.redirectFrom||node.redirectTo);
 
   // Journey dim logic
   const inJourney=jSet?jSet.has(node.id):false;
@@ -7438,10 +7779,29 @@ const VIEW_OPTIONS=[
   {id:'redirects',     icon:'swap_horiz',    label:'Redirect Tracker'},
   {id:'testplan',      icon:'science',       label:'Test Plan'},
 ];
+
+// ── View Access — admin-configurable, per-role view visibility ───────────
+// Independent of ROLE_RANK/canEdit()/etc. (which govern what a role can WRITE)
+// — this only governs which of VIEW_OPTIONS a role can even navigate to.
+// Loaded from the Config sheet as viewaccess_<role> = comma-separated view
+// ids (see the config-parsing loop in loadFromSheets). A role with NO entry
+// here is unrestricted (sees everything) — this is deliberate so admin/
+// editor/viewer keep their exact current behaviour with zero setup; only a
+// role an admin has explicitly restricted (or 'tester'/'developer', which
+// get a sane built-in default below) is limited to a subset.
+let VIEW_ACCESS = {};
+function allowedViewIds(role){
+  if(VIEW_ACCESS[role]) return VIEW_ACCESS[role];
+  if(role==='tester'||role==='developer') return ['testplan'];
+  return VIEW_OPTIONS.map(o=>o.id).filter(id=>id!=='home');
+}
+function viewAllowedForRole(viewId, role){ return allowedViewIds(role).includes(viewId); }
+
 function renderViewMenu(){
   const dd=eid('viewMenuDropdown');
   if(!dd)return;
-  dd.innerHTML=VIEW_OPTIONS.map(o=>{
+  const allowed=allowedViewIds(currentRole());
+  dd.innerHTML=VIEW_OPTIONS.filter(o=>o.id==='home'||allowed.includes(o.id)).map(o=>{
     const active=o.id===curView;
     return `<div class="hdr-view-item${active?' active':''}" onclick="switchView('${o.id}');closeViewMenu()">
       <span class="material-icons-round hdr-view-item-icon">${o.icon}</span>
@@ -7491,11 +7851,21 @@ function switchView(v){
   // shown again on demand. Leave curView/containers exactly as they are
   // underneath (the overlay's own z-index blocks interaction regardless).
   if(v==='home'){ showStartScreen(); return; }
+  // Central View Access enforcement — the one choke point every path to a
+  // view funnels through (direct clicks, the View dropdown, AND internal
+  // calls like runDiagnostics()'s own switchView('actionreport')), so a
+  // role restricted to fewer views (e.g. Tester → Test Plan only) can't
+  // reach anything else regardless of which button/code path tried.
+  if(gCurrentUser && !viewAllowedForRole(v, currentRole())){
+    showToast('You do not have access to this view');
+    return;
+  }
   curView = v;
-  const lnEl=eid('leftNav'),arLnEl=eid('arLeftNav');
+  const lnEl=eid('leftNav'),arLnEl=eid('arLeftNav'),tplLnEl=eid('tplLeftNav');
   const noLeftNav = v==='actionreport'||v==='transformation'||v==='roadmap'||v==='requirements'||v==='redirects'||v==='testplan';
   if(lnEl)lnEl.style.display=noLeftNav?'none':'';
   if(arLnEl){arLnEl.style.display=v==='actionreport'?'flex':'none';arLnEl.style.flexDirection='column';}
+  if(tplLnEl){tplLnEl.style.display=v==='testplan'?'flex':'none';tplLnEl.style.flexDirection='column';}
   // Hide all view containers
   Object.values(VIEW_CONTAINERS).forEach(id=>{
     const el=eid(id);if(el)el.style.display='none';
@@ -9609,6 +9979,20 @@ function saveRmProduct(){
 /* ═══════════════════════════════════════════
    ROADMAP: EPIC (FUNCTIONAL AREA) MODAL
 ═══════════════════════════════════════════ */
+// Renders the "Also test on" checkbox list — every product except the
+// Epic's own home product (that one's already implied, and re-listing it as
+// a checkbox would just be confusing).
+function _rmRenderEpicTestProductsRow(homeProductId, selectedIds){
+  const wrap=eid('rmEpicTestProductsRow');
+  if(!wrap)return;
+  const others=ROADMAP_PRODUCTS.filter(p=>p.id!==homeProductId);
+  if(!others.length){ wrap.innerHTML='<div style="font-size:11px;color:var(--text3)">No other products yet.</div>'; return; }
+  const sel=new Set(selectedIds||[]);
+  wrap.innerHTML=others.map(p=>`<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:pointer">
+    <input type="checkbox" class="rme-test-product-cb" value="${p.id}" ${sel.has(p.id)?'checked':''}>
+    ${escH(p.name)}
+  </label>`).join('');
+}
 function openAddRmEpic(productId){
   if(!canEdit()){showToast('View-only access — editing is disabled');return;}
   _rmEditingEpicId=null; _rmEpicModalProductId=productId;
@@ -9618,6 +10002,7 @@ function openAddRmEpic(productId){
   const epicsForProduct=ROADMAP_EPICS.filter(e=>e.productId===productId);
   selEpicColour=EPIC_COLOURS[epicsForProduct.length%EPIC_COLOURS.length];
   eid('rmEpicColourRow').innerHTML=EPIC_COLOURS.map(c=>`<div class="pc-opt${c===selEpicColour?' sel':''}" style="background:${c}" onclick="selPC('${c}',this,'rmEpicColourRow')"></div>`).join('');
+  _rmRenderEpicTestProductsRow(productId, []);
   openModal('rmEpicModal');
 }
 function openEditRmEpic(id){
@@ -9629,18 +10014,20 @@ function openEditRmEpic(id){
   eid('rme-name').value=ep.name; eid('rme-desc').value=ep.desc||'';
   selEpicColour=ep.colour;
   eid('rmEpicColourRow').innerHTML=EPIC_COLOURS.map(c=>`<div class="pc-opt${c===selEpicColour?' sel':''}" style="background:${c}" onclick="selPC('${c}',this,'rmEpicColourRow')"></div>`).join('');
+  _rmRenderEpicTestProductsRow(ep.productId, ep.testProductIds);
   openModal('rmEpicModal');
 }
 function saveRmEpic(){
   if(!canEdit()){showToast('View-only access — editing is disabled');return;}
   const name=eid('rme-name').value.trim(); if(!name){alert('Enter a name');return;}
   const desc=eid('rme-desc').value.trim();
+  const testProductIds=[...document.querySelectorAll('.rme-test-product-cb:checked')].map(cb=>cb.value);
   let ep;
   if(_rmEditingEpicId){
     ep=ROADMAP_EPICS.find(e=>e.id===_rmEditingEpicId);
-    if(ep){ep.name=name;ep.desc=desc;ep.colour=selEpicColour;}
+    if(ep){ep.name=name;ep.desc=desc;ep.colour=selEpicColour;ep.testProductIds=testProductIds;}
   } else {
-    ep={id:'EP'+Date.now(),productId:_rmEpicModalProductId,name,desc,colour:selEpicColour,order:ROADMAP_EPICS.filter(e=>e.productId===_rmEpicModalProductId).length};
+    ep={id:'EP'+Date.now(),productId:_rmEpicModalProductId,name,desc,colour:selEpicColour,order:ROADMAP_EPICS.filter(e=>e.productId===_rmEpicModalProductId).length,testProductIds};
     ROADMAP_EPICS.push(ep);
   }
   if(ep) dbUpsertEpic(ep);
@@ -9767,8 +10154,8 @@ let _reqAddFeatureId='';
 // note and each shown view's icon/description ARE user-editable, via
 // Settings > Homepage — see HOMEPAGE_VIEW_META/WELCOME_NOTE below.
 const HOMEPAGE_GROUPS=[
-  {title:'Website Management', views:['ia','ecosystem','platform']},
-  {title:'Project Management', views:['transformation','roadmap','requirements','redirects','testplan']},
+  {title:'Website Management', views:['ia','ecosystem','platform','redirects']},
+  {title:'Project Management', views:['transformation','roadmap','requirements','testplan']},
 ];
 let HOMEPAGE_VIEW_META={
   ia:            {icon:'account_tree', desc:'Explore your sitemap as a navigable hierarchy.'},
@@ -10109,12 +10496,18 @@ function renderRequirementsTracker(){
 
 /* ═══════════════════════════════════════════
    REDIRECT TRACKER
-   Lists every redirect-in-progress and every decommissioned page, grouped by
-   phase — the two populations rdrCollectRows() resolves (see its comment
-   near gn()). Completion is the existing persisted redirectCreated field;
-   the live HTTP-redirect check (RDR_VERIFY_CACHE) is a session-only,
-   never-saved informational badge shown alongside it — see the Redirect
-   Tracker plan for why it isn't persisted.
+   Lists every transforming page — the exact same population the
+   Transformation Report counts (phase variants + pages new-in-phase) — plus
+   decommissioned canonicals with no variant at all, grouped by phase. See
+   rdrCollectRows()/rdrResolve() near gn() for the four row kinds:
+   'redirect' (resolved URL change), 'decommission' (resolved target),
+   'missing' (transforming, no redirect configured yet — the visible gap
+   this view exists to surface), 'new' (no predecessor URL, informational).
+   Completion is the existing persisted redirectCreated field, excluding
+   'new' rows from the % stat; the live HTTP-redirect check
+   (RDR_VERIFY_CACHE) is a session-only, never-saved informational badge
+   shown alongside it — see the Redirect Tracker plan for why it isn't
+   persisted.
 ═══════════════════════════════════════════ */
 function _rdrUrlLink(url,cls){
   if(!url) return '<span style="color:var(--secondary);font-size:11px">No target set</span>';
@@ -10168,7 +10561,7 @@ function renderRedirectTracker(){
   if(!allRows.length){
     html+=`<div class="rm-empty">
       <div class="rm-empty-title">Nothing to track yet</div>
-      <div class="rm-empty-sub">Redirect Tracker lists pages whose URL is changing in a phase variant, and pages marked decommissioned. Nothing matches either yet.</div>
+      <div class="rm-empty-sub">Redirect Tracker lists every transforming page — the same set as the Transformation Report — plus pages marked decommissioned, flagging any that don't have a redirect configured yet. Nothing matches yet.</div>
     </div>`;
   } else if(!anyPanelVisible){
     const emptyNames=PHASES.filter(ph=>selectedPhases.has(ph.id)).map(ph=>ph.name);
@@ -10188,8 +10581,12 @@ function renderRedirectTracker(){
   activePhases.forEach(ph=>{
     const isActive=selectedPhases.has(ph.id);
     const phRows=allRows.filter(r=>r.phaseId===ph.id);
-    const doneCount=phRows.filter(r=>r.rowNode.redirectCreated).length;
-    const pct=phRows.length?Math.round(doneCount/phRows.length*100):0;
+    // "New in phase" pages have nothing to redirect FROM — excluded from the
+    // completion stat (they'd otherwise permanently drag it down) but still
+    // listed in the table below for completeness.
+    const trackableRows=phRows.filter(r=>r.kind!=='new');
+    const doneCount=trackableRows.filter(r=>r.rowNode.redirectCreated).length;
+    const pct=trackableRows.length?Math.round(doneCount/trackableRows.length*100):0;
 
     html+=`<div class="tr-phase-panel" data-rdr-panel="${ph.id}" style="${isActive?'':'display:none'}">`;
     html+=`<div class="tr-summary-card" style="border-left:5px solid ${ph.colour}">
@@ -10199,7 +10596,7 @@ function renderRedirectTracker(){
         </div>
         <div style="text-align:right;flex-shrink:0">
           <div class="tr-exec-pct-num" style="color:${pct===100?'var(--brand-primary)':ph.colour}">${pct}%</div>
-          <div class="tr-exec-pct-cap">${doneCount} of ${phRows.length} complete</div>
+          <div class="tr-exec-pct-cap">${doneCount} of ${trackableRows.length} complete</div>
         </div>
       </div>
     </div>`;
@@ -10213,27 +10610,35 @@ function renderRedirectTracker(){
         <th style="width:70px"></th>
       </tr></thead>
       <tbody>`;
+    const RDR_KIND_META={
+      decommission:{label:'Decommissioned',col:'var(--text3)'},
+      redirect:    {label:'Redirect',       col:'var(--text3)'},
+      missing:     {label:'⚠ No redirect yet',col:'var(--rag-red-fg)'},
+      new:         {label:'New page',       col:'var(--text3)'},
+    };
     phRows.forEach(r=>{
       const title=r.node.title||r.canon.title||r.node.id;
       const done=!!r.rowNode.redirectCreated;
-      html+=`<tr>
+      const kindMeta=RDR_KIND_META[r.kind]||RDR_KIND_META.redirect;
+      html+=`<tr${r.kind==='missing'?' style="background:var(--rag-red-bg)"':''}>
         <td>
           <a onclick="openTray('${r.node.id}')" style="cursor:pointer;font-weight:600;color:var(--ink);text-decoration:none">${escH(title)}</a>
-          <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-top:2px">${r.kind==='decommission'?'Decommissioned':'Redirect'}</div>
+          <div style="font-size:9px;color:${kindMeta.col};text-transform:uppercase;letter-spacing:.04em;margin-top:2px;font-weight:${r.kind==='missing'?'700':'400'}">${kindMeta.label}</div>
         </td>
         <td class="rdr-url-cell">
           ${_rdrUrlLink(r.oldUrl)}
           <span class="material-icons-round" style="font-size:13px;color:var(--secondary);vertical-align:middle">arrow_forward</span>
           ${_rdrUrlLink(r.newUrl,'new')}
         </td>
-        <td>${_rdrStatusBadgeHtml(r.node.id)}</td>
+        <td>${r.kind==='new'?'':_rdrStatusBadgeHtml(r.node.id)}</td>
         <td>
+          ${r.kind==='new'?`<span style="font-size:11px;color:var(--text3)">No redirect needed</span>`:`
           <label style="display:flex;align-items:center;gap:6px;cursor:${canEdit()?'pointer':'default'}">
             <input type="checkbox" ${done?'checked':''} ${canEdit()?'':'disabled'} onchange="upd('${r.rowNode.id}','redirectCreated',this.checked);renderRedirectTracker()">
             <span style="font-size:11px;color:${done?'var(--wf-live-fg)':'var(--text2)'}">${done?'Complete':'Not yet'}</span>
-          </label>
+          </label>`}
         </td>
-        <td><button class="rdr-verify-btn" onclick="rdrVerifyRow('${r.node.id}')" title="Check this redirect now"><span class="material-icons-round" style="font-size:14px">refresh</span></button></td>
+        <td>${r.kind==='new'?'':`<button class="rdr-verify-btn" onclick="rdrVerifyRow('${r.node.id}')" title="Check this redirect now"><span class="material-icons-round" style="font-size:14px">refresh</span></button>`}</td>
       </tr>`;
     });
     html+=`</tbody></table></div>`;
@@ -10424,21 +10829,46 @@ function _reqDetailSave(){
    Covers every requirement type (Functional Requirement, Business Rule,
    Regulatory Requirement, and anything with no Type set) — all of them need
    testing regardless of type, so _tplScopedStories() doesn't filter on it.
-   Functional Tests: one row per (story,tester) in TEST_RESULTS, upserted on
-   retest (id = storyId+'::'+testerEmail). Verified = >=2 distinct Pass
-   testers AND 0 Fail testers currently on file — a Fail from anyone blocks
-   verification until the same composite row is overwritten with a Pass.
+   Functional Tests: a Functional Area (Epic) can need testing across MORE
+   THAN ONE product (its home productId plus any extra ones picked in the
+   Epic modal's "Also test on" list — see _tplEpicTestProductIds). Every
+   requirement under that area is therefore verified SEPARATELY per product:
+   TEST_RESULTS rows are keyed storyId+'::'+testerEmail+'::'+productId, so
+   the same tester can record independent Pass/Fail for the same requirement
+   against different products. Verified (per product) = >=2 distinct Pass
+   testers AND 0 Fail testers currently on file for THAT product.
    Scenario Tests: free-text paragraphs (TEST_SCENARIOS) linked to individual
    requirements via TEST_SCENARIO_LINKS; single-execution Pass/Fail, no
-   2-person gate. Scenario coverage for a story = >=1 linked scenario whose
-   status is currently 'Pass'. ────────────────────────────────────────── */
+   2-person gate, and NOT split per product (deliberately out of scope for
+   the multi-product change — a scenario's result is still one shared value).
+   Scenario coverage for a story = >=1 linked scenario whose status is
+   currently 'Pass'. ────────────────────────────────────────────────────── */
+
+// The full set of products a Functional Area needs testing against: its
+// Roadmap "home" product plus any extras from the Epic modal. Deduped since
+// an admin could in theory tick the home product's own checkbox... except
+// the modal deliberately excludes it from the checkbox list, so this is
+// mostly a safety net.
+function _tplEpicTestProductIds(epic){
+  if(!epic) return [];
+  return [...new Set([epic.productId, ...(epic.testProductIds||[])])].filter(Boolean);
+}
+// Narrows an already phase/feature/search-scoped story list down to the ones
+// whose Functional Area needs testing on `productId` (home or extra).
+function _tplStoriesInProduct(stories, productId){
+  return stories.filter(s=>{
+    const epic=_reqResolveChain(s).epic;
+    return epic && _tplEpicTestProductIds(epic).includes(productId);
+  });
+}
 function _tplScopedStories(){
-  // All requirement types are testable here — Functional Requirements, Business
-  // Rules and Regulatory Requirements alike (and anything with no Type set yet).
+  // Phase + search only — deliberately NOT product-filtered here any more (a
+  // story can be in scope for more than one product now), see
+  // _tplStoriesInProduct for that. Callers that need a single product's
+  // slice call that on top of this.
   return ROADMAP_STORIES.filter(s=>{
     const feature=ROADMAP_FEATURES.find(f=>f.id===s.featureId);
     if(!feature || !selectedPhases.has(feature.phaseId)) return false;
-    if(_tplFilterFeatureId && feature.id!==_tplFilterFeatureId) return false;
     if(_tplSearchQuery){
       const q=_tplSearchQuery.trim().toLowerCase();
       if(q && !s.text.toLowerCase().includes(q) && !(s.code||'').toLowerCase().includes(q)) return false;
@@ -10446,11 +10876,39 @@ function _tplScopedStories(){
     return true;
   });
 }
-function _tplStoryVerification(storyId){
-  const rows=TEST_RESULTS.filter(r=>r.storyId===storyId);
+function _tplSelectProduct(id){
+  _tplActiveProductId=id;
+  _tplMarkingKey=null; _tplMarkingScenarioId=null;
+  renderTestPlan();
+}
+// productId is required for any Functional Area tested on more than one
+// product — verification is computed per product, not per story alone.
+// Legacy TEST_RESULTS rows recorded before productId existed (blank
+// productId) are treated as belonging to the story's ORIGINAL home product
+// only — not phantom-counted toward a newly added extra test-product that
+// didn't exist when that row was written — so historical Pass/Fail data
+// keeps meaning exactly what it always meant, with no regression.
+// Per-render memoization — this was being called ~8x redundantly per story
+// (group %, fail-count badge, breakdown, row html, report) each doing a
+// fresh TEST_RESULTS.filter() + chain resolve. Cache is a plain Map set to
+// null between renders (see renderTestPlan/_tplReportBuildHtml) so it can
+// never go stale: any code path that mutates TEST_RESULTS already triggers
+// a fresh render/report build afterward, which rebuilds this from scratch.
+let _tplVerifyCache=null;
+function _tplStoryVerification(storyId, productId){
+  const key=storyId+'::'+productId;
+  if(_tplVerifyCache && _tplVerifyCache.has(key)) return _tplVerifyCache.get(key);
+  const story=ROADMAP_STORIES.find(s=>s.id===storyId);
+  const homeProductId=story?_reqResolveChain(story).product?.id||null:null;
+  const rows=TEST_RESULTS.filter(r=>{
+    if(r.storyId!==storyId) return false;
+    return r.productId ? r.productId===productId : productId===homeProductId;
+  });
   const passers=[...new Set(rows.filter(r=>r.result==='Pass').map(r=>r.testerEmail))];
   const failers=rows.filter(r=>r.result==='Fail');
-  return {rows, passers, failCount:failers.length, verified:passers.length>=2 && failers.length===0, openFail:failers.length>0};
+  const result={rows, passers, failCount:failers.length, verified:passers.length>=2 && failers.length===0, openFail:failers.length>0};
+  if(_tplVerifyCache) _tplVerifyCache.set(key, result);
+  return result;
 }
 function _tplScenarioHasCoverage(storyId){
   const linkedIds=TEST_SCENARIO_LINKS.filter(l=>l.storyId===storyId).map(l=>l.scenarioId);
@@ -10460,57 +10918,154 @@ function _tplScenarioHasOpenFail(storyId){
   const linkedIds=TEST_SCENARIO_LINKS.filter(l=>l.storyId===storyId).map(l=>l.scenarioId);
   return TEST_SCENARIOS.some(sc=>linkedIds.includes(sc.id) && sc.status==='Fail');
 }
+// Shared breakdown computation — Product → Functional Area, each carrying
+// its own verified/total/openFail/openSnag counts for THAT product
+// specifically. Feeds the Summary accordion, the new left nav, and the
+// printable report, so all three can never drift apart in what they count.
+// openSnagCount is computed straight from SNAGS (not summed from the epics
+// array below) because a manually-logged snag's Functional Area might
+// currently have zero requirements in phase scope — it wouldn't appear in
+// `epics` at all otherwise, and would silently undercount.
+function _tplComputeProductBreakdown(baseStories){
+  return ROADMAP_PRODUCTS.map(p=>{
+    const pStories=_tplStoriesInProduct(baseStories,p.id);
+    const epicMap={};
+    pStories.forEach(s=>{
+      const epic=_reqResolveChain(s).epic;
+      if(!epic) return;
+      if(!epicMap[epic.id]) epicMap[epic.id]={epic,stories:[]};
+      epicMap[epic.id].stories.push(s);
+    });
+    const epics=Object.values(epicMap).map(({epic,stories})=>{
+      // One pass per epic (was two separate .filter() calls, each re-deriving
+      // the same verification per story) — cheap either way now that
+      // _tplStoryVerification itself is memoized per render, but no reason
+      // to ask the cache twice for the same key.
+      let verifiedCount=0, openFailCount=0;
+      stories.forEach(s=>{
+        const v=_tplStoryVerification(s.id,p.id);
+        if(v.verified) verifiedCount++;
+        if(v.openFail) openFailCount++;
+      });
+      return {
+        epic,
+        total:stories.length,
+        verifiedCount,
+        openFailCount,
+        openSnagCount:SNAGS.filter(sn=>sn.status==='Open' && sn.productId===p.id && sn.epicId===epic.id).length,
+      };
+    }).sort((a,b)=>(a.epic.order||0)-(b.epic.order||0));
+    const verifiedCount=epics.reduce((sum,e)=>sum+e.verifiedCount,0);
+    const openFailCount=epics.reduce((sum,e)=>sum+e.openFailCount,0);
+    const openSnagCount=SNAGS.filter(sn=>sn.status==='Open' && sn.productId===p.id).length;
+    return {product:p, total:pStories.length, verifiedCount, openFailCount, openSnagCount, epics};
+  });
+}
+// A scenario is in scope if it's linked to at least one in-scope requirement,
+// OR it has no requirement links at all (an unlinked scenario is always
+// shown — there's nothing to scope it by). Shared by the main Scenario tab
+// and the left nav's scenario list so they can never show different sets.
+function _tplScopedScenarios(stories){
+  const inScopeIds=new Set(stories.map(s=>s.id));
+  return TEST_SCENARIOS.filter(sc=>{
+    // Scenarios now carry their own phaseId (see the Scenario draft's Phase
+    // field), same as a requirement gets one via its Feature — gate on it
+    // directly rather than only ever inferring scope through linked
+    // requirements. A blank phaseId (every scenario created before this
+    // field existed) stays visible regardless of phase selection, same
+    // permissive fallback already used for unlinked scenarios below, so
+    // existing data never silently disappears.
+    if(sc.phaseId && !selectedPhases.has(sc.phaseId)) return false;
+    return TEST_SCENARIO_LINKS.some(l=>l.scenarioId===sc.id && inScopeIds.has(l.storyId)) ||
+      !TEST_SCENARIO_LINKS.some(l=>l.scenarioId===sc.id);
+  });
+}
 
+// Shared "nothing to show" message — same .tr-empty-phase pattern (icon,
+// title, sub-line, clickable phase pills) the Transformation Report and
+// Redirect Tracker already use for their own empty states, since an empty
+// Test Plan is almost always just a narrow phase selection, not a missing
+// setup step — the pills let you jump straight to a phase that actually
+// has requirements instead of hunting for the phase bar above.
+function _tplEmptyStateHtml(){
+  const emptyNames=PHASES.filter(ph=>selectedPhases.has(ph.id)).map(ph=>ph.name);
+  const emptyLabel=emptyNames.length?emptyNames.map(escH).join(', '):'this phase';
+  return `<div class="tr-empty-phase">
+    <span class="material-icons-round tr-empty-phase-icon">explore_off</span>
+    <div class="tr-empty-phase-title">There are no requirements for this project for ${emptyLabel}</div>
+    <div class="tr-empty-phase-sub">Choose another project phase to see the Test Plan</div>
+    <div class="tr-empty-phase-pills">
+      ${PHASES.map(ph=>`<button class="phase-chip${selectedPhases.has(ph.id)?' active':''}" onclick="switchPhase('${ph.id}')">
+        <div class="phase-dot" style="background:${ph.colour}"></div>${escH(ph.name)}
+      </button>`).join('')}
+    </div>
+  </div>`;
+}
 function renderTestPlan(){
   const wrap=eid('viewTestPlan');
   const prevScrollTop=wrap.querySelector('.tpl-content')?.scrollTop||0;
   wrap.innerHTML='';
+  _tplVerifyCache=new Map(); // fresh per render — see _tplStoryVerification
 
-  const stories=_tplScopedStories();
-  const total=stories.length;
-  const verifiedCount=stories.filter(s=>_tplStoryVerification(s.id).verified).length;
-  const scenarioCoveredCount=stories.filter(s=>_tplScenarioHasCoverage(s.id)).length;
-  const openFailCount=stories.filter(s=>_tplStoryVerification(s.id).openFail).length
-    + stories.filter(s=>_tplScenarioHasOpenFail(s.id)).length;
-  const verifiedPct=total?Math.round(verifiedCount/total*100):0;
+  // Phase+feature+search scoped, NOT product-filtered — the per-product
+  // breakdown below (used by the Summary accordion, the left nav, AND the
+  // report) always covers every product regardless of which tab is active.
+  const baseStories=_tplScopedStories();
+  const total=baseStories.length;
+  const breakdown=_tplComputeProductBreakdown(baseStories);
+  const overallOpenFailCount=breakdown.reduce((sum,b)=>sum+b.openFailCount,0);
+  const scenarioCoveredCount=baseStories.filter(s=>_tplScenarioHasCoverage(s.id)).length;
+  const scenarioOpenFailCount=baseStories.filter(s=>_tplScenarioHasOpenFail(s.id)).length;
   const scenarioPct=total?Math.round(scenarioCoveredCount/total*100):0;
 
   let html=`<div class="req-wrap">`;
 
   html+=`<div class="req-header">
     <div class="req-header-title">Test Plan</div>
-    <div class="tpl-subtab-toggle">
-      <button class="tpl-subtab-btn${_tplSubTab==='functional'?' active':''}" onclick="_tplSetSubTab('functional')">Functional Tests</button>
-      <button class="tpl-subtab-btn${_tplSubTab==='scenario'?' active':''}" onclick="_tplSetSubTab('scenario')">Scenario Tests</button>
-    </div>
     <div class="req-search-wrap">
       <span class="material-icons-round req-search-icon">search</span>
       <input class="req-search-input" type="text" placeholder="Search requirements…" value="${escH(_tplSearchQuery)}" oninput="_tplSetSearch(this.value)">
       ${_tplSearchQuery?`<button class="req-search-clear" onclick="_tplClearSearch()" title="Clear search">✕</button>`:''}
     </div>
+    <button class="mbtn mbtn-cancel" style="flex-shrink:0" onclick="_tplOpenReport()" title="Open a printable summary of testing progress">
+      <span class="material-icons-round" style="font-size:14px;vertical-align:-2px;margin-right:4px">summarize</span>Test Report
+    </button>
   </div>`;
 
-  html+=`<div style="padding:10px 20px 0">${_tplSummaryAccordionHtml(total,verifiedCount,verifiedPct,scenarioCoveredCount,scenarioPct,openFailCount)}</div>`;
+  // Product tab bar — mirrors the Product Roadmap's own layout (.rm-tabs)
+  // instead of the old nested Product-accordion level. Selecting a product
+  // scopes everything below (both Functional and Scenario tabs) to it; "All"
+  // shows every product with a navy separator per product, same as Roadmap.
+  if(ROADMAP_PRODUCTS.length){
+    html+=`<div class="tpl-product-tabs">
+      <div class="rm-tabs">
+        <div class="rm-tab${_tplActiveProductId==='ALL'?' active':''}" onclick="_tplSelectProduct('ALL')">All</div>
+        ${ROADMAP_PRODUCTS.map(p=>`<div class="rm-tab${p.id===_tplActiveProductId?' active':''}" onclick="_tplSelectProduct('${p.id}')">${escH(p.name)}</div>`).join('')}
+      </div>
+    </div>`;
+  }
 
-  const featuresInScope=ROADMAP_FEATURES.filter(f=>selectedPhases.has(f.phaseId));
-  html+=`<div class="req-filters">
-    <select class="req-filter-select" onchange="_tplSetFilterFeature(this.value)">
-      <option value="">All features (in selected phase${selectedPhases.size>1?'s':''})</option>
-      ${featuresInScope.map(f=>`<option value="${f.id}"${f.id===_tplFilterFeatureId?' selected':''}>${escH(f.name)}</option>`).join('')}
-    </select>
-    <label class="tpl-only-fail-toggle"><input type="checkbox" ${_tplOnlyOpenFailures?'checked':''} onchange="_tplToggleOnlyFailures()"> Show only open failures</label>
-  </div>`;
+  const overallOpenSnagCount=breakdown.reduce((sum,b)=>sum+b.openSnagCount,0);
+  html+=`<div style="padding:10px 20px 0">${_tplSummaryAccordionHtml(breakdown,total,scenarioCoveredCount,scenarioPct,overallOpenFailCount+scenarioOpenFailCount,overallOpenSnagCount)}</div>`;
+
+  // Scenario tab stays scoped to the active product tab (whole-story
+  // membership, not per-product verification — scenarios aren't split per
+  // product). Computed unconditionally (not just when the Scenario subtab is
+  // active) so the left nav's own scenario list — shown whenever that
+  // subtab is selected — always matches what the main content would show.
+  const scenarioScopeStories=_tplActiveProductId==='ALL'?baseStories:_tplStoriesInProduct(baseStories,_tplActiveProductId);
 
   html+=`<div class="req-content tpl-content">`;
-  if(!total){
-    html+=`<div class="rm-empty">
-      <div class="rm-empty-title">No requirements in scope</div>
-      <div class="rm-empty-sub">Select a phase with requirements using the phase bar above, or add some from the Requirements Tracker first.</div>
-    </div>`;
+  if(_tplSubTab==='snags'){
+    // Not gated by `!total` — a product can have open snags (especially
+    // manually-reported ones) with zero formal requirements in scope yet.
+    html+=_tplRenderSnagsTab();
+  } else if(!total){
+    html+=_tplEmptyStateHtml();
   } else if(_tplSubTab==='functional'){
-    html+=_tplRenderFunctionalTab(stories);
+    html+=_tplRenderFunctionalTab(baseStories);
   } else {
-    html+=_tplRenderScenarioTab(stories);
+    html+=_tplRenderScenarioTab(scenarioScopeStories);
   }
   html+=`</div>`; // /.tpl-content
 
@@ -10520,15 +11075,42 @@ function renderTestPlan(){
   const newContent=wrap.querySelector('.tpl-content');
   if(newContent) newContent.scrollTop=prevScrollTop;
   if(typeof applyRoleUI==='function') applyRoleUI();
+  renderTestPlanNav(breakdown, _tplScopedScenarios(scenarioScopeStories));
 }
 
-// ── Summary accordion — the Verified/Scenario Covered/Open Failures stats
-// used to be always-visible header tiles; now tucked into a small collapsed-
-// by-default accordion using the Transformation Report's own comment-
-// accordion classes (.tr-cmt-*) verbatim, so it matches that view's style
-// exactly rather than approximating it. ─────────────────────────────────
-function _tplSummaryAccordionHtml(total,verifiedCount,verifiedPct,scenarioCoveredCount,scenarioPct,openFailCount){
+// Shared by the Summary accordion and the left nav (both product and
+// functional-area rows): a solid green dot once everything's verified with
+// no open failures, a red dot carrying the failure COUNT if anything's
+// failing, or an invisible same-width placeholder otherwise (in progress,
+// not fully clean but nothing actively failing either) — keeps every row's
+// label column aligned whether or not it happens to have a dot.
+function _tplDotHtml(verifiedCount,total,openFailCount){
+  if(openFailCount) return `<span class="tpl-dot tpl-dot-red" title="${openFailCount} failing test${openFailCount===1?'':'s'}">${openFailCount}</span>`;
+  if(total && verifiedCount>=total) return `<span class="tpl-dot tpl-dot-green" title="Complete"></span>`;
+  return `<span class="tpl-dot tpl-dot-placeholder"></span>`;
+}
+// ── Summary accordion — tucked into a small collapsed-by-default accordion
+// using the Transformation Report's own comment-accordion classes (.tr-cmt-*)
+// verbatim, so it matches that view's style exactly rather than approximating
+// it. Now broken down by product (a row per product's own verified count),
+// since a Functional Area's requirements are verified separately per product
+// — a single blended "X% verified" figure would no longer mean much once the
+// same requirement can be Verified for one product and still failing for
+// another. Scenario Covered stays a single blended figure (not product-split
+// — see the TEST PLAN header comment). ───────────────────────────────────
+function _tplSummaryAccordionHtml(breakdown,total,scenarioCoveredCount,scenarioPct,openFailCount,totalOpenSnags){
   const isOpen=_tplSummaryOpen;
+  const rows=breakdown.filter(b=>b.total>0||b.openSnagCount>0).map(b=>{
+    const pct=b.total?Math.round(b.verifiedCount/b.total*100):0;
+    const badge=_tplPctBadgeStyle(pct);
+    return `<div class="tpl-summary-product-row" onclick="_tplSelectProduct('${b.product.id}')">
+      ${_tplDotHtml(b.verifiedCount,b.total,b.openFailCount)}
+      <span class="tpl-summary-product-name">${escH(b.product.name)}</span>
+      <span class="tpl-summary-product-count">${b.verifiedCount}/${b.total} completed</span>
+      <span class="tpl-hier-pct" style="color:${badge.fg};background:${badge.bg}">${pct}%</span>
+      ${b.openSnagCount?`<span class="tpl-hier-fail-badge" title="Open snags on ${escH(b.product.name)}"><span class="material-icons-round" style="font-size:10px;vertical-align:-1px">bug_report</span> ${b.openSnagCount}</span>`:''}
+    </div>`;
+  }).join('');
   return `<div class="tr-cmt-accordion tpl-summary-accordion">
     <button class="tr-cmt-hdr${openFailCount?' has-open':''}" onclick="_tplToggleSummary()">
       <span class="material-icons-round" style="font-size:13px">${isOpen?'expand_more':'chevron_right'}</span>
@@ -10536,18 +11118,19 @@ function _tplSummaryAccordionHtml(total,verifiedCount,verifiedPct,scenarioCovere
       ${openFailCount?`<span class="tr-cmt-open-count">${openFailCount} open</span>`:''}
     </button>
     ${isOpen?`<div class="tr-cmt-body">
-      <div class="ar-metric-bar" style="margin-top:4px">
-        <div class="ar-metric-tile ${total&&verifiedPct===100?'ok':'issue'}">
-          <div class="ar-metric-num">${verifiedCount}/${total}</div>
-          <div class="ar-metric-lbl">Verified — ${verifiedPct}%</div>
-        </div>
+      <div class="tpl-summary-products">${rows||'<div class="rm-empty" style="padding:8px 0">No products yet.</div>'}</div>
+      <div class="ar-metric-bar" style="margin-top:10px">
         <div class="ar-metric-tile ${total&&scenarioPct===100?'ok':'issue'}">
           <div class="ar-metric-num">${scenarioCoveredCount}/${total}</div>
           <div class="ar-metric-lbl">Scenario Covered — ${scenarioPct}%</div>
         </div>
         <div class="ar-metric-tile ${openFailCount?'issue':'ok'}">
           <div class="ar-metric-num">${openFailCount}</div>
-          <div class="ar-metric-lbl">Open Failures</div>
+          <div class="ar-metric-lbl">Open Failures (all products + scenarios)</div>
+        </div>
+        <div class="ar-metric-tile ${totalOpenSnags?'issue':'ok'}">
+          <div class="ar-metric-num">${totalOpenSnags}</div>
+          <div class="ar-metric-lbl">Open Snags (all products)</div>
         </div>
       </div>
     </div>`:''}
@@ -10555,14 +11138,200 @@ function _tplSummaryAccordionHtml(total,verifiedCount,verifiedPct,scenarioCovere
 }
 function _tplToggleSummary(){ _tplSummaryOpen=!_tplSummaryOpen; renderTestPlan(); }
 
-// ── Functional Tests — organised as a Product > Functional Area (Epic) >
-// Feature accordion tree instead of one flat table, so a product/area/
-// feature can be seen as "fully tested" at a glance via its own %-verified
-// badge. Open Failures gets its own always-relevant flat accordion above the
-// tree for fast triage, independent of which branches happen to be expanded.
-function _tplGroupPct(groupStories){
+function _tplSetScenarioNavView(v){ _tplScenarioNavView=v; renderTestPlan(); }
+// Shared row markup for both Scenario nav views (Sequence and Status) so
+// they can never drift apart in what a row looks like.
+function _tplScenarioNavItemHtml(sc){
+  const statusC=TPL_SCENARIO_STATUS_COLOURS[sc.status]||TPL_SCENARIO_STATUS_COLOURS['Not Tested'];
+  const title=sc.title || (sc.mode==='structured' ? 'Untitled scenario' : (sc.text||'').slice(0,40));
+  return `<button class="ar-nav-item tpl-nav-scenario" onclick="_tplNavGoToScenario('${sc.id}')" title="${escH(title)}">
+    <span class="tpl-dot" style="background:${statusC.fg}"></span>
+    <span class="tpl-nav-label">${sc.code?escH(sc.code)+' — ':''}${escH(title)}</span>
+    <span class="tpl-nav-count" style="color:${statusC.fg}">${escH(sc.status)}</span>
+  </button>`;
+}
+
+// ── Left nav — the Functional/Scenario/Snags toggle lives here (top of the
+// nav, not the main header), and drives what the rest of the nav shows:
+// Functional → Product > Functional Area outline with X/Y completed and the
+// same green/red dot language as the Summary accordion (see _tplDotHtml), so
+// the two never disagree since both read from the same breakdown (plus a
+// small snag-count badge per row, so an open snag is visible even while
+// looking at Functional Tests). Scenario → a flat list of scenarios with
+// their status. Snags → the same Product > Functional Area outline again,
+// but counting open snags instead of verified requirements. Reuses the
+// Action Report's own .ar-left-nav/.ar-nav-item shell (see #tplLeftNav in
+// the HTML and its visibility toggle in switchView()) — sits alongside the
+// top product tab bar as a persistent outline/progress tracker, not a
+// replacement for it.
+function renderTestPlanNav(breakdown, scenarios){
+  const wrap=eid('tplLeftNav');
+  if(!wrap) return;
+  let html=`<div class="nav-header tpl-nav-toggle-header">
+    <div class="tpl-subtab-toggle" style="width:100%">
+      <button class="tpl-subtab-btn${_tplSubTab==='functional'?' active':''}" style="flex:1" onclick="_tplSetSubTab('functional')">Functional</button>
+      <button class="tpl-subtab-btn${_tplSubTab==='scenario'?' active':''}" style="flex:1" onclick="_tplSetSubTab('scenario')">Scenario</button>
+      <button class="tpl-subtab-btn${_tplSubTab==='snags'?' active':''}" style="flex:1" onclick="_tplSetSubTab('snags')">Snags</button>
+    </div>
+  </div>`;
+
+  if(_tplSubTab==='scenario'){
+    html+=`<div class="tpl-subtab-toggle" style="margin:8px 12px 0">
+      <button class="tpl-subtab-btn${_tplScenarioNavView==='sequence'?' active':''}" style="flex:1" onclick="_tplSetScenarioNavView('sequence')">Sequence</button>
+      <button class="tpl-subtab-btn${_tplScenarioNavView==='status'?' active':''}" style="flex:1" onclick="_tplSetScenarioNavView('status')">Status</button>
+    </div>`;
+    html+=`<div class="tpl-nav-body">`;
+    if(!scenarios || !scenarios.length){
+      html+='<div style="padding:16px;font-size:11px;color:var(--text3)">No scenarios in the current scope.</div>';
+    } else {
+      // Sorted by code sequence (= creation order) so both views' internal
+      // ordering is stable and predictable rather than shuffling.
+      const sorted=scenarios.slice().sort((a,b)=>{
+        const na=parseInt((a.code||'').replace(/\D/g,''),10)||0;
+        const nb=parseInt((b.code||'').replace(/\D/g,''),10)||0;
+        return na-nb;
+      });
+      if(_tplScenarioNavView==='sequence'){
+        html+=sorted.map(_tplScenarioNavItemHtml).join('');
+      } else {
+        // 'Outstanding Snags' = Fail, not a literal snag-table lookup —
+        // every scenario Fail reports/reopens a snag for each linked
+        // requirement (see _tplUpsertScenarioFailureSnagsLocal), so status
+        // alone is an exhaustive, always-defined proxy that still covers an
+        // unlinked scenario's Fail (which can't produce a real snag row at
+        // all — see that function's comment), where a real snag lookup
+        // would otherwise drop it from every section.
+        [
+          {label:'Not Tested', items:sorted.filter(sc=>sc.status==='Not Tested')},
+          {label:'Outstanding Snags', items:sorted.filter(sc=>sc.status==='Fail')},
+          {label:'Passed', items:sorted.filter(sc=>sc.status==='Pass')},
+        ].forEach(g=>{
+          if(!g.items.length) return;
+          html+=`<div class="tpl-nav-product" style="display:flex;justify-content:space-between;align-items:center">${escH(g.label)}<span class="tpl-nav-count">${g.items.length}</span></div>`;
+          html+=g.items.map(_tplScenarioNavItemHtml).join('');
+        });
+      }
+    }
+    html+='</div>';
+    wrap.innerHTML=html;
+    return;
+  }
+
+  if(!ROADMAP_PRODUCTS.length){
+    html+='<div style="padding:16px;font-size:11px;color:var(--text3)">No products yet — add one on the Product Roadmap.</div>';
+    wrap.innerHTML=html;
+    return;
+  }
+
+  if(_tplSubTab==='snags'){
+    html+=`<div class="tpl-nav-body">`;
+    const shown=breakdown.filter(b=>b.openSnagCount>0);
+    if(!shown.length){
+      html+='<div style="padding:16px;font-size:11px;color:var(--text3)">No open snags.</div>';
+    }
+    shown.forEach(b=>{
+      const isActive=_tplActiveProductId===b.product.id;
+      html+=`<button class="ar-nav-item tpl-nav-product${isActive?' active':''}" onclick="_tplNavSelectSnagsProduct('${b.product.id}')" title="${escH(b.product.name)}">
+        <span class="tpl-dot tpl-dot-red">${b.openSnagCount}</span>
+        <span class="tpl-nav-label">${escH(b.product.name)}</span>
+        <span class="tpl-nav-count">${b.openSnagCount} open</span>
+      </button>`;
+      html+=b.epics.filter(e=>e.openSnagCount>0).map(({epic,openSnagCount})=>`
+        <button class="ar-nav-item tpl-nav-epic" onclick="_tplNavGoToSnagEpic('${b.product.id}','${epic.id}')" title="${escH(epic.name)}">
+          <span class="tpl-dot tpl-dot-red">${openSnagCount}</span>
+          <span class="tpl-nav-label">${escH(epic.name)}</span>
+          <span class="tpl-nav-count">${openSnagCount} open</span>
+        </button>`).join('');
+    });
+    html+='</div>';
+    wrap.innerHTML=html;
+    return;
+  }
+
+  html+=`<div class="tpl-nav-body">`;
+  const shown=breakdown.filter(b=>b.total>0);
+  if(!shown.length){
+    html+='<div style="padding:16px;font-size:11px;color:var(--text3)">No requirements in the current phase scope.</div>';
+  }
+  shown.forEach(b=>{
+    const isActive=_tplActiveProductId===b.product.id;
+    html+=`<button class="ar-nav-item tpl-nav-product${isActive?' active':''}" onclick="_tplNavSelectProduct('${b.product.id}')" title="${escH(b.product.name)}">
+      ${_tplDotHtml(b.verifiedCount,b.total,b.openFailCount)}
+      <span class="tpl-nav-label">${escH(b.product.name)}</span>
+      <span class="tpl-nav-count">${b.verifiedCount}/${b.total}</span>
+      ${b.openSnagCount?`<span class="material-icons-round" style="font-size:11px;color:var(--rag-red-fg)" title="${b.openSnagCount} open snag(s)">bug_report</span>`:''}
+    </button>`;
+    html+=b.epics.map(({epic,total:eTotal,verifiedCount,openFailCount,openSnagCount})=>`
+      <button class="ar-nav-item tpl-nav-epic" onclick="_tplNavGoToEpic('${b.product.id}','${epic.id}')" title="${escH(epic.name)}">
+        ${_tplDotHtml(verifiedCount,eTotal,openFailCount)}
+        <span class="tpl-nav-label">${escH(epic.name)}</span>
+        <span class="tpl-nav-count">${verifiedCount}/${eTotal}</span>
+        ${openSnagCount?`<span class="material-icons-round" style="font-size:11px;color:var(--rag-red-fg)" title="${openSnagCount} open snag(s)">bug_report</span>`:''}
+      </button>`).join('');
+  });
+  html+='</div>';
+  wrap.innerHTML=html;
+}
+// Product-row click: also switches to Functional Tests (the nav's counts are
+// functional-test-only — jumping there while landed on Scenario Tests would
+// show a tab whose content doesn't match what was just clicked).
+function _tplNavSelectProduct(productId){
+  _tplSubTab='functional';
+  _tplSelectProduct(productId);
+}
+// Functional-area-row click: selects its product, force-opens that specific
+// area's accordion (in case it had been manually collapsed), then scrolls
+// its header into view once the re-render lands.
+function _tplNavGoToEpic(productId, epicId){
+  _tplSubTab='functional';
+  _tplActiveProductId=productId;
+  _tplMarkingKey=null; _tplMarkingScenarioId=null;
+  _tplClosedEpics.delete(epicId+'::'+productId);
+  renderTestPlan();
+  requestAnimationFrame(()=>{
+    const el=document.querySelector('[data-tpl-anchor="'+epicId+'::'+productId+'"]');
+    if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+}
+// Scenario-row click — already on the Scenario subtab whenever this is
+// reachable, so just re-render (in case anything else needs refreshing) and
+// scroll straight to the card.
+function _tplNavGoToScenario(scenarioId){
+  _tplMarkingScenarioId=null;
+  _tplClosedScenarios.delete(scenarioId); // jumping to it from the nav should actually show it, not just scroll to a collapsed header
+  renderTestPlan();
+  requestAnimationFrame(()=>{
+    const el=document.querySelector('[data-tpl-scenario-anchor="'+scenarioId+'"]');
+    if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+}
+// Snags-tab product-row click — already on the Snags subtab whenever this is
+// reachable (only rendered in that mode), just switches the active product.
+function _tplNavSelectSnagsProduct(productId){
+  _tplActiveProductId=productId;
+  _tplSquashingSnagId=null;
+  renderTestPlan();
+}
+function _tplNavGoToSnagEpic(productId, epicId){
+  _tplActiveProductId=productId;
+  _tplSquashingSnagId=null;
+  _tplClosedSnagEpics.delete(epicId+'::'+productId);
+  renderTestPlan();
+  requestAnimationFrame(()=>{
+    const el=document.querySelector('[data-tpl-snag-anchor="'+epicId+'::'+productId+'"]');
+    if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+}
+
+// ── Functional Tests — organised as Functional Area (Epic) > Feature per
+// product SECTION (not accordion level — see renderTestPlan/_tplRenderFunc-
+// tionalTab), so a functional area/feature can be seen as "fully tested for
+// THIS product" at a glance via its own %-verified badge. Open Failures gets
+// its own per-product-section flat accordion above that section's tree for
+// fast triage, independent of which branches happen to be expanded.
+function _tplGroupPct(groupStories, productId){
   if(!groupStories.length) return 0;
-  const verified=groupStories.filter(s=>_tplStoryVerification(s.id).verified).length;
+  const verified=groupStories.filter(s=>_tplStoryVerification(s.id,productId).verified).length;
   return Math.round(verified/groupStories.length*100);
 }
 function _tplPctBadgeStyle(pct){
@@ -10570,10 +11339,11 @@ function _tplPctBadgeStyle(pct){
   if(pct<=0)   return {fg:'var(--rag-red-fg)',  bg:'var(--rag-red-bg)'};
   return {fg:'var(--rag-amber-fg)',bg:'var(--rag-amber-bg)'};
 }
-// Builds Product → Epic → Feature → Stories from a flat scoped list, each
-// level carrying its own story array (for the %-verified rollup) — sorted
-// by each level's own `order` field, matching the Roadmap's ordering.
-function _tplBuildHierarchyTree(stories){
+// Builds Epic → Feature → Stories from a flat, ALREADY single-product-scoped
+// list (see _tplStoriesInProduct) — Product itself is no longer part of this
+// tree; the caller already knows which product it's building for and renders
+// one call of this per relevant product section.
+function _tplBuildEpicTree(stories){
   const featureMap={};
   stories.forEach(s=>{
     if(!featureMap[s.featureId]) featureMap[s.featureId]={feature:ROADMAP_FEATURES.find(f=>f.id===s.featureId),stories:[]};
@@ -10587,88 +11357,127 @@ function _tplBuildHierarchyTree(stories){
     epicMap[epicId].features.push(fEntry);
     epicMap[epicId].stories.push(...fEntry.stories);
   });
-  const productMap={};
-  Object.values(epicMap).forEach(eEntry=>{
-    if(!eEntry.epic) return;
-    const productId=eEntry.epic.productId;
-    if(!productMap[productId]) productMap[productId]={product:ROADMAP_PRODUCTS.find(p=>p.id===productId),epics:[],stories:[]};
-    productMap[productId].epics.push(eEntry);
-    productMap[productId].stories.push(...eEntry.stories);
-  });
-  return Object.values(productMap).filter(p=>p.product)
-    .sort((a,b)=>(a.product.order||0)-(b.product.order||0));
+  return Object.values(epicMap).filter(e=>e.epic)
+    .sort((a,b)=>(a.epic.order||0)-(b.epic.order||0));
 }
-function _tplToggleHierNode(level,id){
-  const set=level==='product'?_tplOpenProducts:level==='epic'?_tplOpenEpics:_tplOpenFeatures;
-  if(set.has(id)) set.delete(id); else set.add(id);
+function _tplToggleHierNode(level,compositeId){
+  const set=level==='epic'?_tplClosedEpics:_tplClosedFeatures;
+  if(set.has(compositeId)) set.delete(compositeId); else set.add(compositeId);
   renderTestPlan();
 }
-function _tplHierHdrHtml(level,id,label,groupStories,extraClass){
-  const pct=_tplGroupPct(groupStories);
+// Bulk collapse — respects whichever product(s) are actually in view (the
+// active tab, or every product in "All" mode), same scope the tree itself
+// uses, so this can't reach into a product section that isn't even shown.
+// "Functional Areas" collapses just the Epic level (Features underneath keep
+// whatever open/closed state they already had, so reopening one Epic later
+// doesn't also force its Features shut); "All" collapses both levels.
+function _tplCollapseAllEpics(){
+  const products=_tplActiveProductId==='ALL'?ROADMAP_PRODUCTS:ROADMAP_PRODUCTS.filter(p=>p.id===_tplActiveProductId);
+  products.forEach(prod=>ROADMAP_EPICS.forEach(ep=>_tplClosedEpics.add(ep.id+'::'+prod.id)));
+  renderTestPlan();
+}
+function _tplCollapseAllAccordions(){
+  const products=_tplActiveProductId==='ALL'?ROADMAP_PRODUCTS:ROADMAP_PRODUCTS.filter(p=>p.id===_tplActiveProductId);
+  products.forEach(prod=>{
+    ROADMAP_EPICS.forEach(ep=>_tplClosedEpics.add(ep.id+'::'+prod.id));
+    ROADMAP_FEATURES.forEach(f=>_tplClosedFeatures.add(f.id+'::'+prod.id));
+  });
+  renderTestPlan();
+}
+// `colour` (an epic's own custom colour, or undefined at the Failures header)
+// ports the Roadmap's per-epic colour-coding into Test Plan: solid fill on the
+// epic header (mirrors .rm-swimlane-sticky), a lighter tint carried down onto
+// its features so the whole subtree reads as one colour-coded group.
+// `compositeId` (epicId/featureId+'::'+productId) keeps a shared Functional
+// Area's open/closed state independent across the different product sections
+// it can now appear in.
+function _tplHierHdrHtml(level,compositeId,label,groupStories,extraClass,colour,productId){
+  const pct=_tplGroupPct(groupStories,productId);
   const badge=_tplPctBadgeStyle(pct);
-  const failCount=groupStories.filter(s=>_tplStoryVerification(s.id).openFail).length;
-  const openSet=level==='product'?_tplOpenProducts:level==='epic'?_tplOpenEpics:_tplOpenFeatures;
-  const isOpen=_tplOnlyOpenFailures||openSet.has(id);
-  return {isOpen, html:`<button class="tpl-hier-hdr${extraClass?' '+extraClass:''}" onclick="_tplToggleHierNode('${level}','${id}')">
-    <span class="material-icons-round tpl-hier-chev" style="font-size:15px">${isOpen?'expand_more':'chevron_right'}</span>
+  const failCount=groupStories.filter(s=>_tplStoryVerification(s.id,productId).openFail).length;
+  const closedSet=level==='epic'?_tplClosedEpics:_tplClosedFeatures;
+  const isOpen=!closedSet.has(compositeId);
+  // Feature header's tint (${colour}14 ≈ 8% alpha) used to be safe as a
+  // plain translucent wash since nothing ever scrolled underneath it — now
+  // that it's sticky (see the CSS comment on .tpl-hier-hdr-feature), a
+  // transparent background lets rows scrolling past show straight through
+  // it. Layering the same translucent colour OVER an opaque white base
+  // (both painted within this element's own background, composited before
+  // anything behind it in the DOM is considered) keeps the identical tinted
+  // look while making the header fully opaque.
+  const style=!colour?'':level==='epic'
+    ? `background:${colour};color:#fff`
+    : `background:linear-gradient(${colour}14,${colour}14),var(--white);border-left:3px solid ${colour}`;
+  const chevStyle=(colour&&level==='epic')?'color:#fff':'';
+  const countStyle=(colour&&level==='epic')?'color:rgba(255,255,255,.85)':'';
+  return {isOpen, html:`<button class="tpl-hier-hdr${extraClass?' '+extraClass:''}" style="${style}" onclick="_tplToggleHierNode('${level}','${compositeId}')">
+    <span class="material-icons-round tpl-hier-chev" style="font-size:15px;${chevStyle}">${isOpen?'expand_more':'chevron_right'}</span>
     <span class="tpl-hier-label" title="${escH(label)}">${escH(label)}</span>
-    <span class="tpl-hier-count">${groupStories.length} requirement${groupStories.length===1?'':'s'}</span>
+    <span class="tpl-hier-count" style="${countStyle}">${groupStories.length} requirement${groupStories.length===1?'':'s'}</span>
     ${failCount?`<span class="tpl-hier-fail-badge">${failCount} failing</span>`:''}
     <span class="tpl-hier-pct" style="color:${badge.fg};background:${badge.bg}">${pct}%</span>
   </button>`};
 }
-function _tplFeatureAccordionHtml(fEntry){
-  const rows=_tplOnlyOpenFailures?fEntry.stories.filter(s=>_tplStoryVerification(s.id).openFail):fEntry.stories;
-  const {isOpen,html:hdr}=_tplHierHdrHtml('feature',fEntry.feature.id,fEntry.feature.name,fEntry.stories,'tpl-hier-hdr-feature');
+function _tplFeatureAccordionHtml(fEntry, epicColour, productId){
+  const rows=fEntry.stories;
+  const compositeId=fEntry.feature.id+'::'+productId;
+  const {isOpen,html:hdr}=_tplHierHdrHtml('feature',compositeId,fEntry.feature.name,fEntry.stories,'tpl-hier-hdr-feature',epicColour,productId);
   let html=`<div class="tpl-hier-group tpl-hier-feature">${hdr}`;
-  if(isOpen) html+=`<div class="tpl-hier-body tpl-hier-body-leaf">${rows.map(s=>_tplReqRowHtml(s)).join('')||'<div class="rm-empty">No requirements match this filter.</div>'}</div>`;
+  if(isOpen) html+=`<div class="tpl-hier-body tpl-hier-body-leaf">${rows.map(s=>_tplReqRowHtml(s,productId)).join('')||'<div class="rm-empty">No requirements match this filter.</div>'}</div>`;
   html+=`</div>`;
   return html;
 }
-function _tplEpicAccordionHtml(eEntry){
-  const {isOpen,html:hdr}=_tplHierHdrHtml('epic',eEntry.epic.id,eEntry.epic.name,eEntry.stories,'tpl-hier-hdr-epic');
-  let html=`<div class="tpl-hier-group tpl-hier-epic">${hdr}`;
+function _tplEpicAccordionHtml(eEntry, productId){
+  const colour=eEntry.epic.colour||EPIC_COLOURS[0];
+  const compositeId=eEntry.epic.id+'::'+productId;
+  const {isOpen,html:hdr}=_tplHierHdrHtml('epic',compositeId,eEntry.epic.name,eEntry.stories,'tpl-hier-hdr-epic',colour,productId);
+  let html=`<div class="tpl-hier-group tpl-hier-epic" data-tpl-anchor="${compositeId}">${hdr}`;
   if(isOpen){
     html+=`<div class="tpl-hier-body">`;
     html+=eEntry.features.slice().sort((a,b)=>(a.feature.order||0)-(b.feature.order||0))
-      .map(fEntry=>_tplFeatureAccordionHtml(fEntry)).join('');
+      .map(fEntry=>_tplFeatureAccordionHtml(fEntry, colour, productId)).join('');
     html+=`</div>`;
   }
   html+=`</div>`;
   return html;
 }
-function _tplProductAccordionHtml(pEntry){
-  const {isOpen,html:hdr}=_tplHierHdrHtml('product',pEntry.product.id,pEntry.product.name,pEntry.stories,'tpl-hier-hdr-product');
-  let html=`<div class="tpl-hier-group tpl-hier-product">${hdr}`;
-  if(isOpen){
-    html+=`<div class="tpl-hier-body">`;
-    html+=pEntry.epics.slice().sort((a,b)=>(a.epic.order||0)-(b.epic.order||0))
-      .map(eEntry=>_tplEpicAccordionHtml(eEntry)).join('');
-    html+=`</div>`;
-  }
-  html+=`</div>`;
-  return html;
+// Open Failures is per-product-section now (a shared Functional Area can have
+// open failures on Product A but not Product B) — keyed by productId, Set of
+// CLOSED sections, default empty = open, same convention as everything else.
+function _tplToggleFailuresAccordion(productId){
+  if(_tplClosedFailureSections.has(productId)) _tplClosedFailureSections.delete(productId);
+  else _tplClosedFailureSections.add(productId);
+  renderTestPlan();
 }
-function _tplToggleFailuresAccordion(){ _tplFailuresOpen=!_tplFailuresOpen; renderTestPlan(); }
-function _tplFailuresAccordionHtml(failingStories){
-  const isOpen=_tplFailuresOpen;
+function _tplFailuresAccordionHtml(failingStories, productId){
+  const isOpen=!_tplClosedFailureSections.has(productId);
   return `<div class="tpl-hier-group tpl-failures-group">
-    <button class="tpl-hier-hdr tpl-failures-hdr" onclick="_tplToggleFailuresAccordion()">
+    <button class="tpl-hier-hdr tpl-failures-hdr" onclick="_tplToggleFailuresAccordion('${productId}')">
       <span class="material-icons-round tpl-hier-chev" style="font-size:15px">${isOpen?'expand_more':'chevron_right'}</span>
       <span class="material-icons-round" style="font-size:14px">error_outline</span>
       <span class="tpl-hier-label">Open Failures</span>
       <span class="tpl-hier-fail-badge">${failingStories.length}</span>
     </button>
-    ${isOpen?`<div class="tpl-hier-body">${failingStories.map(s=>_tplReqRowHtml(s)).join('')}</div>`:''}
+    ${isOpen?`<div class="tpl-hier-body">${failingStories.map(s=>_tplReqRowHtml(s,productId)).join('')}</div>`:''}
   </div>`;
 }
-function _tplReqRowHtml(s){
-  const v=_tplStoryVerification(s.id);
+// `productId` is the SECTION this row is rendered under (a shared Functional
+// Area renders once per product it needs testing on, each with its own
+// verification/signoff/mark-form scoped to that product — see
+// _tplStoryVerification and _tplMarkFormHtml).
+function _tplReqRowHtml(s, productId){
+  const v=_tplStoryVerification(s.id,productId);
   const covered=_tplScenarioHasCoverage(s.id);
   const pillC=v.verified?TPL_RESULT_COLOURS.Pass:(v.openFail?TPL_RESULT_COLOURS.Fail:{fg:'var(--wf-ns-fg)',bg:'var(--wf-ns-bg)'});
   const pillLabel=v.verified?'✓ Verified':(v.openFail?`${v.passers.length}/2 — Fail open`:`${v.passers.length}/2 passed`);
   const typeC=REQTYPE_C[s.type]||null;
   const typeLabel=s.type||'Untyped';
+  const markKey=s.id+'::'+productId;
+  // Opening the mark form no longer squeezes it into the compact chip/pill
+  // row alongside everything else (that left it a cramped little box with a
+  // big awkward gap before it) — it drops to its own full-width row below
+  // instead, so the notes textarea gets the whole card's width to work with.
+  const isMarking=_tplMarkingKey===markKey;
   return `<div class="tpl-req-row${v.openFail?' tpl-req-row-fail':''}">
     <div class="tpl-req-row-main">
       <div class="req-code-badge" title="Requirement ID">${escH(s.code||'—')}</div>
@@ -10683,31 +11492,59 @@ function _tplReqRowHtml(s){
       <span class="tpl-verify-pill" style="color:${pillC.fg};background:${pillC.bg}">${pillLabel}</span>
       <span class="tpl-coverage-icon" title="${covered?'Covered by a passed scenario':'No passed scenario linked'}">${covered?'✅':'—'}</span>
       ${commentBadgeHtml('story',s.id,{label:s.text.slice(0,60)})}
-      <div data-requires-edit>${_tplMarkingStoryId===s.id?_tplMarkFormHtml(s.id):`<button class="tpl-mark-btn" onclick="_tplStartMarkStory('${s.id}')">${v.rows.length?'Retest':'Test this'}</button>`}</div>
+      ${!isMarking?`<div data-requires-test><button class="tpl-mark-btn tpl-mark-btn-primary" onclick="_tplStartMarkStory('${s.id}','${productId}')">${v.rows.length?'Retest':'Test this'}</button></div>`:''}
     </div>
+    ${isMarking?`<div data-requires-test>${_tplMarkFormHtml(s,productId)}</div>`:''}
   </div>`;
 }
+// One section per product this run needs to cover: the active tab's single
+// product, or every product in "All" mode (each with its own navy separator,
+// same as Roadmap). A shared Functional Area's rows render once per section
+// they belong to, each independently verified — see the TEST PLAN header
+// comment for why. Sections with nothing in the current filter scope are
+// skipped entirely rather than shown empty, so a narrow search/feature filter
+// doesn't clutter the screen with empty product headers.
 function _tplRenderFunctionalTab(stories){
+  const productsToRender=_tplActiveProductId==='ALL'
+    ? ROADMAP_PRODUCTS
+    : ROADMAP_PRODUCTS.filter(p=>p.id===_tplActiveProductId);
+  const showSeparator=_tplActiveProductId==='ALL';
   let html='';
-  const failingStories=stories.filter(s=>_tplStoryVerification(s.id).openFail);
-  if(failingStories.length) html+=_tplFailuresAccordionHtml(failingStories);
-
-  const scoped=_tplOnlyOpenFailures?failingStories:stories;
-  const tree=_tplBuildHierarchyTree(scoped);
-  if(!tree.length){
-    html+=`<div class="rm-empty">No requirements match this filter.</div>`;
-    return html;
-  }
-  html+=`<div class="tpl-hier-tree">${tree.map(pEntry=>_tplProductAccordionHtml(pEntry)).join('')}</div>`;
-  return html;
+  productsToRender.forEach(prod=>{
+    const productStories=_tplStoriesInProduct(stories, prod.id);
+    const failingStories=productStories.filter(s=>_tplStoryVerification(s.id,prod.id).openFail);
+    const tree=_tplBuildEpicTree(productStories);
+    if(!tree.length) return;
+    if(showSeparator) html+=`<div class="rm-product-sep">${escH(prod.name)}</div>`;
+    html+=`<div class="tpl-hier-tree">`;
+    if(failingStories.length) html+=_tplFailuresAccordionHtml(failingStories, prod.id);
+    html+=tree.map(eEntry=>_tplEpicAccordionHtml(eEntry, prod.id)).join('');
+    html+=`</div>`;
+  });
+  if(!html) return _tplEmptyStateHtml();
+  const collapseControls=`<div style="display:flex;gap:8px;padding:0 20px 10px">
+    <button class="mbtn mbtn-cancel" onclick="_tplCollapseAllEpics()" title="Collapse every Functional Area shown below">
+      <span class="material-icons-round" style="font-size:14px;vertical-align:-2px;margin-right:4px">unfold_less</span>Collapse Functional Areas
+    </button>
+    <button class="mbtn mbtn-cancel" onclick="_tplCollapseAllAccordions()" title="Collapse every Functional Area and Feature shown below">
+      <span class="material-icons-round" style="font-size:14px;vertical-align:-2px;margin-right:4px">unfold_less</span>Collapse All
+    </button>
+  </div>`;
+  return collapseControls+html;
 }
 
-function _tplMarkFormHtml(storyId){
+// productId is fixed from the section this form was opened in (not a free
+// pick any more) — since the row is already rendered under that product's
+// own section, which product is being tested is implicit from context.
+function _tplMarkFormHtml(s, productId){
+  const storyId=s.id;
+  const product=ROADMAP_PRODUCTS.find(p=>p.id===productId);
   return `<div class="tpl-mark-form" onclick="event.stopPropagation()">
-    <textarea class="tpl-mark-notes" id="tpl-mark-notes-${storyId}" placeholder="Notes (optional, e.g. why it failed)…"></textarea>
+    <div style="font-size:10px;color:var(--text3)">Testing on: <strong style="color:var(--text2)">${escH(product?product.name:'Unknown product')}</strong></div>
+    <textarea class="tpl-mark-notes" id="tpl-mark-notes-${storyId}-${productId}" placeholder="Notes — what did you test, and why it passed or failed…" autofocus></textarea>
     <div class="tpl-mark-form-btns">
-      <button class="tpl-mark-btn tpl-pass-btn" onclick="_tplSubmitStoryResult('${storyId}','Pass')">Pass</button>
-      <button class="tpl-mark-btn tpl-fail-btn" onclick="_tplSubmitStoryResult('${storyId}','Fail')">Fail</button>
+      <button class="tpl-mark-btn tpl-pass-btn" onclick="_tplSubmitStoryResult('${storyId}','${productId}','Pass')"><span class="material-icons-round" style="font-size:13px">check_circle</span>Pass</button>
+      <button class="tpl-mark-btn tpl-fail-btn" onclick="_tplSubmitStoryResult('${storyId}','${productId}','Fail')"><span class="material-icons-round" style="font-size:13px">cancel</span>Fail</button>
       <button class="tpl-mark-btn" onclick="_tplCancelMarkStory()">Cancel</button>
     </div>
   </div>`;
@@ -10731,14 +11568,9 @@ function _tplRenderScenarioTab(stories){
   if(!TEST_SCENARIOS.length){
     html+=`<div class="rm-empty"><div class="rm-empty-title">No scenarios yet</div><div class="rm-empty-sub">Add a scenario above — as a quick paste or a full step-by-step script — and list the requirements it exercises to track coverage.</div></div>`;
   } else {
-    const inScopeIds=new Set(stories.map(s=>s.id));
-    let scenarios=TEST_SCENARIOS.filter(sc=>
-      TEST_SCENARIO_LINKS.some(l=>l.scenarioId===sc.id && inScopeIds.has(l.storyId)) ||
-      !TEST_SCENARIO_LINKS.some(l=>l.scenarioId===sc.id)
-    );
-    if(_tplOnlyOpenFailures) scenarios=scenarios.filter(sc=>sc.status==='Fail');
+    const scenarios=_tplScopedScenarios(stories);
     if(!scenarios.length){
-      html+=`<div class="rm-empty">No scenarios match this filter.</div>`;
+      html+=_tplEmptyStateHtml();
     }
     scenarios.forEach(sc=>{ html+=_tplScenarioCardHtml(sc); });
   }
@@ -10751,15 +11583,20 @@ function _tplRenderScenarioTab(stories){
 // same _tplScenarioDraftFormHtml() renders both. draft.id===null means a
 // new scenario is being composed; draft.id=<scenarioId> means that existing
 // scenario's card is in edit mode. Only one draft is open at a time — same
-// single-pointer convention as _tplMarkingStoryId/_tplMarkingScenarioId.
+// single-pointer convention as _tplMarkingKey/_tplMarkingScenarioId.
 function _tplBlankScenarioDraft(){
-  return {id:null, mode:'freeform', title:'', type:'', priority:'', objective:'', preconditions:'',
+  // Defaults to the phase currently being viewed — same "which phase am I
+  // working in" convention as adding a new requirement under the active
+  // phase, rather than leaving it unset and invisible under every phase
+  // filter until someone remembers to set it.
+  return {id:null, mode:'freeform', title:'', type:'', priority:'', phaseId:curPhase||'', objective:'', preconditions:'',
     testData:'', overallExpected:'', text:'', reqCodes:'', steps:[]};
 }
 function _tplScenarioToDraft(sc){
   let steps=[];
   try{ steps = sc.stepsJson ? JSON.parse(sc.stepsJson) : []; }catch(e){ steps=[]; }
   return {id:sc.id, mode:sc.mode||'freeform', title:sc.title||'', type:sc.type||'', priority:sc.priority||'',
+    phaseId:sc.phaseId||'',
     objective:sc.objective||'', preconditions:sc.preconditions||'', testData:sc.testData||'',
     overallExpected:sc.overallExpected||'', text:sc.text||'', reqCodes:sc.reqCodes||'',
     steps: steps.map(s=>({action:s.action||'', expected:s.expected||'', reqCodes:s.reqCodes||''}))};
@@ -10812,6 +11649,10 @@ function _tplScenarioDraftFormHtml(){
     <button class="tpl-subtab-btn${d.mode==='structured'?' active':''}" onclick="_tplSetDraftMode('structured')">Structured Steps</button>
   </div>`;
   html+=`<input type="text" class="minput" placeholder="Scenario title (optional), e.g. SC-01 — Golden path" value="${escH(d.title)}" oninput="_tplUpdDraftField('title',this.value)">`;
+  html+=`<select class="mselect" onchange="_tplUpdDraftField('phaseId',this.value)">
+    <option value=""${!d.phaseId?' selected':''}>Phase — none</option>
+    ${PHASES.map(ph=>`<option value="${ph.id}"${d.phaseId===ph.id?' selected':''}>${escH(ph.name)}</option>`).join('')}
+  </select>`;
 
   if(d.mode==='structured'){
     html+=`<div class="ne-grid2" style="gap:10px">
@@ -10868,6 +11709,18 @@ function _tplScenarioDraftFormHtml(){
 // dozens of requirement codes, and firing that many individual concurrent
 // requests at the Apps Script backend blows past its concurrent-execution
 // limit and starts failing ("Sheet write error") — see dbUpsertScenarioLinksBatch.
+// Official, stable numbering — SC-001, SC-002, ... — assigned once at
+// creation and never touched again on edit, same convention as requirements'
+// own _reqGenerateCode(). A flat global sequence (not scoped per epic/feature
+// like requirement codes) since scenarios aren't nested under any hierarchy.
+function _tplGenerateScenarioCode(){
+  let maxNum=0;
+  TEST_SCENARIOS.forEach(sc=>{
+    const m=(sc.code||'').match(/^SC-(\d+)$/);
+    if(m){ const n=parseInt(m[1],10); if(!isNaN(n)&&n>maxNum) maxNum=n; }
+  });
+  return 'SC-'+String(maxNum+1).padStart(3,'0');
+}
 async function _tplPersistScenarioDraft(d, seq){
   const now=new Date().toISOString();
   let scenario;
@@ -10876,12 +11729,17 @@ async function _tplPersistScenarioDraft(d, seq){
     if(!scenario)return null;
   } else {
     scenario={id:'TS'+Date.now()+'_'+(seq!=null?seq:Math.floor(Math.random()*1e6)),
+      code:_tplGenerateScenarioCode(),
       status:'Not Tested', lastTestedBy:'', lastTestedAt:'', notes:'',
       createdBy:(gCurrentUser&&gCurrentUser.email||'').trim().toLowerCase(), createdAt:now};
     TEST_SCENARIOS.push(scenario);
   }
   Object.assign(scenario,{
-    mode:d.mode, title:(d.title||'').trim(), type:d.type||'', priority:d.priority||'',
+    // d.phaseId is blank for markdown-imported drafts (the format has no
+    // phase line) — falls back to whichever phase is currently being viewed
+    // at import time, same default _tplBlankScenarioDraft() uses for a
+    // manually-added scenario, rather than importing invisible/unphased rows.
+    mode:d.mode, title:(d.title||'').trim(), type:d.type||'', priority:d.priority||'', phaseId:d.phaseId||curPhase||'',
     objective:(d.objective||'').trim(), preconditions:(d.preconditions||'').trim(), testData:(d.testData||'').trim(),
     overallExpected:(d.overallExpected||'').trim(),
     text: d.mode==='freeform' ? (d.text||'').trim() : '',
@@ -11022,64 +11880,80 @@ async function _tplImportScenariosFromMarkdown(){
     : `Imported ${parsed.length} scenario(s), ${totalSteps} step(s)`);
 }
 
+// Accordion — collapsed by default is wrong for a handful of scenarios but
+// right once there are dozens; _tplClosedScenarios tracks which are
+// collapsed (empty = all open), same inverted-set convention as
+// _tplClosedEpics/_tplClosedFeatures. Editing or actively marking a result
+// always forces it open — collapsing out from under an in-progress form
+// would just hide what you're doing.
+function _tplToggleScenario(id){
+  if(_tplClosedScenarios.has(id)) _tplClosedScenarios.delete(id); else _tplClosedScenarios.add(id);
+  renderTestPlan();
+}
 function _tplScenarioCardHtml(sc){
   const statusC=TPL_SCENARIO_STATUS_COLOURS[sc.status]||TPL_SCENARIO_STATUS_COLOURS['Not Tested'];
   const links=TEST_SCENARIO_LINKS.filter(l=>l.scenarioId===sc.id);
   const linkedStories=links.map(l=>ROADMAP_STORIES.find(s=>s.id===l.storyId)).filter(Boolean);
   const isEditingThis=_tplScenarioDraft && _tplScenarioDraft.id===sc.id;
+  const isMarkingThis=_tplMarkingScenarioId===sc.id;
+  const isOpen=isEditingThis||isMarkingThis||!_tplClosedScenarios.has(sc.id);
   const isStructured=sc.mode==='structured';
   const title=sc.title || (isStructured ? 'Untitled scenario' : (sc.text||'').slice(0,60));
+  const phase=sc.phaseId?PHASES.find(p=>p.id===sc.phaseId):null;
 
-  let body;
-  if(isEditingThis){
-    body=_tplScenarioDraftFormHtml();
-  } else {
-    body=`<div class="tpl-scenario-title-row">
-      <div class="tpl-scenario-title">${escH(title)}</div>
-      ${sc.type?`<span class="tpl-req-chip">${escH(sc.type)}</span>`:''}
-      ${sc.priority?`<span class="tpl-req-chip">${escH(sc.priority)}</span>`:''}
-    </div>`;
-    if(isStructured){
-      if(sc.objective) body+=`<div class="tpl-scenario-meta"><strong>Objective:</strong> ${escH(sc.objective)}</div>`;
-      if(sc.preconditions) body+=`<div class="tpl-scenario-meta"><strong>Preconditions:</strong> ${escH(sc.preconditions)}</div>`;
-      if(sc.testData) body+=`<div class="tpl-scenario-meta"><strong>Test data:</strong> ${escH(sc.testData)}</div>`;
-      let steps=[]; try{ steps=sc.stepsJson?JSON.parse(sc.stepsJson):[]; }catch(e){}
-      if(steps.length){
-        body+=`<div class="tpl-step-table-scroll"><table class="tpl-step-table">
-          <thead><tr><th style="width:28px">#</th><th>Action</th><th>Expected result</th><th style="width:180px">Requirements</th></tr></thead>
-          <tbody>${steps.map((s,i)=>`<tr>
-            <td>${i+1}</td>
-            <td>${escH(s.action)}</td>
-            <td>${escH(s.expected)}</td>
-            <td>${escH(s.reqCodes)}</td>
-          </tr>`).join('')}</tbody>
-        </table></div>`;
-      } else {
-        body+=`<div style="font-size:11px;color:var(--text3)">No steps yet — click Edit to add some.</div>`;
-      }
-      if(sc.overallExpected) body+=`<div class="tpl-scenario-meta"><strong>Overall expected result:</strong> ${escH(sc.overallExpected)}</div>`;
+  let body='';
+  if(isOpen){
+    if(isEditingThis){
+      body=_tplScenarioDraftFormHtml();
     } else {
-      body+=`<div class="tpl-scenario-text">${escH(sc.text)}</div>`;
+      if(isStructured){
+        if(sc.objective) body+=`<div class="tpl-scenario-meta"><strong>Objective:</strong> ${escH(sc.objective)}</div>`;
+        if(sc.preconditions) body+=`<div class="tpl-scenario-meta"><strong>Preconditions:</strong> ${escH(sc.preconditions)}</div>`;
+        if(sc.testData) body+=`<div class="tpl-scenario-meta"><strong>Test data:</strong> ${escH(sc.testData)}</div>`;
+        let steps=[]; try{ steps=sc.stepsJson?JSON.parse(sc.stepsJson):[]; }catch(e){}
+        if(steps.length){
+          body+=`<div class="tpl-step-table-scroll"><table class="tpl-step-table">
+            <thead><tr><th style="width:28px">#</th><th>Action</th><th>Expected result</th><th style="width:180px">Requirements</th></tr></thead>
+            <tbody>${steps.map((s,i)=>`<tr>
+              <td>${i+1}</td>
+              <td>${escH(s.action)}</td>
+              <td>${escH(s.expected)}</td>
+              <td>${escH(s.reqCodes)}</td>
+            </tr>`).join('')}</tbody>
+          </table></div>`;
+        } else {
+          body+=`<div style="font-size:11px;color:var(--text3)">No steps yet — click Edit to add some.</div>`;
+        }
+        if(sc.overallExpected) body+=`<div class="tpl-scenario-meta"><strong>Overall expected result:</strong> ${escH(sc.overallExpected)}</div>`;
+      } else {
+        body+=`<div class="tpl-scenario-text">${escH(sc.text)}</div>`;
+      }
     }
   }
 
-  return `<div class="tpl-scenario-card">
-    <div class="tpl-scenario-card-hd">
+  return `<div class="tpl-scenario-card" data-tpl-scenario-anchor="${sc.id}">
+    <div class="tpl-scenario-card-hd" onclick="_tplToggleScenario('${sc.id}')" style="cursor:pointer">
+      <span class="material-icons-round tpl-hier-chev" style="font-size:15px">${isOpen?'expand_more':'chevron_right'}</span>
+      ${sc.code?`<div class="req-code-badge" title="Scenario ID">${escH(sc.code)}</div>`:''}
+      <div class="tpl-scenario-title">${escH(title)}</div>
+      ${phase?`<span class="tpl-req-chip" style="border-color:${phase.colour};color:${phase.colour}">${escH(phase.name)}</span>`:''}
+      ${sc.type?`<span class="tpl-req-chip">${escH(sc.type)}</span>`:''}
+      ${sc.priority?`<span class="tpl-req-chip">${escH(sc.priority)}</span>`:''}
+      <span style="flex:1"></span>
       <span class="tpl-verify-pill" style="color:${statusC.fg};background:${statusC.bg}">${sc.status}</span>
       ${sc.lastTestedBy?`<span style="font-size:10px;color:var(--text3)">by ${escH(sc.lastTestedBy)} · ${_cmtFmtDate(sc.lastTestedAt)}</span>`:''}
-      <span style="flex:1"></span>
-      ${!isStructured?`<button class="tpl-copy-btn" onclick="_tplCopyScenarioText('${sc.id}')" title="Copy scenario text"><span class="material-icons-round" style="font-size:12px">content_copy</span>Copy</button>`:''}
-      ${commentBadgeHtml('scenario',sc.id,{label:title.slice(0,60)})}
-      <button class="tpl-copy-btn" data-requires-edit onclick="${isEditingThis?'_tplCancelScenarioDraft()':`_tplStartEditScenario('${sc.id}')`}">${isEditingThis?'Cancel edit':'Edit'}</button>
+      ${!isStructured?`<button class="tpl-copy-btn" onclick="event.stopPropagation();_tplCopyScenarioText('${sc.id}')" title="Copy scenario text"><span class="material-icons-round" style="font-size:12px">content_copy</span>Copy</button>`:''}
+      <span onclick="event.stopPropagation()">${commentBadgeHtml('scenario',sc.id,{label:title.slice(0,60)})}</span>
+      <button class="tpl-copy-btn" data-requires-edit onclick="event.stopPropagation();${isEditingThis?'_tplCancelScenarioDraft()':`_tplStartEditScenario('${sc.id}')`}">${isEditingThis?'Cancel edit':'Edit'}</button>
     </div>
-    ${body}
-    <div class="tpl-scenario-links">
+    ${isOpen?`${body}
+    ${!isEditingThis?`<div class="tpl-scenario-links">
       ${linkedStories.map(s=>`<span class="tpl-req-chip">${escH(s.code||s.text.slice(0,30))}</span>`).join('')||'<span style="font-size:10px;color:var(--text3)">No requirements covered yet</span>'}
     </div>
     ${sc.notes?`<div style="font-size:11px;color:var(--text2)">Notes: ${escH(sc.notes)}</div>`:''}
-    ${!isEditingThis?`<div data-requires-edit>
-      ${_tplMarkingScenarioId===sc.id?_tplScenarioMarkFormHtml(sc.id):`<button class="tpl-mark-btn" onclick="_tplStartMarkScenario('${sc.id}')">${sc.status==='Not Tested'?'Test this':'Retest'}</button>`}
-    </div>`:''}
+    <div data-requires-test>
+      ${isMarkingThis?_tplScenarioMarkFormHtml(sc.id):`<button class="tpl-mark-btn tpl-mark-btn-primary" onclick="_tplStartMarkScenario('${sc.id}')">${sc.status==='Not Tested'?'Test this':'Retest'}</button>`}
+    </div>`:''}`:''}
   </div>`;
 }
 
@@ -11087,62 +11961,107 @@ function _tplScenarioMarkFormHtml(scenarioId){
   return `<div class="tpl-mark-form">
     <textarea class="tpl-mark-notes" id="tpl-scenario-notes-${scenarioId}" placeholder="Notes (optional)…"></textarea>
     <div class="tpl-mark-form-btns">
-      <button class="tpl-mark-btn tpl-pass-btn" onclick="_tplSubmitScenarioResult('${scenarioId}','Pass')">Pass</button>
-      <button class="tpl-mark-btn tpl-fail-btn" onclick="_tplSubmitScenarioResult('${scenarioId}','Fail')">Fail</button>
+      <button class="tpl-mark-btn tpl-pass-btn" onclick="_tplSubmitScenarioResult('${scenarioId}','Pass')"><span class="material-icons-round" style="font-size:13px">check_circle</span>Pass</button>
+      <button class="tpl-mark-btn tpl-fail-btn" onclick="_tplSubmitScenarioResult('${scenarioId}','Fail')"><span class="material-icons-round" style="font-size:13px">cancel</span>Fail</button>
       <button class="tpl-mark-btn" onclick="_tplCancelMarkScenario()">Cancel</button>
     </div>
   </div>`;
 }
 
-function _tplSetSubTab(v){_tplSubTab=v;_tplMarkingStoryId=null;_tplMarkingScenarioId=null;renderTestPlan();}
-function _tplSetSearch(v){_tplSearchQuery=v;renderTestPlan();}
+function _tplSetSubTab(v){_tplSubTab=v;_tplMarkingKey=null;_tplMarkingScenarioId=null;_tplSquashingSnagId=null;renderTestPlan();}
+// Debounced — Test Plan's render is heavier than Requirements Tracker's (per-
+// product/per-epic breakdowns, sticky-header trees), so re-running it on
+// every single keystroke made typing feel laggy. Query updates immediately;
+// only the (re-creating, focus-dropping) re-render is delayed briefly.
+const _tplDebouncedRender=_debounce(()=>renderTestPlan(),180);
+function _tplSetSearch(v){_tplSearchQuery=v;_tplDebouncedRender();}
 function _tplClearSearch(){_tplSearchQuery='';renderTestPlan();}
-function _tplSetFilterFeature(v){_tplFilterFeatureId=v;renderTestPlan();}
-function _tplToggleOnlyFailures(){_tplOnlyOpenFailures=!_tplOnlyOpenFailures;renderTestPlan();}
 
-function _tplStartMarkStory(storyId){
-  if(!canEdit()){showToast('View-only access — editing is disabled');return;}
+function _tplStartMarkStory(storyId,productId){
+  if(!canMarkTests()){showToast('View-only access — editing is disabled');return;}
   if(!gCurrentUser){showToast('Sign in to record a test result');return;}
-  _tplMarkingStoryId=storyId;renderTestPlan();
+  _tplMarkingKey=storyId+'::'+productId;renderTestPlan();
 }
-function _tplCancelMarkStory(){_tplMarkingStoryId=null;renderTestPlan();}
+function _tplCancelMarkStory(){_tplMarkingKey=null;renderTestPlan();}
 
-async function _tplSubmitStoryResult(storyId,result){
-  if(!canEdit()){showToast('View-only access — editing is disabled');return;}
+async function _tplSubmitStoryResult(storyId,productId,result){
+  if(!canMarkTests()){showToast('View-only access — editing is disabled');return;}
   if(!gCurrentUser){showToast('Sign in to record a test result');return;}
   const email=gCurrentUser.email.trim().toLowerCase();
-  const id=storyId+'::'+email;
-  const notes=(eid('tpl-mark-notes-'+storyId)?.value||'').trim();
+  // Composite id now includes productId too — the same tester can have
+  // separate Pass/Fail records for the same story against different
+  // products, so retesting only overwrites the (story,tester,product) it
+  // actually matches, not every product this tester has ever tested.
+  const id=storyId+'::'+email+'::'+productId;
+  const notes=(eid('tpl-mark-notes-'+storyId+'-'+productId)?.value||'').trim();
   const now=new Date().toISOString();
   let row=TEST_RESULTS.find(r=>r.id===id);
-  if(!row){row={id,storyId,testerEmail:email,result,notes,testedAt:now};TEST_RESULTS.push(row);}
+  if(!row){row={id,storyId,testerEmail:email,result,notes,testedAt:now,productId};TEST_RESULTS.push(row);}
   else{row.result=result;row.notes=notes;row.testedAt=now;}
-  dbUpsertTestResult(row);
-  _tplMarkingStoryId=null;
+  // A Fail reports (or reopens) a Snag for this requirement+product — created
+  // LOCALLY here (synchronous, no network call) so it's already in SNAGS by
+  // the time the render two lines down happens, i.e. the Snags tab shows it
+  // immediately rather than only after a round trip completes. See
+  // _tplUpsertSnagLocal / _tplReportOrReopenSnag.
+  const snag = result==='Fail' ? _tplUpsertSnagLocal(storyId, productId, email) : null;
+  _tplMarkingKey=null;
   renderTestPlan();
-  showToast(result==='Pass'?'Marked Pass':'Marked Fail');
+  showToast(result==='Pass'?'Marked Pass':'Marked Fail — logged to Snags');
+  // Sequenced, not concurrent — Apps Script Web Apps have a low concurrent-
+  // execution ceiling (see upsertRowsBatch's comment); the UI above is
+  // already updated optimistically, so awaiting here only paces the network
+  // calls one-at-a-time, it doesn't delay what the user sees.
+  await dbUpsertTestResult(row);
+  if(snag) await _tplReportOrReopenSnag(snag, storyId, notes);
 }
 
 function _tplStartMarkScenario(scenarioId){
-  if(!canEdit()){showToast('View-only access — editing is disabled');return;}
+  if(!canMarkTests()){showToast('View-only access — editing is disabled');return;}
   if(!gCurrentUser){showToast('Sign in to record a test result');return;}
   _tplMarkingScenarioId=scenarioId;renderTestPlan();
 }
 function _tplCancelMarkScenario(){_tplMarkingScenarioId=null;renderTestPlan();}
 
 async function _tplSubmitScenarioResult(id,result){
-  if(!canEdit()){showToast('View-only access — editing is disabled');return;}
+  if(!canMarkTests()){showToast('View-only access — editing is disabled');return;}
   if(!gCurrentUser){showToast('Sign in to record a test result');return;}
   const sc=TEST_SCENARIOS.find(s=>s.id===id);
   if(!sc)return;
+  const notes=(eid('tpl-scenario-notes-'+id)?.value||'').trim();
+  const email=gCurrentUser.email.trim().toLowerCase();
+  const now=new Date().toISOString();
+  // Narrow action — writes only status/notes/lastTestedBy/lastTestedAt server-
+  // side (lastTestedBy stamped from the verified token, not this client value)
+  // rather than the full-row upsertScenario, so a Tester marking a result
+  // can't also rewrite the scenario's title/steps/etc. See markScenarioResult()
+  // on the backend and dbMarkScenarioResult() below.
   sc.status=result;
-  sc.notes=(eid('tpl-scenario-notes-'+id)?.value||'').trim();
-  sc.lastTestedBy=gCurrentUser.email.trim().toLowerCase();
-  sc.lastTestedAt=new Date().toISOString();
-  dbUpsertScenario(sc);
+  sc.notes=notes;
+  sc.lastTestedBy=email;
+  sc.lastTestedAt=now;
+
+  // A Fail reports (or reopens) a Snag for every Functional Requirement this
+  // scenario is linked to — created LOCALLY here, synchronously, so the
+  // Snags tab is correct on the very next render (see _tplSubmitStoryResult's
+  // comment for why this must not be deferred behind an awaited network
+  // call). See _tplUpsertScenarioFailureSnagsLocal for why an unlinked
+  // scenario can't be filed as a Snag at all.
+  const snagEntries = result==='Fail' ? _tplUpsertScenarioFailureSnagsLocal(id, email) : [];
+
   _tplMarkingScenarioId=null;
   renderTestPlan();
-  showToast(result==='Pass'?'Scenario marked Pass':'Scenario marked Fail');
+  if(result==='Pass') showToast('Scenario marked Pass');
+  else if(snagEntries.length) showToast('Scenario marked Fail — logged to Snags');
+  else showToast(TEST_SCENARIO_LINKS.some(l=>l.scenarioId===id)
+    ? 'Scenario marked Fail — its linked requirement(s) have no resolvable product, so no Snag was filed.'
+    : 'Scenario marked Fail — link it to a requirement to have failures logged as Snags.');
+
+  // Sequenced, not concurrent — same reasoning as _tplSubmitStoryResult.
+  await dbMarkScenarioResult(id,result,notes);
+  if(snagEntries.length){
+    const originLabel=sc.code?`Failed via Scenario ${sc.code}`:'Failed via Scenario Test';
+    for(const {storyId,snag} of snagEntries) await _tplReportOrReopenSnag(snag, storyId, notes, originLabel);
+  }
 }
 
 function _tplCopyScenarioText(id){
@@ -11194,6 +12113,443 @@ function deleteScenarioEntry(id){
   if(_tplScenarioDraft && _tplScenarioDraft.id===id) _tplScenarioDraft=null;
   renderTestPlan();
   showToast('Scenario deleted');
+}
+
+/* ─── SNAGS ──────────────────────────────────────────────────────────────
+   A snag is opened one of two ways: automatically, when a functional test
+   Fails (source='test', tied to a storyId+productId); or manually, logged
+   directly against a Functional Area with no requirement behind it
+   (source='manual', storyId blank, needs its own title). Squashing a snag
+   (Developer or above) marks it Resolved, resets ALL prior TEST_RESULTS for
+   that requirement+product (so retesting needs 2 fresh passes, same as an
+   initial test — see _tplSubmitSquash), and posts the resolution note as a
+   comment. If it fails AGAIN later, the SAME snag reopens (cycleCount++)
+   rather than a duplicate being created — that's the "how many times it's
+   gone back and forth" record. Tester fail-notes and developer squash-notes
+   both post into the requirement's own comment thread (entityType='story')
+   so the whole saga reads in one place; a storyless manual snag gets its
+   own thread instead (entityType='snag'). ────────────────────────────── */
+let _tplSquashingSnagId=null;   // snag id whose inline squash-note form is expanded
+let _tplClosedSnagEpics=new Set(); // separate from _tplClosedEpics — collapsing an area in Functional Tests shouldn't affect Snags
+let _tplSnagDraft=null;         // working copy for the "+ Add Snag" modal, or null when closed
+
+// Creates or reopens the Snag for this requirement+product PURELY in local
+// state (no network call) — split out from _tplReportOrReopenSnag below so
+// the snag exists in SNAGS (and shows up in the Snags tab/nav badges)
+// immediately, synchronously, in the same tick as the Fail is recorded —
+// not only after its network write round-trips, which could take a couple
+// of seconds and previously left the Snags tab looking empty right after a
+// Fail. Bumps cycleCount instead of duplicating on repeat failures.
+function _tplUpsertSnagLocal(storyId, productId, reporterEmail){
+  const story=ROADMAP_STORIES.find(s=>s.id===storyId);
+  const epic=story?_reqResolveChain(story).epic:null;
+  const now=new Date().toISOString();
+  let snag=SNAGS.find(sn=>sn.storyId===storyId && sn.productId===productId);
+  if(snag){
+    // Clears resolvedBy/resolvedAt too, not just status — the backend's
+    // upsertSnag handler forces these blank on any report/reopen (it can
+    // never write a Resolved snag), so this keeps the local copy in sync
+    // rather than showing a stale "Squashed by X" next to a snag that's
+    // actually Open again.
+    snag.status='Open'; snag.cycleCount=(snag.cycleCount||1)+1;
+    snag.reporterEmail=reporterEmail; snag.resolvedBy=''; snag.resolvedAt=''; snag.updatedAt=now;
+  } else {
+    snag={id:'SNAG'+Date.now()+'_'+Math.floor(Math.random()*1e6),
+      storyId, productId, epicId:epic?epic.id:'', title:'',
+      status:'Open', source:'test', reporterEmail, cycleCount:1,
+      createdAt:now, resolvedBy:'', resolvedAt:'', updatedAt:now};
+    SNAGS.push(snag);
+  }
+  return snag;
+}
+// Network half — persists the (already locally-created) snag and posts the
+// tester's note onto the requirement's own comment thread. Called from
+// _tplSubmitStoryResult (and _tplSubmitScenarioResult, for Scenario-driven
+// failures — see _tplUpsertScenarioFailureSnagsLocal), awaited AFTER the
+// TestResult/scenario write so writes are sequenced rather than concurrent
+// (see _tplSubmitStoryResult's comment). originLabel distinguishes what
+// actually failed in the posted comment — defaults to a plain functional-
+// test failure message.
+async function _tplReportOrReopenSnag(snag, storyId, notes, originLabel){
+  await dbUpsertSnag(snag);
+  const product=ROADMAP_PRODUCTS.find(p=>p.id===snag.productId);
+  const cycleTxt=snag.cycleCount>1?` (cycle ${snag.cycleCount})`:'';
+  const label=originLabel||'Failed testing';
+  await _tplPostAutoComment('story', storyId, `❌ ${label} on ${product?product.name:'product'}${cycleTxt}${notes?': '+notes:''}`);
+}
+
+// A Scenario Test can be linked to zero, one, or several Functional
+// Requirements (TEST_SCENARIO_LINKS). Failing a Scenario is treated as
+// failing every requirement it exercises — reusing the exact same Snag
+// mechanism a direct functional Fail uses (_tplUpsertSnagLocal), not a
+// parallel one, so cycle counts and the Snags tab never have two different
+// sources of truth for the same requirement. Each linked requirement's own
+// resolved (home) product is used, same fallback _tplStoryVerification
+// already relies on for legacy rows with no explicit productId — a scenario
+// has no product of its own to pick from directly.
+// Returns [] (and creates nothing) when the scenario has no links, or none
+// of its linked requirements resolve to a product — Snags are strictly
+// Product > Functional Area organised, so a snag with no epicId would just
+// silently never render in the Snags tab (the exact bug already fixed once
+// on the Redirect Tracker); better to file nothing and say why than file
+// something invisible.
+function _tplUpsertScenarioFailureSnagsLocal(scenarioId, reporterEmail){
+  const linkedStoryIds=[...new Set(TEST_SCENARIO_LINKS.filter(l=>l.scenarioId===scenarioId).map(l=>l.storyId))];
+  const targets=[];
+  linkedStoryIds.forEach(storyId=>{
+    const story=ROADMAP_STORIES.find(s=>s.id===storyId);
+    if(!story) return;
+    const productId=_reqResolveChain(story).product?.id||null;
+    if(!productId) return;
+    if(!targets.some(t=>t.storyId===storyId && t.productId===productId)) targets.push({storyId,productId});
+  });
+  return targets.map(({storyId,productId})=>({storyId, snag:_tplUpsertSnagLocal(storyId,productId,reporterEmail)}));
+}
+
+function _tplStartSquash(id){
+  if(!canSquashSnags()){showToast('View-only access — editing is disabled');return;}
+  if(!gCurrentUser){showToast('Sign in to squash a snag');return;}
+  _tplSquashingSnagId=id; renderTestPlan();
+}
+function _tplCancelSquash(){ _tplSquashingSnagId=null; renderTestPlan(); }
+async function _tplSubmitSquash(id){
+  if(!canSquashSnags()){showToast('View-only access — editing is disabled');return;}
+  if(!gCurrentUser){showToast('Sign in to squash a snag');return;}
+  const sn=SNAGS.find(s=>s.id===id); if(!sn)return;
+  const notes=(eid('tpl-squash-notes-'+id)?.value||'').trim();
+  const email=gCurrentUser.email.trim().toLowerCase();
+  const now=new Date().toISOString();
+  sn.status='Resolved'; sn.resolvedBy=email; sn.resolvedAt=now; sn.updatedAt=now;
+  // Full reset — every prior tester's result for this requirement+product is
+  // cleared, not just the failing one, so retesting needs 2 completely fresh
+  // passes ("just like an initial test"). The backend's squashSnag() does
+  // this same reset server-side as part of the one authorized call (it also
+  // checks the caller is actually a Developer/Editor/Admin, not just any
+  // signed-in user) — this is just the optimistic local mirror of that, not
+  // a separate write.
+  if(sn.storyId){
+    TEST_RESULTS=TEST_RESULTS.filter(r=>!(r.storyId===sn.storyId && r.productId===sn.productId));
+  }
+  const entityType=sn.storyId?'story':'snag', entityId=sn.storyId||sn.id;
+  const product=ROADMAP_PRODUCTS.find(p=>p.id===sn.productId);
+  _tplSquashingSnagId=null;
+  renderTestPlan();
+  showToast('Snag marked resolved — ready for retesting');
+  // Sequenced, not concurrent — same reasoning as _tplSubmitStoryResult.
+  await dbSquashSnag(id);
+  await _tplPostAutoComment(entityType, entityId, `🔧 Snag squashed on ${product?product.name:'product'}${notes?': '+notes:' (no notes provided)'}`);
+}
+
+function _tplSquashFormHtml(sn){
+  return `<div class="tpl-mark-form" onclick="event.stopPropagation()">
+    <textarea class="tpl-mark-notes" id="tpl-squash-notes-${sn.id}" placeholder="What did you change to resolve this…" autofocus></textarea>
+    <div class="tpl-mark-form-btns">
+      <button class="tpl-mark-btn tpl-pass-btn" onclick="_tplSubmitSquash('${sn.id}')"><span class="material-icons-round" style="font-size:13px">check_circle</span>Mark Resolved</button>
+      <button class="tpl-mark-btn" onclick="_tplCancelSquash()">Cancel</button>
+    </div>
+  </div>`;
+}
+
+function _tplSnagCardHtml(sn){
+  const story = sn.storyId ? ROADMAP_STORIES.find(s=>s.id===sn.storyId) : null;
+  const code = story ? (story.code||'—') : null;
+  const text = story ? story.text : (sn.title||'(no description)');
+  const statusOpen = sn.status==='Open';
+  const entityType = sn.storyId ? 'story' : 'snag';
+  const entityId = sn.storyId || sn.id;
+  const isSquashing = statusOpen && _tplSquashingSnagId===sn.id;
+  // Every card on this list is already an open issue by definition — painting
+  // the whole row red on top of that was redundant with the Open/Resolved
+  // status pill below and just made the list noisy. Normal card styling now;
+  // the pill still carries the red/green status signal on its own.
+  return `<div class="tpl-req-row">
+    <div class="tpl-req-row-main">
+      ${code?`<div class="req-code-badge" title="Requirement ID">${escH(code)}</div>`:''}
+      <div class="tpl-req-row-text">${escH(text)}</div>
+      ${sn.source==='manual'?`<span class="tpl-req-chip">Manually reported</span>`:`<span class="tpl-req-chip">Failed test</span>`}
+    </div>
+    <div class="tpl-req-row-meta">
+      <span class="tpl-verify-pill" style="color:${statusOpen?'var(--rag-red-fg)':'var(--rag-green-fg)'};background:${statusOpen?'var(--rag-red-bg)':'var(--rag-green-bg)'}">${statusOpen?'Open':'Resolved'}</span>
+      ${sn.cycleCount>1?`<span class="tpl-hier-fail-badge" title="Sent back to development ${sn.cycleCount-1} time(s) before this">↻ Cycle ${sn.cycleCount}</span>`:''}
+      <span style="font-size:10px;color:var(--text3)">Reported by ${escH(sn.reporterEmail||'—')}${sn.resolvedBy?` · Squashed by ${escH(sn.resolvedBy)}`:''}</span>
+      ${commentBadgeHtml(entityType,entityId,{label:text.slice(0,60)})}
+      ${statusOpen&&!isSquashing?`<div data-requires-squash><button class="tpl-mark-btn tpl-mark-btn-primary" onclick="_tplStartSquash('${sn.id}')">Squash</button></div>`:''}
+    </div>
+    ${isSquashing?`<div data-requires-squash>${_tplSquashFormHtml(sn)}</div>`:''}
+  </div>`;
+}
+
+// Same Product-tab-scoped, per-Epic-section, sticky-header structure as
+// Functional Tests (see _tplRenderFunctionalTab) — but grouped straight from
+// Product → Functional Area with no Feature level in between, since a
+// manually-logged snag has no Feature to nest under.
+function _tplRenderSnagsTab(){
+  const productsToRender=_tplActiveProductId==='ALL'
+    ? ROADMAP_PRODUCTS
+    : ROADMAP_PRODUCTS.filter(p=>p.id===_tplActiveProductId);
+  const showSeparator=_tplActiveProductId==='ALL';
+  let html=`<div data-requires-snag-report style="padding:0 20px 14px">
+    <button class="mbtn mbtn-save" onclick="openAddSnagModal()"><span class="material-icons-round" style="font-size:14px;vertical-align:-2px;margin-right:4px">bug_report</span>+ Add Snag</button>
+  </div>`;
+  let bodyHtml='';
+  productsToRender.forEach(prod=>{
+    const snags=SNAGS.filter(sn=>sn.productId===prod.id);
+    if(!snags.length) return;
+    const epicMap={};
+    snags.forEach(sn=>{
+      const epic=ROADMAP_EPICS.find(e=>e.id===sn.epicId);
+      if(!epic) return;
+      if(!epicMap[epic.id]) epicMap[epic.id]={epic,snags:[]};
+      epicMap[epic.id].snags.push(sn);
+    });
+    const epics=Object.values(epicMap).sort((a,b)=>(a.epic.order||0)-(b.epic.order||0));
+    if(!epics.length) return;
+    if(showSeparator) bodyHtml+=`<div class="rm-product-sep">${escH(prod.name)}</div>`;
+    bodyHtml+=`<div class="tpl-hier-tree">`;
+    bodyHtml+=epics.map(({epic,snags})=>_tplSnagEpicAccordionHtml(epic,snags,prod.id)).join('');
+    bodyHtml+=`</div>`;
+  });
+  html+=bodyHtml||_tplEmptyStateHtml();
+  return html;
+}
+function _tplToggleSnagEpic(compositeId){
+  if(_tplClosedSnagEpics.has(compositeId)) _tplClosedSnagEpics.delete(compositeId);
+  else _tplClosedSnagEpics.add(compositeId);
+  renderTestPlan();
+}
+function _tplSnagEpicAccordionHtml(epic,snags,productId){
+  const colour=epic.colour||EPIC_COLOURS[0];
+  const compositeId=epic.id+'::'+productId;
+  const isOpen=!_tplClosedSnagEpics.has(compositeId);
+  const openCount=snags.filter(sn=>sn.status==='Open').length;
+  const style=`background:${colour};color:#fff`;
+  let html=`<div class="tpl-hier-group tpl-hier-epic" data-tpl-snag-anchor="${compositeId}">
+    <button class="tpl-hier-hdr tpl-hier-hdr-epic" style="${style}" onclick="_tplToggleSnagEpic('${compositeId}')">
+      <span class="material-icons-round tpl-hier-chev" style="font-size:15px;color:#fff">${isOpen?'expand_more':'chevron_right'}</span>
+      <span class="tpl-hier-label" title="${escH(epic.name)}">${escH(epic.name)}</span>
+      <span class="tpl-hier-count" style="color:rgba(255,255,255,.85)">${snags.length} snag${snags.length===1?'':'s'}</span>
+      ${openCount?`<span class="tpl-hier-fail-badge">${openCount} open</span>`:''}
+    </button>`;
+  if(isOpen) html+=`<div class="tpl-hier-body tpl-hier-body-leaf">${snags.map(sn=>_tplSnagCardHtml(sn)).join('')}</div>`;
+  html+=`</div>`;
+  return html;
+}
+
+// ── Manual snag entry — "found and submitted through other means", not
+// discovered via a failed functional test. Requires a Product and a
+// Functional Area (so it shows up grouped the same way as everything else);
+// requirement link is optional since exploratory/reported bugs often don't
+// map to one specific requirement.
+function openAddSnagModal(){
+  if(!canReportSnags()){showToast('View-only access — editing is disabled');return;}
+  if(!gCurrentUser){showToast('Sign in to add a snag');return;}
+  _tplSnagDraft={productId:_tplActiveProductId!=='ALL'?_tplActiveProductId:'', epicId:'', storyId:'', title:''};
+  _renderAddSnagModal();
+  openModal('addSnagModal');
+}
+function _snagModalEpicsForProduct(productId){
+  return ROADMAP_EPICS.filter(e=>_tplEpicTestProductIds(e).includes(productId));
+}
+function _snagModalStoriesForEpic(epicId){
+  const featureIds=new Set(ROADMAP_FEATURES.filter(f=>f.epicId===epicId).map(f=>f.id));
+  return ROADMAP_STORIES.filter(s=>featureIds.has(s.featureId));
+}
+function _snagModalSetProduct(productId){
+  _tplSnagDraft.productId=productId; _tplSnagDraft.epicId=''; _tplSnagDraft.storyId='';
+  _renderAddSnagModal();
+}
+function _snagModalSetEpic(epicId){
+  _tplSnagDraft.epicId=epicId; _tplSnagDraft.storyId='';
+  _renderAddSnagModal();
+}
+function _renderAddSnagModal(){
+  const d=_tplSnagDraft;
+  const epics=d.productId?_snagModalEpicsForProduct(d.productId):[];
+  const stories=d.epicId?_snagModalStoriesForEpic(d.epicId):[];
+  const body=eid('addSnagModalBody');
+  if(!body) return;
+  body.innerHTML=`
+    <div class="mfield"><label>Product</label>
+      <select class="mselect" onchange="_snagModalSetProduct(this.value)">
+        <option value="">— Select a product —</option>
+        ${ROADMAP_PRODUCTS.map(p=>`<option value="${p.id}"${p.id===d.productId?' selected':''}>${escH(p.name)}</option>`).join('')}
+      </select>
+    </div>
+    <div class="mfield"><label>Functional area</label>
+      <select class="mselect" onchange="_snagModalSetEpic(this.value)" ${!d.productId?'disabled':''}>
+        <option value="">— Select a functional area —</option>
+        ${epics.map(e=>`<option value="${e.id}"${e.id===d.epicId?' selected':''}>${escH(e.name)}</option>`).join('')}
+      </select>
+    </div>
+    <div class="mfield"><label>Related requirement (optional)</label>
+      <select class="mselect" id="addSnagStorySelect" ${!d.epicId?'disabled':''}>
+        <option value="">— Not linked to a specific requirement —</option>
+        ${stories.map(s=>`<option value="${s.id}"${s.id===d.storyId?' selected':''}>${escH(s.code||s.text.slice(0,50))}</option>`).join('')}
+      </select>
+    </div>
+    <div class="mfield"><label>Description</label>
+      <textarea class="minput" id="addSnagTitleInput" rows="3" placeholder="What's wrong…">${escH(d.title)}</textarea>
+    </div>
+  `;
+}
+async function saveAddSnagModal(){
+  const d=_tplSnagDraft;
+  if(!d) return;
+  const productId=d.productId;
+  const epicId=d.epicId;
+  const storyId=eid('addSnagStorySelect')?.value||'';
+  const title=(eid('addSnagTitleInput')?.value||'').trim();
+  if(!productId){showToast('Select a product');return;}
+  if(!epicId){showToast('Select a functional area');return;}
+  if(!storyId && !title){showToast('Add a description, or link an existing requirement');return;}
+  const now=new Date().toISOString();
+  const email=(gCurrentUser&&gCurrentUser.email||'').trim().toLowerCase();
+  const snag={id:'SNAG'+Date.now()+'_'+Math.floor(Math.random()*1e6),
+    storyId, productId, epicId, title:storyId?'':title,
+    status:'Open', source:'manual', reporterEmail:email, cycleCount:1,
+    createdAt:now, resolvedBy:'', resolvedAt:'', updatedAt:now};
+  SNAGS.push(snag);
+  await dbUpsertSnag(snag);
+  _tplSnagDraft=null;
+  closeModal('addSnagModal');
+  _tplSubTab='snags';
+  renderTestPlan();
+  showToast('Snag added');
+}
+
+// ── Test Report — printable summary of testing progress ─────────────────
+// Deliberately ignores this VIEW's own local filters (search box, feature
+// dropdown, active product tab, "only open failures") so the report always
+// reflects the full current-phase-scope picture, not whatever narrow slice
+// happens to be on screen when the button is clicked — only the shared
+// top-nav phase selection (selectedPhases) still applies, same scope Test
+// Plan itself starts from. Opened via window.open + document.write rather
+// than a PDF library: the browser's own Print → Save as PDF does the actual
+// PDF generation, so this stays a plain self-contained HTML string with zero
+// new dependency (matches the app's current zero-external-script posture
+// beyond Google Identity Services).
+function _tplReportScopedStories(){
+  return ROADMAP_STORIES.filter(s=>{
+    const feature=ROADMAP_FEATURES.find(f=>f.id===s.featureId);
+    return feature && selectedPhases.has(feature.phaseId);
+  });
+}
+function _tplReportBuildHtml(){
+  _tplVerifyCache=new Map(); // this can run without a preceding renderTestPlan() this session — see _tplStoryVerification
+  const stories=_tplReportScopedStories();
+  const total=stories.length;
+  // Per-product breakdown (same shared helper the Summary accordion and left
+  // nav use — see its comment) — a Functional Area tested on more than one
+  // product appears once per product here too, each with its own numbers.
+  const breakdown=_tplComputeProductBreakdown(stories);
+  const overallVerifiedCount=breakdown.reduce((sum,b)=>sum+b.verifiedCount,0);
+  const overallTotal=breakdown.reduce((sum,b)=>sum+b.total,0); // NOTE: can exceed `total` distinct requirements — a shared area is counted once per product it needs testing on
+  const overallOpenFailCount=breakdown.reduce((sum,b)=>sum+b.openFailCount,0);
+  const scenarioCoveredCount=stories.filter(s=>_tplScenarioHasCoverage(s.id)).length;
+  const scenarioPct=total?Math.round(scenarioCoveredCount/total*100):0;
+
+  const inScopeIds=new Set(stories.map(s=>s.id));
+  const scenarios=TEST_SCENARIOS.filter(sc=>
+    TEST_SCENARIO_LINKS.some(l=>l.scenarioId===sc.id && inScopeIds.has(l.storyId)) ||
+    !TEST_SCENARIO_LINKS.some(l=>l.scenarioId===sc.id)
+  );
+  const scenarioNotTested=scenarios.filter(sc=>sc.status==='Not Tested').length;
+  const scenarioPass=scenarios.filter(sc=>sc.status==='Pass').length;
+  const scenarioFail=scenarios.filter(sc=>sc.status==='Fail');
+
+  const phaseNames=[...selectedPhases].map(id=>(PHASES.find(p=>p.id===id)||{}).name).filter(Boolean).join(', ')||'All phases';
+  const now=new Date().toLocaleString();
+
+  let breakdownRows='';
+  breakdown.forEach(b=>{
+    b.epics.forEach(({epic,total:eTotal,verifiedCount,openFailCount})=>{
+      const pct=eTotal?Math.round(verifiedCount/eTotal*100):0;
+      const colour=epic.colour||EPIC_COLOURS[0];
+      breakdownRows+=`<tr>
+        <td>${escH(b.product.name)}</td>
+        <td><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${colour};margin-right:6px;vertical-align:middle"></span>${escH(epic.name)}</td>
+        <td style="text-align:center">${eTotal}</td>
+        <td style="text-align:center;font-weight:700;color:${pct>=100?'#2E7D58':pct<=0?'#C2503F':'#B5852C'}">${pct}%</td>
+        <td style="text-align:center">${openFailCount?`<span style="color:#C2503F;font-weight:700">${openFailCount}</span>`:'—'}</td>
+      </tr>`;
+    });
+  });
+
+  // Failures listed per (story, product) pair — a shared Functional Area's
+  // requirement can be failing for one product and fine for another, so a
+  // flat story-only list would no longer be unambiguous.
+  let failureRows='';
+  breakdown.forEach(b=>{
+    const pStories=_tplStoriesInProduct(stories,b.product.id);
+    pStories.filter(s=>_tplStoryVerification(s.id,b.product.id).openFail).forEach(s=>{
+      const chain=_reqResolveChain(s);
+      const v=_tplStoryVerification(s.id,b.product.id);
+      const breadcrumb=[b.product.name,chain.epic?.name,chain.feature?.name].filter(Boolean).join(' › ');
+      const failNotes=v.rows.filter(r=>r.result==='Fail').map(r=>`${escH(r.testerEmail)}${r.notes?': '+escH(r.notes):''}`).join('<br>');
+      failureRows+=`<tr>
+        <td>${escH(s.code||'—')}</td>
+        <td>${escH(s.text)}</td>
+        <td style="font-size:10px;color:#666">${escH(breadcrumb)}</td>
+        <td style="font-size:10px">${failNotes}</td>
+      </tr>`;
+    });
+  });
+
+  let scenarioFailRows='';
+  scenarioFail.forEach(sc=>{
+    const title=sc.title||(sc.mode==='structured'?'Untitled scenario':(sc.text||'').slice(0,60));
+    scenarioFailRows+=`<tr>
+      <td>${escH(title)}</td>
+      <td style="font-size:10px">${escH(sc.lastTestedBy||'')}</td>
+      <td style="font-size:10px">${escH(sc.notes||'')}</td>
+    </tr>`;
+  });
+
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Test Plan Report</title>
+<style>
+  body{font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#1a1a2e;margin:0;padding:32px;background:#fff}
+  h1{font-size:20px;margin:0 0 4px;color:#15294F}
+  .meta{font-size:12px;color:#666;margin-bottom:24px}
+  .stats{display:flex;gap:16px;margin-bottom:28px}
+  .stat{flex:1;border:1px solid #e0e0e0;border-radius:10px;padding:14px 16px}
+  .stat .num{font-size:24px;font-weight:700;color:#15294F}
+  .stat .lbl{font-size:11px;color:#666;margin-top:2px}
+  h2{font-size:14px;color:#15294F;border-bottom:2px solid #ECEFF4;padding-bottom:6px;margin:28px 0 12px}
+  table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+  th{text-align:left;background:#ECEFF4;color:#15294F;padding:7px 9px;font-size:10px;text-transform:uppercase;letter-spacing:.03em}
+  td{padding:7px 9px;border-bottom:1px solid #eee;vertical-align:top}
+  .empty{font-size:12px;color:#999;padding:10px 0}
+  .no-print{margin-bottom:20px}
+  .no-print button{background:#15294F;color:#fff;border:none;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer}
+  .no-print button:hover{background:#0E1C39}
+  @media print{ .no-print{display:none} body{padding:0} }
+</style></head><body>
+  <div class="no-print"><button onclick="window.print()">Print / Save as PDF</button></div>
+  <h1>Test Plan Report</h1>
+  <div class="meta">Generated ${escH(now)} · Phase scope: ${escH(phaseNames)}</div>
+  <div class="stats">
+    <div class="stat"><div class="num">${overallVerifiedCount}/${overallTotal}</div><div class="lbl">Verified across all products${overallTotal?' — '+Math.round(overallVerifiedCount/overallTotal*100)+'%':''}</div></div>
+    <div class="stat"><div class="num">${scenarioCoveredCount}/${total}</div><div class="lbl">Scenario Covered — ${scenarioPct}%</div></div>
+    <div class="stat"><div class="num">${overallOpenFailCount}</div><div class="lbl">Open Failures</div></div>
+  </div>
+  <h2>Coverage by Product / Functional Area</h2>
+  ${breakdownRows?`<table><thead><tr><th>Product</th><th>Functional Area</th><th style="text-align:center">Reqs</th><th style="text-align:center">Verified</th><th style="text-align:center">Failing</th></tr></thead><tbody>${breakdownRows}</tbody></table>`:'<div class="empty">No requirements in the current phase scope.</div>'}
+  <h2>Open Failures — Functional Tests</h2>
+  ${failureRows?`<table><thead><tr><th>ID</th><th>Requirement</th><th>Location</th><th>Failing tester(s)</th></tr></thead><tbody>${failureRows}</tbody></table>`:'<div class="empty">No open failures.</div>'}
+  <h2>Scenario Tests</h2>
+  <div class="stats">
+    <div class="stat"><div class="num">${scenarioPass}</div><div class="lbl">Pass</div></div>
+    <div class="stat"><div class="num">${scenarioFail.length}</div><div class="lbl">Fail</div></div>
+    <div class="stat"><div class="num">${scenarioNotTested}</div><div class="lbl">Not Tested</div></div>
+  </div>
+  ${scenarioFailRows?`<table><thead><tr><th>Scenario</th><th>Last tested by</th><th>Notes</th></tr></thead><tbody>${scenarioFailRows}</tbody></table>`:''}
+</body></html>`;
+}
+function _tplOpenReport(){
+  const w=window.open('','_blank');
+  if(!w){ showToast('Pop-up blocked — allow pop-ups to view the report.'); return; }
+  w.document.write(_tplReportBuildHtml());
+  w.document.close();
 }
 
 /* ─── PLATFORM / CLUSTER ────────────────────────────────────────────────── */

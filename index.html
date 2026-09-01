@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- StrategicSitemapper  v80 -->
+<!-- StrategicSitemapper  v84 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -1476,6 +1476,17 @@ a.pt-url-val:hover{text-decoration:underline}
 .req-code-badge-clickable:hover{background:var(--brand-primary-light);color:var(--brand-primary)}
 .rd-view-text{font-size:13px;color:var(--ink);line-height:1.5;padding:4px 0;white-space:pre-wrap}
 .rd-view-pill{display:inline-flex;align-items:center;font-size:12px;font-weight:600;padding:5px 10px;border-radius:8px;background:var(--md-surface-container);color:var(--text)}
+/* Requirement Detail modal — scoped wider than the default .modal (480px) so
+   Type/Owner/Fast Follow and Dev/Test Status can sit in tidy rows instead of
+   the cramped single-column stack this modal used to be. Scoped to this one
+   modal only — every other modal in the app keeps the shared 480px default. */
+.modal-reqdetail{width:560px}
+.rd-section-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-bottom:8px}
+.rd-divider{height:1px;background:var(--md-outline-variant);margin:16px 0 14px}
+.rd-move-panel{background:var(--md-surface-container);border:1px solid var(--md-outline-variant);border-radius:12px;padding:12px 14px;margin-bottom:14px}
+.rd-move-warn{display:flex;gap:6px;align-items:flex-start;font-size:10.5px;color:var(--text3);margin-top:9px}
+.rd-chip-toggle{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink);cursor:pointer;border:1px solid var(--md-outline);border-radius:10px;padding:9px 11px;background:var(--md-surface-variant);white-space:nowrap}
+.rd-ff-badge{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;padding:4px 10px;border-radius:8px;color:var(--wf-wf-fg);background:var(--wf-wf-bg)}
 .req-jira-badge{display:inline-flex;align-items:center;gap:3px;font-family:var(--font-mono,monospace);font-size:9px;font-weight:700;color:#0052CC;background:#DEEBFF;border:none;border-radius:5px;padding:1px 6px;margin:0 0 4px 4px;letter-spacing:.02em;cursor:pointer}
 .req-jira-badge:hover{background:#B3D4FF}
 /* Textarea, not a single-line input — the ask was for more of the requirement
@@ -1822,6 +1833,20 @@ a.pt-url-val:hover{text-decoration:underline}
 </div>
 </div>
 
+<!-- Transformation Report: Add Page Snag Modal — Page Snags' counterpart to
+     addSnagModal above, keyed on a page (Node) instead of a Product/Area/
+     requirement chain, since most pages don't have one. -->
+<div class="modal-bg" id="addPageSnagModal">
+<div class="modal">
+  <div class="mhead"><h3>Report Page Issue</h3><button class="mclose" onclick="closeModal('addPageSnagModal')">✕</button></div>
+  <div class="mbody" id="addPageSnagModalBody"></div>
+  <div class="mfoot">
+    <button class="mbtn mbtn-cancel" onclick="closeModal('addPageSnagModal')">Cancel</button>
+    <button class="mbtn mbtn-save" onclick="saveAddPageSnagModal()">Report Issue</button>
+  </div>
+</div>
+</div>
+
 <!-- Roadmap: Feature Modal -->
 <div class="modal-bg" id="rmFeatureModal">
 <div class="modal">
@@ -1854,8 +1879,14 @@ a.pt-url-val:hover{text-decoration:underline}
 
 <!-- Requirements Tracker: Requirement Detail Modal -->
 <div class="modal-bg" id="reqDetailModal">
-<div class="modal">
-  <div class="mhead"><h3 id="reqDetailTitle">Requirement</h3><button class="mclose" onclick="closeReqDetail()">✕</button></div>
+<div class="modal modal-reqdetail">
+  <div class="mhead">
+    <div style="display:flex;align-items:center;gap:10px;min-width:0">
+      <h3 id="reqDetailTitle">Requirement</h3>
+      <span id="reqDetailCommentSlot"></span>
+    </div>
+    <button class="mclose" onclick="closeReqDetail()">✕</button>
+  </div>
   <div class="mbody" id="reqDetailBody"></div>
   <div class="mfoot" id="reqDetailFoot"></div>
 </div>
@@ -2476,6 +2507,12 @@ function _handleSessionExpired(){
   _sessionExpiredHandled = true;
   stopPresence();
   if (typeof google !== 'undefined' && google.accounts) google.accounts.id.disableAutoSelect();
+  // Without this, a re-login after expiry silently did nothing: the Google
+  // callback (handleGoogleCredential) still early-returns on the FIRST
+  // sign-in's now-stale _googleAuthHandled=true guard, since only signOut()
+  // used to reset it — expiry never did. Refreshing the page "fixed" it only
+  // because that re-runs the script and resets the flag from scratch.
+  _googleAuthHandled = false;
   gCurrentUser = null;
   ROLE_TABLE = {};
   renderUserPill();
@@ -2962,6 +2999,9 @@ async function loadFromSheets() {
     TEST_SCENARIOS = (data.scenarios||[]).map(r=>({id:String(r.id||''),code:r.code||'',title:r.title||'',mode:r.mode||'freeform',type:r.type||'',priority:r.priority||'',phaseId:String(r.phaseId||''),objective:r.objective||'',preconditions:r.preconditions||'',testData:r.testData||'',stepsJson:r.stepsJson||'',overallExpected:r.overallExpected||'',reqCodes:r.reqCodes||'',text:r.text||'',status:r.status||'Not Tested',lastTestedBy:String(r.lastTestedBy||'').trim().toLowerCase(),lastTestedAt:r.lastTestedAt||null,notes:r.notes||'',createdBy:String(r.createdBy||'').trim().toLowerCase(),createdAt:r.createdAt||null}));
     TEST_SCENARIO_LINKS = (data.scenarioLinks||[]).map(r=>({id:String(r.id||''),scenarioId:String(r.scenarioId||''),storyId:String(r.storyId||'')}));
     SNAGS = (data.snags||[]).map(r=>({id:String(r.id||''),storyId:String(r.storyId||''),productId:String(r.productId||''),epicId:String(r.epicId||''),title:r.title||'',status:r.status||'Open',source:r.source||'test',reporterEmail:String(r.reporterEmail||'').trim().toLowerCase(),cycleCount:Number(r.cycleCount)||1,createdAt:r.createdAt||null,resolvedBy:String(r.resolvedBy||'').trim().toLowerCase(),resolvedAt:r.resolvedAt||null,updatedAt:r.updatedAt||null}));
+    // Same shape as SNAGS, keyed on nodeId instead of storyId/productId/epicId
+    // — see the Transformation Report's Page Snags panel.
+    PAGE_SNAGS = (data.pageSnags||[]).map(r=>({id:String(r.id||''),nodeId:String(r.nodeId||''),componentId:String(r.componentId||''),title:r.title||'',status:r.status||'Open',source:r.source||'manual',reporterEmail:String(r.reporterEmail||'').trim().toLowerCase(),cycleCount:Number(r.cycleCount)||1,createdAt:r.createdAt||null,resolvedBy:String(r.resolvedBy||'').trim().toLowerCase(),resolvedAt:r.resolvedAt||null,updatedAt:r.updatedAt||null}));
     if (_rmActiveProductId && !ROADMAP_PRODUCTS.find(p=>p.id===_rmActiveProductId)) _rmActiveProductId=null;
     if (!_rmActiveProductId && ROADMAP_PRODUCTS.length) _rmActiveProductId=ROADMAP_PRODUCTS[0].id;
     if (_tplActiveProductId && _tplActiveProductId!=='ALL' && !ROADMAP_PRODUCTS.find(p=>p.id===_tplActiveProductId)) _tplActiveProductId=null;
@@ -3341,6 +3381,10 @@ async function dbUpsertSnag(sn){try{await sheetPost({action:'upsertSnag',row:{id
 // requirement's prior test results for this product in the same call —
 // there's no separate delete action to call afterward any more.
 async function dbSquashSnag(id){try{await sheetPost({action:'squashSnag',id});}catch(e){console.error('dbSquashSnag:',e);showToast('Sheet write error: '+e.message);}}
+async function dbRequestSnagClarification(id){try{await sheetPost({action:'requestSnagClarification',id});}catch(e){console.error('dbRequestSnagClarification:',e);showToast('Sheet write error: '+e.message);}}
+async function dbUpsertPageSnag(sn){try{await sheetPost({action:'upsertPageSnag',row:{id:sn.id,nodeId:sn.nodeId||'',componentId:sn.componentId||'',title:sn.title||'',status:sn.status||'Open',source:sn.source||'manual',reporterEmail:sn.reporterEmail||'',cycleCount:sn.cycleCount||1,createdAt:sn.createdAt||'',resolvedBy:sn.resolvedBy||'',resolvedAt:sn.resolvedAt||'',updatedAt:sn.updatedAt||''}});}catch(e){console.error('dbUpsertPageSnag:',e);showToast('Sheet write error: '+e.message);}}
+async function dbSquashPageSnag(id){try{await sheetPost({action:'squashPageSnag',id});}catch(e){console.error('dbSquashPageSnag:',e);showToast('Sheet write error: '+e.message);}}
+async function dbRequestPageSnagClarification(id){try{await sheetPost({action:'requestPageSnagClarification',id});}catch(e){console.error('dbRequestPageSnagClarification:',e);showToast('Sheet write error: '+e.message);}}
 async function dbUpsertScenario(sc){try{await sheetPost({action:'upsertScenario',row:{id:sc.id,code:sc.code||'',title:sc.title||'',mode:sc.mode||'freeform',type:sc.type||'',priority:sc.priority||'',phaseId:sc.phaseId||'',objective:sc.objective||'',preconditions:sc.preconditions||'',testData:sc.testData||'',stepsJson:sc.stepsJson||'',overallExpected:sc.overallExpected||'',reqCodes:sc.reqCodes||'',text:sc.text||'',status:sc.status||'Not Tested',lastTestedBy:sc.lastTestedBy||'',lastTestedAt:sc.lastTestedAt||'',notes:sc.notes||'',createdBy:sc.createdBy||'',createdAt:sc.createdAt||''}});}catch(e){console.error('dbUpsertScenario:',e);showToast('Sheet write error: '+e.message);}}
 // Narrow counterpart to dbUpsertScenario — used when only recording a Pass/
 // Fail result (Test Plan's "Test this"), not editing scenario content. Hits
@@ -3644,6 +3688,11 @@ let TEST_SCENARIO_LINKS=[]; // [{id,scenarioId,storyId}] — many-to-many, mirro
 // storyId set and blank title (shows the requirement's own text instead); a
 // 'manual' snag has no storyId and relies on title. See the Snags tab.
 let SNAGS=[];
+// [{id,nodeId,title,status,source,reporterEmail,cycleCount,createdAt,
+//   resolvedBy,resolvedAt,updatedAt}] — page-level counterpart to SNAGS, see
+// the Transformation Report's Page Snags panel. Always source:'manual';
+// there's no auto-fail-triggered path for pages the way a Test Plan snag has.
+let PAGE_SNAGS=[];
 const TPL_RESULT_COLOURS={
   'Pass':{fg:'var(--rag-green-fg)',bg:'var(--rag-green-bg)'},
   'Fail':{fg:'var(--rag-red-fg)',  bg:'var(--rag-red-bg)'},
@@ -8557,6 +8606,266 @@ function _trDismissNote(id){
   renderTransformationReport();
 }
 
+// ── Page Snags — Transformation Report's counterpart to the Test Plan's
+// Snags tab. Same lifecycle (Open/Needs Clarification/Resolved, narrow
+// squash/clarify actions restricted to Developer+, comments via addComment)
+// as the requirement-linked Snags, but keyed on a Node instead of a Story —
+// see PAGE_SNAGS' own comment for why. All top-level (not nested inside
+// renderTransformationReport) since onclick="" attributes in the generated
+// HTML need real global function names to call back into later.
+let _trPageSnagsPanelOpen=false;
+function _trTogglePageSnagsPanel(){ _trPageSnagsPanelOpen=!_trPageSnagsPanelOpen; renderTransformationReport(); }
+
+function _trPageSnagNodeBadgeHtml(nodeId){
+  const openCount=PAGE_SNAGS.filter(sn=>sn.nodeId===nodeId && sn.status!=='Resolved').length;
+  return `<button type="button" class="cmt-badge${openCount?' has':''}" onclick="event.stopPropagation();openAddPageSnagModal('${nodeId}')" title="${openCount?openCount+' open snag'+(openCount===1?'':'s')+' — click to report another':'Report a page issue'}">
+    <span class="material-icons-round" style="font-size:13px">bug_report</span>${openCount?`<span class="cmt-badge-count">${openCount}</span>`:''}
+  </button>`;
+}
+
+// ── Component-related impact — a snag reported against a Component Library
+// item (sn.componentId set) is treated as affecting EVERY page that uses
+// that component (via NODE_COMPS), not just whichever page (if any) it
+// happened to be reported from. This is what lets one component bug put a
+// warning on every page it touches instead of just the page it was noticed
+// on.
+function _trNodesUsingComponent(componentId){
+  return Object.entries(NODE_COMPS).filter(([nodeId,ncs])=>ncs.some(nc=>nc.componentId===componentId)).map(([nodeId])=>nodeId);
+}
+function _trComponentSnagsForNode(nodeId){
+  const compIds=new Set((NODE_COMPS[nodeId]||[]).map(nc=>nc.componentId));
+  if(!compIds.size) return [];
+  return PAGE_SNAGS.filter(sn=>sn.componentId && compIds.has(sn.componentId) && sn.status!=='Resolved');
+}
+// True if this node has a snag reported directly against it OR uses a
+// component that has an outstanding component-related snag — the single
+// check used everywhere "is this page affected by a bug" needs answering
+// (the Status Breakdown's outstanding-snags bar included).
+function _trNodeIsSnagAffected(node){
+  if(PAGE_SNAGS.some(sn=>sn.nodeId===node.id && sn.status!=='Resolved')) return true;
+  return _trComponentSnagsForNode(node.id).length>0;
+}
+function _trComponentImpactBadgeHtml(nodeId){
+  const snags=_trComponentSnagsForNode(nodeId);
+  if(!snags.length) return '';
+  const names=[...new Set(snags.map(sn=>{const c=COMP_LIBRARY.find(x=>x.id===sn.componentId);return c?c.name:'component';}))];
+  return `<button type="button" class="cmt-badge has" style="color:var(--rag-amber-fg)" onclick="event.stopPropagation();_trPageSnagsPanelOpen=true;renderTransformationReport()" title="Impacted by a component bug: ${escH(names.join(', '))} — click to view">
+    <span class="material-icons-round" style="font-size:13px">report</span>
+  </button>`;
+}
+
+let _trPageSnagDraft=null; // {nodeId,componentId,title,type} working copy for the "Report Page Issue" modal, or null when closed
+function openAddPageSnagModal(nodeId){
+  if(!canReportSnags()){showToast('View-only access — editing is disabled');return;}
+  if(!gCurrentUser){showToast('Sign in to report a page issue');return;}
+  _trPageSnagDraft={nodeId:nodeId||'', componentId:'', title:'', type:'page'};
+  _renderAddPageSnagModal();
+  openModal('addPageSnagModal');
+}
+// Switches between "this specific page is broken" and "this Component
+// Library item is broken" without losing whatever's already been typed/
+// picked — the whole body gets rebuilt (different fields apply to each
+// type), so in-progress values are read back into the draft first.
+function _pageSnagSetType(type){
+  const d=_trPageSnagDraft;
+  if(!d) return;
+  const titleEl=eid('addPageSnagTitleInput'), nodeEl=eid('addPageSnagNodeSelect'), compEl=eid('addPageSnagComponentSelect');
+  if(titleEl) d.title=titleEl.value;
+  if(nodeEl) d.nodeId=nodeEl.value;
+  if(compEl) d.componentId=compEl.value;
+  d.type=type;
+  _renderAddPageSnagModal();
+}
+function _renderAddPageSnagModal(){
+  const d=_trPageSnagDraft;
+  const body=eid('addPageSnagModalBody');
+  if(!body) return;
+  const isComponent=d.type==='component';
+  const pages=NODES.filter(n=>n.nodeType==='page').slice().sort((a,b)=>String(a.title||'').localeCompare(String(b.title||'')));
+  const components=COMP_LIBRARY.slice().sort((a,b)=>String(a.name||'').localeCompare(String(b.name||'')));
+  let html=`<div class="mfield"><label>Type</label>
+    <div class="tpl-subtab-toggle">
+      <button type="button" class="tpl-subtab-btn${!isComponent?' active':''}" style="flex:1" onclick="_pageSnagSetType('page')">Page issue</button>
+      <button type="button" class="tpl-subtab-btn${isComponent?' active':''}" style="flex:1" onclick="_pageSnagSetType('component')">Component issue</button>
+    </div>
+  </div>`;
+  if(isComponent){
+    html+=`<div class="mfield"><label>Component</label>
+      <select class="mselect" id="addPageSnagComponentSelect">
+        <option value="">— Select a component —</option>
+        ${components.map(c=>`<option value="${c.id}"${c.id===d.componentId?' selected':''}>${escH(c.name)}${c.code?' ('+escH(c.code)+')':''}</option>`).join('')}
+      </select>
+      ${!components.length?`<div style="font-size:10px;color:var(--text3);margin-top:4px">No components in the Component Library yet.</div>`:''}
+    </div>
+    <div class="mfield"><label>Page <span style="text-transform:none;font-weight:400">(optional — where did you notice it?)</span></label>
+      <select class="mselect" id="addPageSnagNodeSelect">
+        <option value="">— Not tied to one page —</option>
+        ${pages.map(n=>`<option value="${n.id}"${n.id===d.nodeId?' selected':''}>${escH(n.title||n.id)}</option>`).join('')}
+      </select>
+    </div>`;
+  } else {
+    html+=`<div class="mfield"><label>Page</label>
+      <select class="mselect" id="addPageSnagNodeSelect">
+        <option value="">— Select a page —</option>
+        ${pages.map(n=>`<option value="${n.id}"${n.id===d.nodeId?' selected':''}>${escH(n.title||n.id)}</option>`).join('')}
+      </select>
+    </div>`;
+  }
+  html+=`<div class="mfield"><label>What's wrong</label>
+    <textarea class="minput" id="addPageSnagTitleInput" rows="3" placeholder="Describe the issue…">${escH(d.title)}</textarea>
+  </div>`;
+  body.innerHTML=html;
+}
+async function saveAddPageSnagModal(){
+  const d=_trPageSnagDraft;
+  if(!d) return;
+  const isComponent=d.type==='component';
+  const nodeId=eid('addPageSnagNodeSelect')?.value||'';
+  const componentId=isComponent?(eid('addPageSnagComponentSelect')?.value||''):'';
+  const title=(eid('addPageSnagTitleInput')?.value||'').trim();
+  if(isComponent && !componentId){showToast('Select a component');return;}
+  if(!isComponent && !nodeId){showToast('Select a page');return;}
+  if(!title){showToast('Describe the issue');return;}
+  const now=new Date().toISOString();
+  const email=(gCurrentUser&&gCurrentUser.email||'').trim().toLowerCase();
+  const snag={id:'PSNAG'+Date.now()+'_'+Math.floor(Math.random()*1e6),
+    nodeId, componentId, title, status:'Open', source:'manual', reporterEmail:email, cycleCount:1,
+    createdAt:now, resolvedBy:'', resolvedAt:'', updatedAt:now};
+  PAGE_SNAGS.push(snag);
+  await dbUpsertPageSnag(snag);
+  _trPageSnagDraft=null;
+  closeModal('addPageSnagModal');
+  _trPageSnagsPanelOpen=true;
+  renderTransformationReport();
+  showToast(isComponent?'Component issue reported':'Page issue reported');
+}
+
+let _trSnagSquashingId=null; // page snag id whose inline squash/clarify form is expanded
+function _trStartSquashPageSnag(id){
+  if(!canSquashSnags()){showToast('View-only access — editing is disabled');return;}
+  if(!gCurrentUser){showToast('Sign in to squash a snag');return;}
+  _trSnagSquashingId=id; renderTransformationReport();
+}
+function _trCancelSquashPageSnag(){ _trSnagSquashingId=null; renderTransformationReport(); }
+async function _trSubmitSquashPageSnag(id){
+  if(!canSquashSnags()){showToast('View-only access — editing is disabled');return;}
+  if(!gCurrentUser){showToast('Sign in to squash a snag');return;}
+  const sn=PAGE_SNAGS.find(s=>s.id===id); if(!sn)return;
+  const notes=(eid('tr-pagesnag-notes-'+id)?.value||'').trim();
+  const email=gCurrentUser.email.trim().toLowerCase();
+  const now=new Date().toISOString();
+  sn.status='Resolved'; sn.resolvedBy=email; sn.resolvedAt=now; sn.updatedAt=now;
+  _trSnagSquashingId=null;
+  renderTransformationReport();
+  showToast('Page snag marked resolved');
+  // Sequenced, not concurrent — same reasoning as the Test Plan's _tplSubmitSquash.
+  await dbSquashPageSnag(id);
+  await _tplPostAutoComment('pageSnag', id, `🔧 Snag squashed${notes?': '+notes:' (no notes provided)'}`);
+}
+// Sibling outcome to _trSubmitSquashPageSnag, reachable from the same inline
+// form — mirrors the Test Plan's _tplSubmitClarification.
+async function _trSubmitPageSnagClarification(id){
+  if(!canSquashSnags()){showToast('View-only access — editing is disabled');return;}
+  if(!gCurrentUser){showToast('Sign in to request clarification');return;}
+  const sn=PAGE_SNAGS.find(s=>s.id===id); if(!sn)return;
+  const notes=(eid('tr-pagesnag-notes-'+id)?.value||'').trim();
+  if(!notes){showToast('Enter what you need clarified','error');return;}
+  const now=new Date().toISOString();
+  sn.status='Needs Clarification'; sn.updatedAt=now;
+  _trSnagSquashingId=null;
+  renderTransformationReport();
+  showToast('Clarification requested');
+  await dbRequestPageSnagClarification(id);
+  await _tplPostAutoComment('pageSnag', id, `❓ Clarification requested: ${notes}`);
+}
+function _trPageSnagSquashFormHtml(sn){
+  return `<div class="tpl-mark-form" onclick="event.stopPropagation()">
+    <textarea class="tpl-mark-notes" id="tr-pagesnag-notes-${sn.id}" placeholder="What did you change to resolve this… (or, if requesting clarification, what you need to know)" autofocus></textarea>
+    <div class="tpl-mark-form-btns">
+      <button class="tpl-mark-btn tpl-pass-btn" onclick="_trSubmitSquashPageSnag('${sn.id}')"><span class="material-icons-round" style="font-size:13px">check_circle</span>Mark Resolved</button>
+      <button class="tpl-mark-btn" onclick="_trSubmitPageSnagClarification('${sn.id}')"><span class="material-icons-round" style="font-size:13px">help_outline</span>Request Clarification</button>
+      <button class="tpl-mark-btn" onclick="_trCancelSquashPageSnag()">Cancel</button>
+    </div>
+  </div>`;
+}
+
+// Reply half of the clarification cycle — mirrors the Test Plan's
+// _tplSubmitClarifyReply, reusing the plain upsertPageSnag action (which
+// already force-sets status:'Open' server-side, see its doPost case) rather
+// than a separate "reply" backend action.
+let _trPageSnagClarifyReplyingId=null;
+function _trStartPageSnagClarifyReply(id){
+  if(!canReportSnags()){showToast('View-only access — editing is disabled');return;}
+  if(!gCurrentUser){showToast('Sign in to reply');return;}
+  _trPageSnagClarifyReplyingId=id; renderTransformationReport();
+}
+function _trCancelPageSnagClarifyReply(){ _trPageSnagClarifyReplyingId=null; renderTransformationReport(); }
+async function _trSubmitPageSnagClarifyReply(id){
+  if(!canReportSnags()){showToast('View-only access — editing is disabled');return;}
+  if(!gCurrentUser){showToast('Sign in to reply');return;}
+  const sn=PAGE_SNAGS.find(s=>s.id===id); if(!sn)return;
+  const text=(eid('tr-pagesnag-reply-'+id)?.value||'').trim();
+  if(!text){showToast('Enter a reply before sending','error');return;}
+  const now=new Date().toISOString();
+  sn.status='Open'; sn.updatedAt=now;
+  _trPageSnagClarifyReplyingId=null;
+  renderTransformationReport();
+  showToast('Reply sent');
+  await dbUpsertPageSnag(sn);
+  await _tplPostAutoComment('pageSnag', id, `💬 ${text}`);
+}
+function _trPageSnagClarificationBannerHtml(sn){
+  const isReplying=_trPageSnagClarifyReplyingId===sn.id;
+  return `<div style="display:flex;flex-direction:column;gap:6px;padding:8px 10px;border-radius:8px;background:var(--rag-amber-bg);border:1px solid var(--rag-amber-fg)" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--rag-amber-fg)"><span class="material-icons-round" style="font-size:14px">help_outline</span>Developer needs clarification</div>
+    ${isReplying
+      ? `<div class="tpl-mark-form">
+           <textarea class="tpl-mark-notes" id="tr-pagesnag-reply-${sn.id}" placeholder="Answer the developer's question…" autofocus></textarea>
+           <div class="tpl-mark-form-btns">
+             <button class="tpl-mark-btn tpl-pass-btn" onclick="_trSubmitPageSnagClarifyReply('${sn.id}')"><span class="material-icons-round" style="font-size:13px">send</span>Send reply</button>
+             <button class="tpl-mark-btn" onclick="_trCancelPageSnagClarifyReply()">Cancel</button>
+           </div>
+         </div>`
+      : `<div data-requires-snag-report><button class="tpl-mark-btn tpl-mark-btn-primary" onclick="_trStartPageSnagClarifyReply('${sn.id}')">Reply</button></div>`
+    }
+  </div>`;
+}
+
+function _trPageSnagCardHtml(sn){
+  const node=sn.nodeId?NODES.find(n=>n.id===sn.nodeId):null;
+  const component=sn.componentId?COMP_LIBRARY.find(c=>c.id===sn.componentId):null;
+  const isResolved=sn.status==='Resolved';
+  const needsClarification=sn.status==='Needs Clarification';
+  const isPlainOpen=sn.status==='Open';
+  const isSquashing=isPlainOpen && _trSnagSquashingId===sn.id;
+  const statusPill=isResolved
+    ? {label:'Resolved',fg:'var(--rag-green-fg)',bg:'var(--rag-green-bg)'}
+    : needsClarification
+      ? {label:'Needs Clarification',fg:'var(--rag-amber-fg)',bg:'var(--rag-amber-bg)'}
+      : {label:'Open',fg:'var(--rag-red-fg)',bg:'var(--rag-red-bg)'};
+  // Component-related snags lead with the component's own name (that's the
+  // thing that's actually broken) — the page it happened to be noticed on,
+  // if any, is secondary context, not the headline.
+  const impactedCount=component?_trNodesUsingComponent(component.id).length:0;
+  return `<div class="tpl-req-row">
+    <div class="tpl-req-row-main">
+      <div class="req-code-badge" title="${component?'Component':'Page'}">${component?escH(component.name):escH(node?(node.title||node.id):'(deleted page)')}</div>
+      <div class="tpl-req-row-text">${escH(sn.title||'(no description)')}</div>
+      ${component?`<span class="tpl-req-chip" title="Every page using this component shows a warning">Component${impactedCount?` · ${impactedCount} page${impactedCount===1?'':'s'} impacted`:''}</span>`:''}
+      ${component&&node?`<span class="tpl-req-chip">Noticed on ${escH(node.title||node.id)}</span>`:''}
+    </div>
+    <div class="tpl-req-row-meta">
+      <span class="tpl-verify-pill" style="color:${statusPill.fg};background:${statusPill.bg}">${statusPill.label}</span>
+      ${sn.cycleCount>1?`<span class="tpl-hier-fail-badge" title="Sent back to development ${sn.cycleCount-1} time(s) before this">↻ Cycle ${sn.cycleCount}</span>`:''}
+      <span style="font-size:10px;color:var(--text3)">Reported by ${escH(sn.reporterEmail||'—')}${sn.resolvedBy?` · Squashed by ${escH(sn.resolvedBy)}`:''}</span>
+      ${commentBadgeHtml('pageSnag',sn.id,{label:(sn.title||'').slice(0,60)})}
+      ${isPlainOpen&&!isSquashing?`<div data-requires-squash><button class="tpl-mark-btn tpl-mark-btn-primary" onclick="_trStartSquashPageSnag('${sn.id}')">Squash</button></div>`:''}
+    </div>
+    ${isSquashing?`<div data-requires-squash>${_trPageSnagSquashFormHtml(sn)}</div>`:''}
+    ${needsClarification?_trPageSnagClarificationBannerHtml(sn):''}
+  </div>`;
+}
+
 function renderTransformationReport(){
   const wrap=eid('viewTransformation');
   // Every interaction (toggling edit mode, checking off a status, expanding a
@@ -8737,10 +9046,10 @@ function renderTransformationReport(){
         </div>`:''}
         <div class="tr-node-card-progress">${progressPill(v,si,rowEdit,'',true)}</div>
         <div class="tr-node-card-footer">
+          <div style="display:flex;gap:4px" onclick="event.stopPropagation()">${_trComponentImpactBadgeHtml(v.id)}${_trPageSnagNodeBadgeHtml(v.id)}${commentBadgeHtml('node',v.id,{label:title})}</div>
           ${v.signOff?`<span title="Signed off" class="material-icons-round" style="font-size:13px;color:var(--rag-green-fg)">verified</span>`:''}
           ${rw?`<span class="material-icons-round" style="font-size:14px;color:var(--rag-red-fg)" title="${escH(rw)}">warning</span>`:''}
-          <div class="tr-node-card-badges">${subtaskBadges(v,uc,rowEdit)}</div>
-          <div style="margin-left:auto" onclick="event.stopPropagation()">${commentBadgeHtml('node',v.id,{label:title})}</div>
+          <div class="tr-node-card-badges" style="margin-left:auto">${subtaskBadges(v,uc,rowEdit)}</div>
         </div>
         ${docsHtml?`<div class="tr-node-card-divider"></div>${docsHtml}`:''}
         ${v.notes&&v.notes.trim()?`<div class="tr-node-card-divider"></div><div onclick="event.stopPropagation()">${_trLegacyNoteHtml(v.id,v.notes)}</div>`:''}
@@ -8919,7 +9228,14 @@ function renderTransformationReport(){
       const psIP=phaseScopedNodes.filter(isInProgressBucket).length;
       const psNS=phaseScopedNodes.filter(isNotStartedBucket).length;
       const stageCounts=Object.keys(STATUS).map(name=>({name,n:phaseScopedNodes.filter(v=>currentStatusName(v)===name).length,st:STATUS[name]}));
-      const maxCount=Math.max(1,...stageCounts.map(s=>s.n));
+      // Pages (not variants) affected by an outstanding Page Snag — either
+      // reported directly against them, or impacted via a shared Component
+      // Library item (_trNodeIsSnagAffected covers both) — scoped to the
+      // same phase selection as everything else in this chart, folded into
+      // the same relative-width bar chart as the status rows above rather
+      // than a separate number, so it reads at the same glance.
+      const outstandingSnagCount=phaseScopedNodes.filter(n=>_trNodeIsSnagAffected(n)).length;
+      const maxCount=Math.max(1,...stageCounts.map(s=>s.n),outstandingSnagCount);
       const rowsArr=stageCounts.map(s=>{
         const active=_trStageFilter===s.name;
         const barPct=Math.round(s.n/maxCount*100);
@@ -8934,6 +9250,19 @@ function renderTransformationReport(){
           <div class="tr-barchart-val">${s.n}<span class="tr-barchart-val-pct">${ofTotalPct}%</span></div>
         </div>`;
       });
+      if(outstandingSnagCount>0){
+        const snagBarPct=Math.round(outstandingSnagCount/maxCount*100);
+        const snagOfTotalPct=psTotal>0?Math.round(outstandingSnagCount/psTotal*100):0;
+        rowsArr.push(`<div class="tr-barchart-row" onclick="_trPageSnagsPanelOpen=true;renderTransformationReport()" title="Click to view outstanding page snags">
+          <div class="tr-barchart-label" title="Outstanding snags">Outstanding snags</div>
+          <div class="tr-barchart-bar-area">
+            <div class="tr-barchart-track">
+              <div class="tr-barchart-fill" style="width:${snagBarPct}%;--bar-col:var(--rag-red-fg)"></div>
+            </div>
+          </div>
+          <div class="tr-barchart-val">${outstandingSnagCount}<span class="tr-barchart-val-pct">${snagOfTotalPct}%</span></div>
+        </div>`);
+      }
       const twoCol=rowsArr.length>6;
       const barsHtml=twoCol
         ? `<div class="tr-barchart two-col"><div class="tr-barchart-col">${rowsArr.slice(0,Math.ceil(rowsArr.length/2)).join('')}</div><div class="tr-barchart-col">${rowsArr.slice(Math.ceil(rowsArr.length/2)).join('')}</div></div>`
@@ -8950,6 +9279,38 @@ function renderTransformationReport(){
           <div style="padding:2px 4px 12px">${trBreakdown({live:psLive,staged:psStaged,ip:psIP,ns:psNS},'lg')}</div>
           ${barsHtml}
         </div>`:`<div style="padding:16px 4px;text-align:center;font-size:11px;color:var(--secondary)">No phase selected above — choose one to see its status breakdown.</div>`):''}
+      </div>`;
+    })()}
+    ${(()=>{
+      // Page Snags — same phase-scoping as the Status Breakdown chart above
+      // (phaseScopedNodes), collapsible the same way, but flat (no Product>
+      // Functional Area grouping — most Nodes have neither, see PAGE_SNAGS'
+      // own comment). Newest first.
+      const scopedIds=new Set(phaseScopedNodes.map(n=>n.id));
+      // A component-related snag can have no nodeId at all (see PAGE_SNAGS'
+      // comment) — it's in scope if EITHER it was noticed on an in-scope
+      // page, or (for component snags) any page using that component is
+      // in-scope, not just a direct nodeId match.
+      const snags=PAGE_SNAGS.filter(sn=>{
+        if(sn.nodeId && scopedIds.has(sn.nodeId)) return true;
+        if(sn.componentId) return _trNodesUsingComponent(sn.componentId).some(nid=>scopedIds.has(nid));
+        return false;
+      }).sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
+      const outstanding=snags.filter(sn=>sn.status!=='Resolved').length;
+      return `<div class="tr-barchart-wrap">
+        <button type="button" class="tr-barchart-toggle${_trPageSnagsPanelOpen?' open':''}" onclick="_trTogglePageSnagsPanel()">
+          <span class="material-icons-round chev" style="font-size:18px">expand_more</span>
+          Page Snags
+          <span style="font-weight:600;color:var(--secondary);text-transform:none;letter-spacing:0">— ${outstanding} outstanding</span>
+        </button>
+        ${_trPageSnagsPanelOpen?`<div class="tr-barchart-scroll">
+          <div data-requires-snag-report style="padding:2px 4px 10px">
+            <button class="mbtn mbtn-save" onclick="openAddPageSnagModal('')"><span class="material-icons-round" style="font-size:14px;vertical-align:-2px;margin-right:4px">bug_report</span>+ Report Page Issue</button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;padding:2px 4px 12px">
+            ${snags.length?snags.map(sn=>_trPageSnagCardHtml(sn)).join(''):`<div style="padding:16px 4px;text-align:center;font-size:11px;color:var(--secondary)">No page snags for the selected phase${activePhases.filter(trPhaseSelected).length!==1?'s':''}.</div>`}
+          </div>
+        </div>`:''}
       </div>`;
     })()}
   </div>`;
@@ -9084,6 +9445,15 @@ function renderTransformationReport(){
   wrap.innerHTML=html;
   const newContent=wrap.querySelector('.tr-content');
   if(newContent) newContent.scrollTop=prevScrollTop;
+  // This view had no data-requires-* gated controls before the Page Snags
+  // panel (its row-edit affordance is gated a different way, via explicit
+  // canEdit() checks rather than hiding elements) — same full-innerHTML-
+  // rebuild pattern as renderRoadmap()/_renderReqDetail()/renderTestPlan(),
+  // so this needs the same defensive call: a Viewer re-rendering this view
+  // (e.g. via the Page Snags toggle, which calls this function directly, not
+  // through switchView) would otherwise briefly see Squash/Report controls
+  // that should be hidden for their role.
+  if(typeof applyRoleUI==='function') applyRoleUI();
 }
 
 /* ─── ACTION REPORT ────────────────────────────────────────────────────── */
@@ -10736,26 +11106,58 @@ function _renderReqDetail(){
   const typeC=REQTYPE_C[s.type]||null;
 
   eid('reqDetailTitle').textContent=s.code||'Requirement';
+  const commentSlot=eid('reqDetailCommentSlot');
+  if(commentSlot) commentSlot.innerHTML=commentBadgeHtml('story',s.id,{label:s.text.slice(0,60)});
 
-  let body=`<div class="mfield"><label>Requirement</label>`;
-  body+=edit
-    ? `<textarea class="minput" id="rd-text" rows="3">${escH(s.text)}</textarea>`
-    : `<div class="rd-view-text">${escH(s.text)}</div>`;
-  body+=`</div>`;
+  // ── Requirement text — the headline of the modal, so it gets more visual
+  // weight than a plain form field. ──────────────────────────────────────
+  let body=edit
+    ? `<div class="mfield"><label>Requirement</label><textarea class="minput" id="rd-text" rows="3">${escH(s.text)}</textarea></div>`
+    : `<div class="rd-view-text" style="font-size:14px;font-weight:500;line-height:1.55;margin-bottom:2px">${escH(s.text)}</div>`;
 
-  body+=`<div class="mfield"><label>Location</label><div style="padding-top:2px">${_reqChainPillsHtml(s)}</div></div>`;
+  // ── Location — a plain breadcrumb to read, but a visually distinct
+  // "move zone" to edit: reassigning the Function only ever touches this one
+  // requirement, while changing Phase moves the whole Function (and every
+  // other requirement under it) — different blast radius, so it shouldn't
+  // look like just another form field. The warning only appears once you've
+  // actually picked a different phase (see _reqDetailPhaseFieldChanged). ──
+  if(edit){
+    const curFeature=ROADMAP_FEATURES.find(f=>f.id===s.featureId);
+    const curPhaseId=curFeature?curFeature.phaseId:'';
+    body+=`<div class="rd-move-panel">
+      <div class="rd-section-label" style="margin-bottom:10px">Location</div>
+      <div class="ne-grid2" style="gap:10px">
+        <div><label style="display:block;font-size:10px;color:var(--text3);margin-bottom:5px">Function</label><select class="mselect" id="rd-feature">${_reqFeatureOptionsHtml(s.featureId)}</select></div>
+        <div><label style="display:block;font-size:10px;color:var(--text3);margin-bottom:5px">Phase</label><select class="mselect" id="rd-phase" onchange="_reqDetailPhaseFieldChanged()">${PHASES.map(ph=>`<option value="${ph.id}"${ph.id===curPhaseId?' selected':''}>${escH(ph.name)}</option>`).join('')}</select></div>
+      </div>
+      <div class="rd-move-warn" id="rd-phase-warning" style="display:none"></div>
+    </div>`;
+  } else {
+    body+=`<div class="mfield"><div style="padding-top:2px">${_reqChainPillsHtml(s)}</div></div>`;
+  }
 
-  body+=`<div class="ne-grid2" style="gap:10px">
-    <div class="mfield" style="margin:0"><label>Type</label>${edit
-      ? `<select class="mselect" id="rd-type"><option value=""${!s.type?' selected':''}>—</option>${Object.keys(REQTYPE_C).map(t=>`<option value="${escH(t)}"${t===s.type?' selected':''}>${escH(t)}</option>`).join('')}</select>`
-      : `<div class="rd-view-pill" style="${typeC?`color:${typeC};background:${typeC}22`:''}">${escH(s.type||'—')}</div>`}
-    </div>
-    <div class="mfield" style="margin:0"><label>Owner</label>${edit
-      ? `<select class="mselect" id="rd-owner"><option value=""${!s.owner?' selected':''}>—</option>${Object.keys(OWNER_C).map(o=>`<option value="${escH(o)}"${o===s.owner?' selected':''}>${escH(o)}</option>`).join('')}</select>`
-      : `<div class="rd-view-pill">${escH(s.owner||'—')}</div>`}
-    </div>
+  body+=`<div class="rd-divider"></div>`;
+
+  // ── Details — Type/Owner/Fast Follow read as one glanceable row instead
+  // of two separate boxed grids that used to pair Type with Owner and
+  // (confusingly) leave Fast Follow as its own full-width row below. ──────
+  body+=`<div class="mfield">
+    <div class="rd-section-label">Details</div>
+    ${edit
+      ? `<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px">
+          <select class="mselect" id="rd-type" title="Type"><option value=""${!s.type?' selected':''}>Type —</option>${Object.keys(REQTYPE_C).map(t=>`<option value="${escH(t)}"${t===s.type?' selected':''}>${escH(t)}</option>`).join('')}</select>
+          <select class="mselect" id="rd-owner" title="Owner"><option value=""${!s.owner?' selected':''}>Owner —</option>${Object.keys(OWNER_C).map(o=>`<option value="${escH(o)}"${o===s.owner?' selected':''}>${escH(o)}</option>`).join('')}</select>
+          <label class="rd-chip-toggle"><input type="checkbox" id="rd-stretch" ${s.stretch?'checked':''} style="margin:0">Fast Follow</label>
+        </div>`
+      : `<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">
+          <div class="rd-view-pill" style="${typeC?`color:${typeC};background:${typeC}22`:''}">${escH(s.type||'—')}</div>
+          <div class="rd-view-pill">${escH(s.owner||'—')}</div>
+          ${s.stretch?`<span class="rd-ff-badge"><span class="material-icons-round" style="font-size:11px">bolt</span>Fast Follow</span>`:''}
+        </div>`}
   </div>`;
 
+  // ── Status — Dev/Test Status kept as its own clearly-labelled block since
+  // it's the most actively-tracked pair of fields. ────────────────────────
   body+=`<div class="ne-grid2" style="gap:10px">
     <div class="mfield" style="margin:0"><label>Dev Status</label>${edit
       ? `<select class="mselect" id="rd-devstatus">${REQ_STATUSES.map(st=>`<option value="${st}"${st===s.devStatus?' selected':''}>${st}</option>`).join('')}</select>`
@@ -10767,17 +11169,15 @@ function _renderReqDetail(){
     </div>
   </div>`;
 
-  body+=`<div class="mfield"><label>Source</label>${edit
-    ? `<input class="minput" id="rd-source" value="${escH(s.source||'')}" placeholder="e.g. Client interview">`
-    : `<div class="rd-view-text">${escH(s.source||'—')}</div>`}
-  </div>`;
-
-  body+=`<div class="mfield"><label>Fast Follow</label>${edit
-    ? `<label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink);cursor:pointer;padding-top:2px"><input type="checkbox" id="rd-stretch" ${s.stretch?'checked':''}> Mark as Fast Follow</label>`
-    : `<div class="rd-view-pill">${s.stretch?'Yes — Fast Follow':'No'}</div>`}
-  </div>`;
-
-  body+=`<div class="mfield"><label>Comments</label><div style="padding-top:2px">${commentBadgeHtml('story',s.id,{label:s.text.slice(0,60)})}</div></div>`;
+  // Source is optional context, not always filled in — shown in view mode
+  // only when there's actually something to read, same "don't show empty
+  // noise" treatment Fast Follow gets above.
+  if(edit || s.source){
+    body+=`<div class="mfield"><label>Source</label>${edit
+      ? `<input class="minput" id="rd-source" value="${escH(s.source||'')}" placeholder="e.g. Client interview">`
+      : `<div class="rd-view-text">${escH(s.source)}</div>`}
+    </div>`;
+  }
 
   eid('reqDetailBody').innerHTML=body;
 
@@ -10788,6 +11188,24 @@ function _renderReqDetail(){
     : `<button class="mbtn mbtn-cancel" onclick="closeReqDetail()">Close</button>
        <button class="mbtn mbtn-save" data-requires-edit onclick="_reqDetailEnterEdit()">Edit</button>`;
   if(typeof applyRoleUI==='function') applyRoleUI();
+}
+// Live-updates the Location panel's warning as the Phase select changes,
+// rather than showing it unconditionally — it should only appear once
+// there's actually a move about to happen (see the rd-move-panel it lives
+// in). Mirrors the same calc _reqDetailSave uses at confirm() time.
+function _reqDetailPhaseFieldChanged(){
+  const s=ROADMAP_STORIES.find(x=>x.id===_reqDetailStoryId);
+  const warnEl=eid('rd-phase-warning');
+  if(!s||!warnEl) return;
+  const originalFeature=ROADMAP_FEATURES.find(f=>f.id===s.featureId);
+  const newPhaseId=eid('rd-phase')?.value||'';
+  if(originalFeature && newPhaseId && newPhaseId!==originalFeature.phaseId){
+    const siblingCount=ROADMAP_STORIES.filter(x=>x.featureId===originalFeature.id && x.id!==s.id).length;
+    warnEl.innerHTML=`<span class="material-icons-round" style="font-size:13px;flex-shrink:0;margin-top:1px;color:var(--rag-amber-fg)">info</span><span>Moves the whole "${escH(originalFeature.name)}" function${siblingCount>0?` — and its other ${siblingCount} requirement${siblingCount===1?'':'s'}`:''} — into this phase.</span>`;
+    warnEl.style.display='flex';
+  } else {
+    warnEl.style.display='none';
+  }
 }
 // Re-renders whichever view is currently hosting the modal — it's opened from
 // both Requirements Tracker and the Product Roadmap's feature cards.
@@ -10810,6 +11228,31 @@ function _reqDetailSave(){
   if(!canEdit()){showToast('View-only access — editing is disabled');return;}
   const s=ROADMAP_STORIES.find(x=>x.id===_reqDetailStoryId);
   if(!s)return;
+
+  // Phase move — applies to the function this requirement WAS under when the
+  // modal opened, moving every other requirement under it along too (that's
+  // the whole point: "move this to phase X" means the function itself lives
+  // in phase X now, not just this one requirement). Deliberately independent
+  // of the Function reassignment below, which only ever touches this single
+  // requirement — see _renderReqDetail's Phase field helper text.
+  const originalFeature=ROADMAP_FEATURES.find(f=>f.id===s.featureId);
+  const newPhaseId=eid('rd-phase')?.value||'';
+  if(originalFeature && newPhaseId && newPhaseId!==originalFeature.phaseId){
+    const siblingCount=ROADMAP_STORIES.filter(x=>x.featureId===originalFeature.id && x.id!==s.id).length;
+    const targetPhase=PHASES.find(p=>p.id===newPhaseId);
+    const msg=siblingCount>0
+      ? `Move the whole "${originalFeature.name}" function to ${targetPhase?targetPhase.name:'the selected phase'}? This will also move its other ${siblingCount} requirement${siblingCount===1?'':'s'}.`
+      : `Move "${originalFeature.name}" to ${targetPhase?targetPhase.name:'the selected phase'}?`;
+    if(confirm(msg)){
+      originalFeature.phaseId=newPhaseId;
+      dbUpsertFeature(originalFeature);
+    }
+  }
+
+  // Function reassignment — this requirement only, any Function anywhere.
+  const newFeatureId=eid('rd-feature')?.value||s.featureId;
+  if(newFeatureId!==s.featureId) s.featureId=newFeatureId;
+
   const text=(eid('rd-text')?.value||'').trim();
   if(text) s.text=text;
   s.type=eid('rd-type')?.value||'';
@@ -10952,12 +11395,15 @@ function _tplComputeProductBreakdown(baseStories){
         total:stories.length,
         verifiedCount,
         openFailCount,
-        openSnagCount:SNAGS.filter(sn=>sn.status==='Open' && sn.productId===p.id && sn.epicId===epic.id).length,
+        // Not-Resolved, not just plain 'Open' — a snag sitting at 'Needs
+        // Clarification' is still an unresolved issue, just waiting on the
+        // tester instead of the developer, so it should still count here.
+        openSnagCount:SNAGS.filter(sn=>sn.status!=='Resolved' && sn.productId===p.id && sn.epicId===epic.id).length,
       };
     }).sort((a,b)=>(a.epic.order||0)-(b.epic.order||0));
     const verifiedCount=epics.reduce((sum,e)=>sum+e.verifiedCount,0);
     const openFailCount=epics.reduce((sum,e)=>sum+e.openFailCount,0);
-    const openSnagCount=SNAGS.filter(sn=>sn.status==='Open' && sn.productId===p.id).length;
+    const openSnagCount=SNAGS.filter(sn=>sn.status!=='Resolved' && sn.productId===p.id).length;
     return {product:p, total:pStories.length, verifiedCount, openFailCount, openSnagCount, epics};
   });
 }
@@ -11478,9 +11924,10 @@ function _tplReqRowHtml(s, productId){
   // big awkward gap before it) — it drops to its own full-width row below
   // instead, so the notes textarea gets the whole card's width to work with.
   const isMarking=_tplMarkingKey===markKey;
+  const clarifySnag=_tplNeedsClarificationSnag(s.id,productId);
   return `<div class="tpl-req-row${v.openFail?' tpl-req-row-fail':''}">
     <div class="tpl-req-row-main">
-      <div class="req-code-badge" title="Requirement ID">${escH(s.code||'—')}</div>
+      <div class="req-code-badge req-code-badge-clickable" title="View full details" onclick="openReqDetail('${s.id}')">${escH(s.code||'—')}</div>
       <div class="tpl-req-row-text">${escH(s.text)}</div>
       <span class="tpl-verify-pill" style="${typeC?`color:${typeC};background:${typeC}1c`:'color:var(--text3);background:var(--md-surface-container)'}">${escH(typeLabel)}</span>
     </div>
@@ -11495,6 +11942,7 @@ function _tplReqRowHtml(s, productId){
       ${!isMarking?`<div data-requires-test><button class="tpl-mark-btn tpl-mark-btn-primary" onclick="_tplStartMarkStory('${s.id}','${productId}')">${v.rows.length?'Retest':'Test this'}</button></div>`:''}
     </div>
     ${isMarking?`<div data-requires-test>${_tplMarkFormHtml(s,productId)}</div>`:''}
+    ${clarifySnag?_tplClarificationBannerHtml(clarifySnag):''}
   </div>`;
 }
 // One section per product this run needs to cover: the active tab's single
@@ -11900,6 +12348,15 @@ function _tplScenarioCardHtml(sc){
   const isStructured=sc.mode==='structured';
   const title=sc.title || (isStructured ? 'Untitled scenario' : (sc.text||'').slice(0,60));
   const phase=sc.phaseId?PHASES.find(p=>p.id===sc.phaseId):null;
+  // A linked requirement's snag surfaces here too, not just on its own
+  // Functional Tab row — a tester working scenario-first should see it
+  // without having to go hunt down the requirement separately. Resolved via
+  // each story's own home product, same fallback _tplUpsertScenarioFailureSnagsLocal
+  // already uses (a scenario has no product of its own to pick from).
+  const clarifySnags=linkedStories.map(s=>{
+    const pid=_reqResolveChain(s).product?.id||null;
+    return pid?_tplNeedsClarificationSnag(s.id,pid):null;
+  }).filter(Boolean);
 
   let body='';
   if(isOpen){
@@ -11953,7 +12410,8 @@ function _tplScenarioCardHtml(sc){
     ${sc.notes?`<div style="font-size:11px;color:var(--text2)">Notes: ${escH(sc.notes)}</div>`:''}
     <div data-requires-test>
       ${isMarkingThis?_tplScenarioMarkFormHtml(sc.id):`<button class="tpl-mark-btn tpl-mark-btn-primary" onclick="_tplStartMarkScenario('${sc.id}')">${sc.status==='Not Tested'?'Test this':'Retest'}</button>`}
-    </div>`:''}`:''}
+    </div>
+    ${clarifySnags.map(sn=>_tplClarificationBannerHtml(sn)).join('')}`:''}`:''}
   </div>`;
 }
 
@@ -12240,13 +12698,90 @@ async function _tplSubmitSquash(id){
   await _tplPostAutoComment(entityType, entityId, `🔧 Snag squashed on ${product?product.name:'product'}${notes?': '+notes:' (no notes provided)'}`);
 }
 
+// Sibling outcome to _tplSubmitSquash, reachable from the SAME inline form
+// (same textarea, same "developer typing a note" moment) — instead of
+// resolving, this flags the snag as waiting on the tester for more info.
+// Unlike Squash's optional note, a clarification request with no question
+// attached isn't useful, so the note is required here.
+async function _tplSubmitClarification(id){
+  if(!canSquashSnags()){showToast('View-only access — editing is disabled');return;}
+  if(!gCurrentUser){showToast('Sign in to request clarification');return;}
+  const sn=SNAGS.find(s=>s.id===id); if(!sn)return;
+  const notes=(eid('tpl-squash-notes-'+id)?.value||'').trim();
+  if(!notes){showToast('Enter what you need clarified','error');return;}
+  const now=new Date().toISOString();
+  sn.status='Needs Clarification'; sn.updatedAt=now;
+  const entityType=sn.storyId?'story':'snag', entityId=sn.storyId||sn.id;
+  const product=ROADMAP_PRODUCTS.find(p=>p.id===sn.productId);
+  _tplSquashingSnagId=null;
+  renderTestPlan();
+  showToast('Clarification requested');
+  await dbRequestSnagClarification(id);
+  await _tplPostAutoComment(entityType, entityId, `❓ Clarification requested on ${product?product.name:'product'}: ${notes}`);
+}
+
 function _tplSquashFormHtml(sn){
   return `<div class="tpl-mark-form" onclick="event.stopPropagation()">
-    <textarea class="tpl-mark-notes" id="tpl-squash-notes-${sn.id}" placeholder="What did you change to resolve this…" autofocus></textarea>
+    <textarea class="tpl-mark-notes" id="tpl-squash-notes-${sn.id}" placeholder="What did you change to resolve this… (or, if requesting clarification, what you need to know)" autofocus></textarea>
     <div class="tpl-mark-form-btns">
       <button class="tpl-mark-btn tpl-pass-btn" onclick="_tplSubmitSquash('${sn.id}')"><span class="material-icons-round" style="font-size:13px">check_circle</span>Mark Resolved</button>
+      <button class="tpl-mark-btn" onclick="_tplSubmitClarification('${sn.id}')"><span class="material-icons-round" style="font-size:13px">help_outline</span>Request Clarification</button>
       <button class="tpl-mark-btn" onclick="_tplCancelSquash()">Cancel</button>
     </div>
+  </div>`;
+}
+
+// ── Clarification reply — the tester's half of the request-clarification
+// cycle. Reuses the plain upsertSnag action (which already force-sets
+// status:'Open' server-side regardless of what's sent, see its doPost case)
+// rather than a new backend action, since "reply" is really just "reopen
+// this snag, but with a note explaining why" — the exact same shape as any
+// other reopen. Gated the same as reporting/squashing a snag (Tester/
+// Developer/Editor/Admin), not a Viewer-open action, since it's part of the
+// same snag workflow those roles already own.
+let _tplClarifyReplyingId=null; // snag id whose inline reply form is expanded
+function _tplNeedsClarificationSnag(storyId, productId){
+  return SNAGS.find(sn=>sn.storyId===storyId && sn.productId===productId && sn.status==='Needs Clarification') || null;
+}
+function _tplStartClarifyReply(id){
+  if(!canReportSnags()){showToast('View-only access — editing is disabled');return;}
+  if(!gCurrentUser){showToast('Sign in to reply');return;}
+  _tplClarifyReplyingId=id; renderTestPlan();
+}
+function _tplCancelClarifyReply(){ _tplClarifyReplyingId=null; renderTestPlan(); }
+async function _tplSubmitClarifyReply(id){
+  if(!canReportSnags()){showToast('View-only access — editing is disabled');return;}
+  if(!gCurrentUser){showToast('Sign in to reply');return;}
+  const sn=SNAGS.find(s=>s.id===id); if(!sn)return;
+  const text=(eid('tpl-clarify-reply-'+id)?.value||'').trim();
+  if(!text){showToast('Enter a reply before sending','error');return;}
+  const now=new Date().toISOString();
+  sn.status='Open'; sn.updatedAt=now;
+  const entityType=sn.storyId?'story':'snag', entityId=sn.storyId||sn.id;
+  _tplClarifyReplyingId=null;
+  renderTestPlan();
+  showToast('Reply sent');
+  // Sequenced, not concurrent — same reasoning as _tplSubmitSquash.
+  await dbUpsertSnag(sn);
+  await _tplPostAutoComment(entityType, entityId, `💬 ${text}`);
+}
+// Shared by the Snag card, Functional Tab row, and Scenario card — one
+// consistent "developer needs more info" prompt wherever a tester might
+// actually be looking when they'd want to answer it.
+function _tplClarificationBannerHtml(sn){
+  const isReplying=_tplClarifyReplyingId===sn.id;
+  return `<div style="display:flex;flex-direction:column;gap:6px;padding:8px 10px;border-radius:8px;background:var(--rag-amber-bg);border:1px solid var(--rag-amber-fg)" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--rag-amber-fg)"><span class="material-icons-round" style="font-size:14px">help_outline</span>Developer needs clarification</div>
+    ${isReplying
+      ? `<div class="tpl-mark-form">
+           <textarea class="tpl-mark-notes" id="tpl-clarify-reply-${sn.id}" placeholder="Answer the developer's question…" autofocus></textarea>
+           <div class="tpl-mark-form-btns">
+             <button class="tpl-mark-btn tpl-pass-btn" onclick="_tplSubmitClarifyReply('${sn.id}')"><span class="material-icons-round" style="font-size:13px">send</span>Send reply</button>
+             <button class="tpl-mark-btn" onclick="_tplCancelClarifyReply()">Cancel</button>
+           </div>
+         </div>`
+      : `<div data-requires-snag-report><button class="tpl-mark-btn tpl-mark-btn-primary" onclick="_tplStartClarifyReply('${sn.id}')">Reply</button></div>`
+    }
   </div>`;
 }
 
@@ -12254,28 +12789,37 @@ function _tplSnagCardHtml(sn){
   const story = sn.storyId ? ROADMAP_STORIES.find(s=>s.id===sn.storyId) : null;
   const code = story ? (story.code||'—') : null;
   const text = story ? story.text : (sn.title||'(no description)');
-  const statusOpen = sn.status==='Open';
+  const isResolved = sn.status==='Resolved';
+  const needsClarification = sn.status==='Needs Clarification';
+  const isPlainOpen = sn.status==='Open';
   const entityType = sn.storyId ? 'story' : 'snag';
   const entityId = sn.storyId || sn.id;
-  const isSquashing = statusOpen && _tplSquashingSnagId===sn.id;
+  const isSquashing = isPlainOpen && _tplSquashingSnagId===sn.id;
+  const statusPill = isResolved
+    ? {label:'Resolved',fg:'var(--rag-green-fg)',bg:'var(--rag-green-bg)'}
+    : needsClarification
+      ? {label:'Needs Clarification',fg:'var(--rag-amber-fg)',bg:'var(--rag-amber-bg)'}
+      : {label:'Open',fg:'var(--rag-red-fg)',bg:'var(--rag-red-bg)'};
   // Every card on this list is already an open issue by definition — painting
   // the whole row red on top of that was redundant with the Open/Resolved
   // status pill below and just made the list noisy. Normal card styling now;
-  // the pill still carries the red/green status signal on its own.
+  // the pill still carries the red/amber/green status signal on its own.
   return `<div class="tpl-req-row">
     <div class="tpl-req-row-main">
-      ${code?`<div class="req-code-badge" title="Requirement ID">${escH(code)}</div>`:''}
+      ${code?`<div class="req-code-badge req-code-badge-clickable" title="View full details" onclick="openReqDetail('${story.id}')">${escH(code)}</div>`:''}
       <div class="tpl-req-row-text">${escH(text)}</div>
       ${sn.source==='manual'?`<span class="tpl-req-chip">Manually reported</span>`:`<span class="tpl-req-chip">Failed test</span>`}
     </div>
+    ${story?`<div>${_reqChainPillsHtml(story)}</div>`:''}
     <div class="tpl-req-row-meta">
-      <span class="tpl-verify-pill" style="color:${statusOpen?'var(--rag-red-fg)':'var(--rag-green-fg)'};background:${statusOpen?'var(--rag-red-bg)':'var(--rag-green-bg)'}">${statusOpen?'Open':'Resolved'}</span>
+      <span class="tpl-verify-pill" style="color:${statusPill.fg};background:${statusPill.bg}">${statusPill.label}</span>
       ${sn.cycleCount>1?`<span class="tpl-hier-fail-badge" title="Sent back to development ${sn.cycleCount-1} time(s) before this">↻ Cycle ${sn.cycleCount}</span>`:''}
       <span style="font-size:10px;color:var(--text3)">Reported by ${escH(sn.reporterEmail||'—')}${sn.resolvedBy?` · Squashed by ${escH(sn.resolvedBy)}`:''}</span>
       ${commentBadgeHtml(entityType,entityId,{label:text.slice(0,60)})}
-      ${statusOpen&&!isSquashing?`<div data-requires-squash><button class="tpl-mark-btn tpl-mark-btn-primary" onclick="_tplStartSquash('${sn.id}')">Squash</button></div>`:''}
+      ${isPlainOpen&&!isSquashing?`<div data-requires-squash><button class="tpl-mark-btn tpl-mark-btn-primary" onclick="_tplStartSquash('${sn.id}')">Squash</button></div>`:''}
     </div>
     ${isSquashing?`<div data-requires-squash>${_tplSquashFormHtml(sn)}</div>`:''}
+    ${needsClarification?_tplClarificationBannerHtml(sn):''}
   </div>`;
 }
 
@@ -12321,7 +12865,7 @@ function _tplSnagEpicAccordionHtml(epic,snags,productId){
   const colour=epic.colour||EPIC_COLOURS[0];
   const compositeId=epic.id+'::'+productId;
   const isOpen=!_tplClosedSnagEpics.has(compositeId);
-  const openCount=snags.filter(sn=>sn.status==='Open').length;
+  const openCount=snags.filter(sn=>sn.status!=='Resolved').length;
   const style=`background:${colour};color:#fff`;
   let html=`<div class="tpl-hier-group tpl-hier-epic" data-tpl-snag-anchor="${compositeId}">
     <button class="tpl-hier-hdr tpl-hier-hdr-epic" style="${style}" onclick="_tplToggleSnagEpic('${compositeId}')">

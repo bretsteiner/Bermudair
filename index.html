@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- StrategicSitemapper  v84 -->
+<!-- StrategicSitemapper  v86 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -1581,7 +1581,7 @@ a.pt-url-val:hover{text-decoration:underline}
    .req-content ancestor clips it, so — same as Roadmap's own swimlane
    container (.rm-swimlane-label uses border-radius:0 for exactly this
    reason) — these two groups give up the rounded-corner/overflow:hidden
-   treatment other .tpl-hier-group variants (e.g. Open Failures) still have. */
+   treatment other .tpl-hier-group variants (e.g. Open Snags) still have. */
 .tpl-hier-epic,.tpl-hier-feature{border-radius:0;overflow:visible}
 .tpl-hier-hdr-epic{background:var(--md-surface);font-weight:600;font-size:11.5px;position:sticky;top:0;z-index:4}
 .tpl-hier-hdr-feature{background:var(--white);font-weight:600;font-size:11px;border-bottom:1px solid var(--border);position:sticky;top:36px;z-index:3}
@@ -1598,6 +1598,10 @@ a.pt-url-val:hover{text-decoration:underline}
 .tpl-failures-hdr .tpl-hier-chev{color:var(--rag-red-fg)}
 .tpl-req-row{display:flex;flex-direction:column;gap:6px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--white)}
 .tpl-req-row-fail{border-color:var(--rag-red-fg);background:var(--rag-red-bg)}
+/* Verified/blocked-on-Fail rows collapse to one line — see _tplReqRowCompactHtml. */
+.tpl-req-row-compact{flex-direction:row;align-items:center;gap:8px;padding:4px 10px;flex-wrap:nowrap}
+.tpl-req-row-compact .tpl-req-row-text{flex:1;min-width:0;font-size:11px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tpl-req-row-compact .tpl-signoff-chip{width:16px;height:16px;font-size:7px}
 .tpl-req-row-main{display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap}
 .tpl-req-row-text{flex:1;min-width:200px;font-size:12px;color:var(--ink);line-height:1.4}
 .tpl-req-row-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -2248,6 +2252,7 @@ a.pt-url-val:hover{text-decoration:underline}
       <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px">Add user</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <input id="rbacEmailInput" type="email" placeholder="user@domain.com" style="flex:1;min-width:180px;font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid var(--md-outline-variant);background:var(--md-surface-variant);color:var(--text);font-family:var(--font-mono)">
+        <input id="rbacNameInput" type="text" placeholder="Name (optional)" style="width:140px;font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid var(--md-outline-variant);background:var(--md-surface-variant);color:var(--text)">
         <select id="rbacRoleInput" style="font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid var(--md-outline-variant);background:var(--md-surface-variant);color:var(--text)">
           <option value="editor">Editor</option>
           <option value="tester">Tester</option>
@@ -2295,6 +2300,11 @@ let gCurrentUser = null; // { name, email, picture, credential, role }
 
 // RBAC role table — loaded from Sheets: { email: 'admin'|'editor'|'tester'|'developer'|'viewer' }
 let ROLE_TABLE = {};
+// Names recorded against each email on the Roles sheet (admin-entered via the
+// RBAC panel, same as role) — powers the Test Plan sign-off dots' hover
+// tooltip (first name instead of a raw email, see _tplTesterDisplayName).
+// Not every user will have one recorded; callers fall back to the email.
+let NAME_TABLE = {};
 
 // ── Role helpers ──────────────────────────────────────────────────────────
 function currentRole(){ return gCurrentUser?.role || 'viewer'; }
@@ -2404,6 +2414,7 @@ async function handleGoogleCredential(response) {
     const data = await sheetPost({ action: 'getRoles', idToken: response.credential }, 20000);
     if (data && data.roles) {
       ROLE_TABLE = data.roles; // { "alice@example.com": "admin", ... }
+      NAME_TABLE = data.names || {};
       role = ROLE_TABLE[email] || null;
     }
   } catch(e) {
@@ -2474,6 +2485,7 @@ function signOut() {
   }
   gCurrentUser = null;
   ROLE_TABLE = {};
+  NAME_TABLE = {};
   renderUserPill();
   applyRoleUI();
   showToast('Signed out');
@@ -2515,6 +2527,7 @@ function _handleSessionExpired(){
   _googleAuthHandled = false;
   gCurrentUser = null;
   ROLE_TABLE = {};
+  NAME_TABLE = {};
   renderUserPill();
   applyRoleUI();
   showToast('Your session expired — please sign in again to keep saving changes.');
@@ -2743,7 +2756,7 @@ function renderRbacList(){
     const isSelf=email===gCurrentUser?.email;
     return `<div class="rbac-row">
       <span class="rbac-email" title="${email}">${email}</span>
-      <span class="role-badge ${rc}">${role}</span>
+      <input class="rbac-select" type="text" placeholder="Name" value="${escH(NAME_TABLE[email]||'')}" style="font-family:var(--font-body);width:110px;cursor:text" onchange="rbacChangeName('${email}',this.value)">
       <select class="rbac-select" onchange="rbacChangeRole('${email}',this.value)" ${isSelf?'disabled title="Cannot change your own role"':''}>
         <option value="admin" ${role==='admin'?'selected':''}>Admin</option>
         <option value="editor" ${role==='editor'?'selected':''}>Editor</option>
@@ -2758,12 +2771,15 @@ function renderRbacList(){
 
 async function rbacAddUser(){
   const email=(eid('rbacEmailInput').value||'').trim().toLowerCase();
+  const name=(eid('rbacNameInput').value||'').trim();
   const role=eid('rbacRoleInput').value;
   if(!email||!email.includes('@')){ showToast('Enter a valid email address'); return; }
   ROLE_TABLE[email]=role;
+  if(name) NAME_TABLE[email]=name; else delete NAME_TABLE[email];
   await rbacSaveToSheets();
   renderRbacList();
   eid('rbacEmailInput').value='';
+  eid('rbacNameInput').value='';
   showToast(`Added ${email} as ${role}`);
 }
 
@@ -2774,10 +2790,18 @@ async function rbacChangeRole(email, role){
   showToast(`Updated ${email} to ${role}`);
 }
 
+async function rbacChangeName(email, name){
+  name=(name||'').trim();
+  if(name) NAME_TABLE[email]=name; else delete NAME_TABLE[email];
+  await rbacSaveToSheets();
+  showToast(name?`Recorded ${name} for ${email}`:`Cleared name for ${email}`);
+}
+
 async function rbacRemoveUser(email){
   if(email===gCurrentUser?.email){ showToast('Cannot remove your own account'); return; }
   if(!confirm(`Remove ${email} from access list?`)) return;
   delete ROLE_TABLE[email];
+  delete NAME_TABLE[email];
   await rbacSaveToSheets();
   renderRbacList();
   showToast(`Removed ${email}`);
@@ -2785,7 +2809,7 @@ async function rbacRemoveUser(email){
 
 async function rbacSaveToSheets(){
   try {
-    await sheetPost({ action: 'saveRoles', roles: ROLE_TABLE });
+    await sheetPost({ action: 'saveRoles', roles: ROLE_TABLE, names: NAME_TABLE });
   } catch(e) {
     showToast('⚠️ Could not save roles to Sheet — changes are local only until reconnected.');
     console.warn('rbacSaveToSheets error:', e);
@@ -3794,12 +3818,22 @@ let _tplImportOpen=false;          // markdown bulk-import panel open/closed
 // Functional Area can now appear under more than one product section, each
 // independently collapsible.
 let _tplSummaryOpen=false;
-// Open Failures accordion — one per product section now (was a single global
-// bool) — Set of productIds whose section is closed; default empty = open,
-// same convention as the rest.
-let _tplClosedFailureSections=new Set();
+// Open Snags accordion (functional tab) — one per product section now (was a
+// single global bool) — Set of productIds whose section is OPEN; default
+// empty = closed, the opposite convention from the rest of this file
+// (epics/features/scenarios default open) since a tester has nothing to do
+// on a failing row until Development squashes it — see _tplReqRowHtml.
+let _tplOpenFailureSections=new Set();
+// Scenario tab's own Open Snags accordion — a single flat section (scenarios
+// aren't split per-product), same "empty/false = closed" default as above.
+let _tplOpenScenarioFailuresSection=false;
 let _tplClosedEpics=new Set();
 let _tplClosedFeatures=new Set();
+// Functional Areas auto-collapsed once because they hit 100% verified (see
+// _tplMaybeAutoCollapseEpic) — tracked separately from _tplClosedEpics so a
+// manual reopen afterward sticks instead of being fought on the next render;
+// this is a one-time nudge, not a rule re-enforced every render.
+let _tplAutoCollapsedEpics=new Set();
 let _tplClosedScenarios=new Set(); // collapsed scenario cards — see _tplToggleScenario
 let _tplScenarioNavView='sequence'; // 'sequence' | 'status' — the left nav's Scenario list toggle
 // Which product's board is currently shown — defaults to the first product
@@ -11772,7 +11806,7 @@ function _tplNavGoToSnagEpic(productId, epicId){
 // ── Functional Tests — organised as Functional Area (Epic) > Feature per
 // product SECTION (not accordion level — see renderTestPlan/_tplRenderFunc-
 // tionalTab), so a functional area/feature can be seen as "fully tested for
-// THIS product" at a glance via its own %-verified badge. Open Failures gets
+// THIS product" at a glance via its own %-verified badge. Open Snags gets
 // its own per-product-section flat accordion above that section's tree for
 // fast triage, independent of which branches happen to be expanded.
 function _tplGroupPct(groupStories, productId){
@@ -11873,9 +11907,37 @@ function _tplFeatureAccordionHtml(fEntry, epicColour, productId){
   html+=`</div>`;
   return html;
 }
+// True once every story in this Functional Area/product is in a state with
+// nothing left for a TESTER to do: either Verified, or blocked on an open
+// Fail with no clarification question owed (same "nothing to act on" test
+// _tplReqRowHtml uses to decide whether a row compacts). A story still
+// waiting on a first/second pass, or one with a clarification reply owed,
+// keeps the area open.
+function _tplEpicAllResolved(stories, productId){
+  return stories.every(s=>{
+    const v=_tplStoryVerification(s.id,productId);
+    if(v.verified) return true;
+    if(v.openFail) return !_tplNeedsClarificationSnag(s.id,productId);
+    return false;
+  });
+}
+// Auto-collapses a Functional Area the first time everything in it is
+// resolved one way or another (all Verified, or all Verified/open-Fail with
+// no lingering "needs attention" rows), so finished areas stop taking up
+// screen space and attention stays on what's still actionable. A one-shot
+// nudge (tracked in _tplAutoCollapsedEpics), not a rule re-applied every
+// render — reopening one manually afterward sticks, it won't be
+// force-closed again just because it's still fully resolved.
+function _tplMaybeAutoCollapseEpic(compositeId, allResolved){
+  if(allResolved && !_tplAutoCollapsedEpics.has(compositeId)){
+    _tplAutoCollapsedEpics.add(compositeId);
+    _tplClosedEpics.add(compositeId);
+  }
+}
 function _tplEpicAccordionHtml(eEntry, productId){
   const colour=eEntry.epic.colour||EPIC_COLOURS[0];
   const compositeId=eEntry.epic.id+'::'+productId;
+  _tplMaybeAutoCollapseEpic(compositeId, _tplEpicAllResolved(eEntry.stories, productId));
   const {isOpen,html:hdr}=_tplHierHdrHtml('epic',compositeId,eEntry.epic.name,eEntry.stories,'tpl-hier-hdr-epic',colour,productId);
   let html=`<div class="tpl-hier-group tpl-hier-epic" data-tpl-anchor="${compositeId}">${hdr}`;
   if(isOpen){
@@ -11887,24 +11949,53 @@ function _tplEpicAccordionHtml(eEntry, productId){
   html+=`</div>`;
   return html;
 }
-// Open Failures is per-product-section now (a shared Functional Area can have
-// open failures on Product A but not Product B) — keyed by productId, Set of
-// CLOSED sections, default empty = open, same convention as everything else.
+// Open Snags is per-product-section now (a shared Functional Area can have
+// open snags on Product A but not Product B) — keyed by productId, Set of
+// OPEN sections, default empty = closed (see _tplOpenFailureSections above).
 function _tplToggleFailuresAccordion(productId){
-  if(_tplClosedFailureSections.has(productId)) _tplClosedFailureSections.delete(productId);
-  else _tplClosedFailureSections.add(productId);
+  if(_tplOpenFailureSections.has(productId)) _tplOpenFailureSections.delete(productId);
+  else _tplOpenFailureSections.add(productId);
   renderTestPlan();
 }
 function _tplFailuresAccordionHtml(failingStories, productId){
-  const isOpen=!_tplClosedFailureSections.has(productId);
+  const isOpen=_tplOpenFailureSections.has(productId);
   return `<div class="tpl-hier-group tpl-failures-group">
     <button class="tpl-hier-hdr tpl-failures-hdr" onclick="_tplToggleFailuresAccordion('${productId}')">
       <span class="material-icons-round tpl-hier-chev" style="font-size:15px">${isOpen?'expand_more':'chevron_right'}</span>
       <span class="material-icons-round" style="font-size:14px">error_outline</span>
-      <span class="tpl-hier-label">Open Failures</span>
+      <span class="tpl-hier-label">Open Snags</span>
       <span class="tpl-hier-fail-badge">${failingStories.length}</span>
     </button>
     ${isOpen?`<div class="tpl-hier-body">${failingStories.map(s=>_tplReqRowHtml(s,productId)).join('')}</div>`:''}
+  </div>`;
+}
+// Shared by the full and compact row renderers — resolves a tester's initial
+// dots AND (see item 10 of the 2026-09-02 test-plan UX batch) their hover
+// tooltip, which now leads with their first name from NAME_TABLE (recorded
+// on the Access & Roles sheet) rather than their raw email, falling back to
+// the email when no name has been recorded for them yet.
+function _tplTesterDisplayName(email){
+  const name=(NAME_TABLE[String(email||'').trim().toLowerCase()]||'').trim();
+  return name ? name.split(/\s+/)[0] : (email||'');
+}
+function _tplSignoffChipsHtml(v){
+  return v.rows.map(r=>`<span class="tpl-signoff-chip ${r.result==='Pass'?'pass':'fail'}" title="${escH(_tplTesterDisplayName(r.testerEmail))} — ${r.result}${r.notes?': '+escH(r.notes):''} (${_cmtFmtDate(r.testedAt)})">${_cmtInitials(r.testerEmail)}</span>`).join('');
+}
+// Nothing left for a tester to act on: minimised to one line so a browsed
+// Functional Area reads as "here's what still needs attention" rather than
+// every row — verified and equally, once — costing the same screen space as
+// something waiting on a first/second pass. See _tplReqRowHtml for the two
+// cases this is used for (verified, and blocked-on-Fail).
+function _tplReqRowCompactHtml(s, productId, v, covered){
+  const pillC=v.verified?TPL_RESULT_COLOURS.Pass:TPL_RESULT_COLOURS.Fail;
+  const pillLabel=v.verified?'✓ Verified':`${v.failCount} failing`;
+  return `<div class="tpl-req-row tpl-req-row-compact${v.openFail?' tpl-req-row-fail':''}">
+    <div class="req-code-badge req-code-badge-clickable" title="View full details" onclick="openReqDetail('${s.id}')">${escH(s.code||'—')}</div>
+    <div class="tpl-req-row-text">${escH(s.text)}</div>
+    <div class="tpl-signoff-chips">${_tplSignoffChipsHtml(v)}</div>
+    <span class="tpl-verify-pill" style="color:${pillC.fg};background:${pillC.bg}">${pillLabel}</span>
+    <span class="tpl-coverage-icon" title="${covered?'Covered by a passed scenario':'No passed scenario linked'}">${covered?'✅':'—'}</span>
+    ${commentBadgeHtml('story',s.id,{label:s.text.slice(0,60)})}
   </div>`;
 }
 // `productId` is the SECTION this row is rendered under (a shared Functional
@@ -11914,10 +12005,6 @@ function _tplFailuresAccordionHtml(failingStories, productId){
 function _tplReqRowHtml(s, productId){
   const v=_tplStoryVerification(s.id,productId);
   const covered=_tplScenarioHasCoverage(s.id);
-  const pillC=v.verified?TPL_RESULT_COLOURS.Pass:(v.openFail?TPL_RESULT_COLOURS.Fail:{fg:'var(--wf-ns-fg)',bg:'var(--wf-ns-bg)'});
-  const pillLabel=v.verified?'✓ Verified':(v.openFail?`${v.passers.length}/2 — Fail open`:`${v.passers.length}/2 passed`);
-  const typeC=REQTYPE_C[s.type]||null;
-  const typeLabel=s.type||'Untyped';
   const markKey=s.id+'::'+productId;
   // Opening the mark form no longer squeezes it into the compact chip/pill
   // row alongside everything else (that left it a cramped little box with a
@@ -11925,6 +12012,28 @@ function _tplReqRowHtml(s, productId){
   // instead, so the notes textarea gets the whole card's width to work with.
   const isMarking=_tplMarkingKey===markKey;
   const clarifySnag=_tplNeedsClarificationSnag(s.id,productId);
+  // Compact when there's genuinely nothing to do right now: already verified
+  // (2 clean passes), or blocked on a Fail — a Fail can never self-clear via
+  // Retest (the old Fail row in TEST_RESULTS persists until Development
+  // squashes the snag and resets it, see _tplStoryVerification), so showing
+  // a "Retest" button there was a dead end, not a real action. A pending
+  // clarification question is the one exception — THAT is something the
+  // tester owes a reply to, so it stays expanded regardless of state.
+  if(!isMarking && !clarifySnag && (v.verified || v.openFail)){
+    return _tplReqRowCompactHtml(s, productId, v, covered);
+  }
+  const pillC=v.verified?TPL_RESULT_COLOURS.Pass:(v.openFail?TPL_RESULT_COLOURS.Fail:{fg:'var(--wf-ns-fg)',bg:'var(--wf-ns-bg)'});
+  const pillLabel=v.verified?'✓ Verified':(v.openFail?`${v.passers.length}/2 — Fail open`:`${v.passers.length}/2 passed`);
+  const typeC=REQTYPE_C[s.type]||null;
+  const typeLabel=s.type||'Untyped';
+  // Button label: "Test" for a first-ever pass, "Second Pass" once one clean
+  // pass is in and a second (different tester) is needed to verify, or
+  // "Verify Fix" for the specific case of a requirement whose snag was just
+  // Resolved by a developer and hasn't been retested since (rows.length===0
+  // again post-squash, but NOT because it was never tested at all).
+  const priorSnag=SNAGS.find(sn=>sn.storyId===s.id && sn.productId===productId);
+  const isVerifyFix=!v.rows.length && priorSnag && priorSnag.status==='Resolved';
+  const btnLabel=!v.rows.length?(isVerifyFix?'Verify Fix':'Test'):'Second Pass';
   return `<div class="tpl-req-row${v.openFail?' tpl-req-row-fail':''}">
     <div class="tpl-req-row-main">
       <div class="req-code-badge req-code-badge-clickable" title="View full details" onclick="openReqDetail('${s.id}')">${escH(s.code||'—')}</div>
@@ -11933,13 +12042,13 @@ function _tplReqRowHtml(s, productId){
     </div>
     <div class="tpl-req-row-meta">
       <div class="tpl-signoff-chips">
-        ${v.rows.map(r=>`<span class="tpl-signoff-chip ${r.result==='Pass'?'pass':'fail'}" title="${escH(r.testerEmail)} — ${r.result}${r.notes?': '+escH(r.notes):''} (${_cmtFmtDate(r.testedAt)})">${_cmtInitials(r.testerEmail)}</span>`).join('')}
+        ${_tplSignoffChipsHtml(v)}
         ${!v.rows.length?'<span style="font-size:10px;color:var(--text3)">Not tested</span>':''}
       </div>
       <span class="tpl-verify-pill" style="color:${pillC.fg};background:${pillC.bg}">${pillLabel}</span>
       <span class="tpl-coverage-icon" title="${covered?'Covered by a passed scenario':'No passed scenario linked'}">${covered?'✅':'—'}</span>
       ${commentBadgeHtml('story',s.id,{label:s.text.slice(0,60)})}
-      ${!isMarking?`<div data-requires-test><button class="tpl-mark-btn tpl-mark-btn-primary" onclick="_tplStartMarkStory('${s.id}','${productId}')">${v.rows.length?'Retest':'Test this'}</button></div>`:''}
+      ${(!isMarking && !v.openFail)?`<div data-requires-test><button class="tpl-mark-btn tpl-mark-btn-primary" onclick="_tplStartMarkStory('${s.id}','${productId}')">${btnLabel}</button></div>`:''}
     </div>
     ${isMarking?`<div data-requires-test>${_tplMarkFormHtml(s,productId)}</div>`:''}
     ${clarifySnag?_tplClarificationBannerHtml(clarifySnag):''}
@@ -12019,8 +12128,20 @@ function _tplRenderScenarioTab(stories){
     const scenarios=_tplScopedScenarios(stories);
     if(!scenarios.length){
       html+=_tplEmptyStateHtml();
+    } else {
+      // Failing scenarios render ONLY inside the Open Snags accordion, not
+      // also down in their normal sequence position — unlike the Functional
+      // tab's failing stories (which are always button-less/compact so a
+      // duplicate render is harmless either way), a scenario keeps its Retest
+      // button in both states, and _tplScenarioCardHtml's mark-form textarea
+      // id is keyed by scenario id alone — rendering the SAME scenario twice
+      // while it's being marked would duplicate that id in the DOM. Simplest
+      // fix: each scenario appears in exactly one place.
+      const failingScenarios=scenarios.filter(sc=>sc.status==='Fail');
+      const otherScenarios=scenarios.filter(sc=>sc.status!=='Fail');
+      if(failingScenarios.length) html+=_tplScenarioFailuresAccordionHtml(failingScenarios);
+      otherScenarios.forEach(sc=>{ html+=_tplScenarioCardHtml(sc); });
     }
-    scenarios.forEach(sc=>{ html+=_tplScenarioCardHtml(sc); });
   }
   html+=`</div>`;
   return html;
@@ -12337,6 +12458,25 @@ async function _tplImportScenariosFromMarkdown(){
 function _tplToggleScenario(id){
   if(_tplClosedScenarios.has(id)) _tplClosedScenarios.delete(id); else _tplClosedScenarios.add(id);
   renderTestPlan();
+}
+// Scenario tab's own Open Snags accordion, mirroring the Functional tab's
+// _tplFailuresAccordionHtml — flat (not per-product; scenarios aren't split
+// by product) and default-closed, same as its functional-tab counterpart.
+function _tplToggleScenarioFailuresAccordion(){
+  _tplOpenScenarioFailuresSection=!_tplOpenScenarioFailuresSection;
+  renderTestPlan();
+}
+function _tplScenarioFailuresAccordionHtml(failingScenarios){
+  const isOpen=_tplOpenScenarioFailuresSection;
+  return `<div class="tpl-hier-group tpl-failures-group">
+    <button class="tpl-hier-hdr tpl-failures-hdr" onclick="_tplToggleScenarioFailuresAccordion()">
+      <span class="material-icons-round tpl-hier-chev" style="font-size:15px">${isOpen?'expand_more':'chevron_right'}</span>
+      <span class="material-icons-round" style="font-size:14px">error_outline</span>
+      <span class="tpl-hier-label">Open Snags</span>
+      <span class="tpl-hier-fail-badge">${failingScenarios.length}</span>
+    </button>
+    ${isOpen?`<div class="tpl-hier-body">${failingScenarios.map(sc=>_tplScenarioCardHtml(sc)).join('')}</div>`:''}
+  </div>`;
 }
 function _tplScenarioCardHtml(sc){
   const statusC=TPL_SCENARIO_STATUS_COLOURS[sc.status]||TPL_SCENARIO_STATUS_COLOURS['Not Tested'];
@@ -16185,6 +16325,7 @@ function enterDemoMode(){
   if(_demoOn) return; _demoOn=true;
   gCurrentUser={name:'Demo User',email:'demo@sitemapper.app',picture:'',credential:'',role:'admin'};
   ROLE_TABLE={'demo@sitemapper.app':'admin'};
+  NAME_TABLE={'demo@sitemapper.app':'Demo User'};
   _seedDemoData();
   hideAuthOverlay();
   showStartScreen();

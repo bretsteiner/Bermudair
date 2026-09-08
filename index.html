@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- StrategicSitemapper  v86 -->
+<!-- StrategicSitemapper  v95 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -3026,6 +3026,10 @@ async function loadFromSheets() {
     // Same shape as SNAGS, keyed on nodeId instead of storyId/productId/epicId
     // — see the Transformation Report's Page Snags panel.
     PAGE_SNAGS = (data.pageSnags||[]).map(r=>({id:String(r.id||''),nodeId:String(r.nodeId||''),componentId:String(r.componentId||''),title:r.title||'',status:r.status||'Open',source:r.source||'manual',reporterEmail:String(r.reporterEmail||'').trim().toLowerCase(),cycleCount:Number(r.cycleCount)||1,createdAt:r.createdAt||null,resolvedBy:String(r.resolvedBy||'').trim().toLowerCase(),resolvedAt:r.resolvedAt||null,updatedAt:r.updatedAt||null}));
+    // One row per (day,product), written by the backend's captureProductProgressSnapshot()
+    // — see its comment. Only ever tracks forward from whenever that's first
+    // run; there is no historical data before then.
+    PRODUCT_PROGRESS = (data.productProgress||[]).map(r=>({id:String(r.id||''),date:String(r.date||''),productId:String(r.productId||''),productName:r.productName||'',total:Number(r.total)||0,verifiedCount:Number(r.verifiedCount)||0,pct:Number(r.pct)||0,capturedAt:r.capturedAt||null}));
     if (_rmActiveProductId && !ROADMAP_PRODUCTS.find(p=>p.id===_rmActiveProductId)) _rmActiveProductId=null;
     if (!_rmActiveProductId && ROADMAP_PRODUCTS.length) _rmActiveProductId=ROADMAP_PRODUCTS[0].id;
     if (_tplActiveProductId && _tplActiveProductId!=='ALL' && !ROADMAP_PRODUCTS.find(p=>p.id===_tplActiveProductId)) _tplActiveProductId=null;
@@ -3409,6 +3413,25 @@ async function dbRequestSnagClarification(id){try{await sheetPost({action:'reque
 async function dbUpsertPageSnag(sn){try{await sheetPost({action:'upsertPageSnag',row:{id:sn.id,nodeId:sn.nodeId||'',componentId:sn.componentId||'',title:sn.title||'',status:sn.status||'Open',source:sn.source||'manual',reporterEmail:sn.reporterEmail||'',cycleCount:sn.cycleCount||1,createdAt:sn.createdAt||'',resolvedBy:sn.resolvedBy||'',resolvedAt:sn.resolvedAt||'',updatedAt:sn.updatedAt||''}});}catch(e){console.error('dbUpsertPageSnag:',e);showToast('Sheet write error: '+e.message);}}
 async function dbSquashPageSnag(id){try{await sheetPost({action:'squashPageSnag',id});}catch(e){console.error('dbSquashPageSnag:',e);showToast('Sheet write error: '+e.message);}}
 async function dbRequestPageSnagClarification(id){try{await sheetPost({action:'requestPageSnagClarification',id});}catch(e){console.error('dbRequestPageSnagClarification:',e);showToast('Sheet write error: '+e.message);}}
+// Manual on-demand trigger for the daily Product Progress snapshot (see
+// PRODUCT_PROGRESS's declaration and the backend's captureProductProgressSnapshot
+// comment) — mainly for getting today's first data point without waiting for
+// the daily trigger to fire, or for spot-checking it works. Splices the
+// returned rows straight into PRODUCT_PROGRESS (upsert by id, same
+// same-day-overwrite semantics the backend itself uses) rather than
+// re-fetching everything.
+async function dbCaptureProgressSnapshotNow(){
+  if(!isAdmin()){showToast('Admin access required');return;}
+  try{
+    const res=await sheetPost({action:'captureProgressSnapshot'});
+    (res.rows||[]).forEach(row=>{
+      const i=PRODUCT_PROGRESS.findIndex(p=>p.id===row.id);
+      const clean={id:String(row.id||''),date:String(row.date||''),productId:String(row.productId||''),productName:row.productName||'',total:Number(row.total)||0,verifiedCount:Number(row.verifiedCount)||0,pct:Number(row.pct)||0,capturedAt:row.capturedAt||null};
+      if(i===-1) PRODUCT_PROGRESS.push(clean); else PRODUCT_PROGRESS[i]=clean;
+    });
+    showToast(`Progress snapshot captured for ${res.count||0} product${res.count===1?'':'s'}`);
+  }catch(e){console.error('dbCaptureProgressSnapshotNow:',e);showToast('Snapshot failed: '+e.message);}
+}
 async function dbUpsertScenario(sc){try{await sheetPost({action:'upsertScenario',row:{id:sc.id,code:sc.code||'',title:sc.title||'',mode:sc.mode||'freeform',type:sc.type||'',priority:sc.priority||'',phaseId:sc.phaseId||'',objective:sc.objective||'',preconditions:sc.preconditions||'',testData:sc.testData||'',stepsJson:sc.stepsJson||'',overallExpected:sc.overallExpected||'',reqCodes:sc.reqCodes||'',text:sc.text||'',status:sc.status||'Not Tested',lastTestedBy:sc.lastTestedBy||'',lastTestedAt:sc.lastTestedAt||'',notes:sc.notes||'',createdBy:sc.createdBy||'',createdAt:sc.createdAt||''}});}catch(e){console.error('dbUpsertScenario:',e);showToast('Sheet write error: '+e.message);}}
 // Narrow counterpart to dbUpsertScenario — used when only recording a Pass/
 // Fail result (Test Plan's "Test this"), not editing scenario content. Hits
@@ -3717,6 +3740,12 @@ let SNAGS=[];
 // the Transformation Report's Page Snags panel. Always source:'manual';
 // there's no auto-fail-triggered path for pages the way a Test Plan snag has.
 let PAGE_SNAGS=[];
+// [{id,date,productId,productName,total,verifiedCount,pct,capturedAt}] — one
+// row per (day,product), captured by the backend's daily snapshot trigger.
+// Feeds the Test Report's Progress by Day chart. See its own comment for why
+// this can only ever have history from whenever that trigger was first set
+// up onward — nothing before that is reconstructable.
+let PRODUCT_PROGRESS=[];
 const TPL_RESULT_COLOURS={
   'Pass':{fg:'var(--rag-green-fg)',bg:'var(--rag-green-bg)'},
   'Fail':{fg:'var(--rag-red-fg)',  bg:'var(--rag-red-bg)'},
@@ -4298,6 +4327,14 @@ async function _tplPostAutoComment(entityType,entityId,text){
     _cmtApplyNewComment(res);
   }catch(e){
     console.error('_tplPostAutoComment:',e);
+    // Every caller already shows an optimistic "sent/saved" toast BEFORE
+    // awaiting this (deliberately, so the UI doesn't lag on the network —
+    // see e.g. _tplSubmitClarifyReply's comment). If the write actually
+    // fails, that toast has already told the user it worked. Sibling db*
+    // functions (dbUpsertSnag etc.) all surface a toast on failure; this one
+    // silently swallowed it instead, which is exactly how a note/reply could
+    // go missing with zero indication anything went wrong.
+    showToast('Comment failed to save: '+e.message,'error');
   }
 }
 
@@ -8850,8 +8887,11 @@ async function _trSubmitPageSnagClarifyReply(id){
 }
 function _trPageSnagClarificationBannerHtml(sn){
   const isReplying=_trPageSnagClarifyReplyingId===sn.id;
+  // _tplClarifyThreadHtml is defined later in the file (Test Plan section)
+  // but function declarations are hoisted, so this call is safe.
   return `<div style="display:flex;flex-direction:column;gap:6px;padding:8px 10px;border-radius:8px;background:var(--rag-amber-bg);border:1px solid var(--rag-amber-fg)" onclick="event.stopPropagation()">
     <div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--rag-amber-fg)"><span class="material-icons-round" style="font-size:14px">help_outline</span>Developer needs clarification</div>
+    ${_tplClarifyThreadHtml('pageSnag', sn.id)}
     ${isReplying
       ? `<div class="tpl-mark-form">
            <textarea class="tpl-mark-notes" id="tr-pagesnag-reply-${sn.id}" placeholder="Answer the developer's question…" autofocus></textarea>
@@ -8896,7 +8936,9 @@ function _trPageSnagCardHtml(sn){
       ${isPlainOpen&&!isSquashing?`<div data-requires-squash><button class="tpl-mark-btn tpl-mark-btn-primary" onclick="_trStartSquashPageSnag('${sn.id}')">Squash</button></div>`:''}
     </div>
     ${isSquashing?`<div data-requires-squash>${_trPageSnagSquashFormHtml(sn)}</div>`:''}
-    ${needsClarification?_trPageSnagClarificationBannerHtml(sn):''}
+    ${needsClarification
+      ? _trPageSnagClarificationBannerHtml(sn)
+      : (isResolved?'':_tplClarifyHistorySnippetHtml('pageSnag', sn.id))}
   </div>`;
 }
 
@@ -11150,11 +11192,13 @@ function _renderReqDetail(){
     : `<div class="rd-view-text" style="font-size:14px;font-weight:500;line-height:1.55;margin-bottom:2px">${escH(s.text)}</div>`;
 
   // ── Location — a plain breadcrumb to read, but a visually distinct
-  // "move zone" to edit: reassigning the Function only ever touches this one
-  // requirement, while changing Phase moves the whole Function (and every
-  // other requirement under it) — different blast radius, so it shouldn't
-  // look like just another form field. The warning only appears once you've
-  // actually picked a different phase (see _reqDetailPhaseFieldChanged). ──
+  // "move zone" to edit. Both Function reassignment and Phase change touch
+  // ONLY this one requirement: changing Phase finds (or creates) a
+  // same-named Function under the same Functional Area already living in
+  // the target phase and re-parents just this story onto it — the original
+  // Function, and every other requirement still under it, stays put. The
+  // warning only appears once you've actually picked a different phase (see
+  // _reqDetailPhaseFieldChanged). ──────────────────────────────────────────
   if(edit){
     const curFeature=ROADMAP_FEATURES.find(f=>f.id===s.featureId);
     const curPhaseId=curFeature?curFeature.phaseId:'';
@@ -11223,6 +11267,15 @@ function _renderReqDetail(){
        <button class="mbtn mbtn-save" data-requires-edit onclick="_reqDetailEnterEdit()">Edit</button>`;
   if(typeof applyRoleUI==='function') applyRoleUI();
 }
+// Finds an existing same-named Function under the same Functional Area
+// already living in the target phase — shared by the live warning below and
+// _reqDetailSave's actual move, so they can never disagree about whether a
+// new Function will be created or an existing one reused.
+function _reqFindPhaseClone(originalFeature,newPhaseId){
+  if(!originalFeature) return null;
+  const name=(originalFeature.name||'').trim().toLowerCase();
+  return ROADMAP_FEATURES.find(f=>f.epicId===originalFeature.epicId && f.phaseId===newPhaseId && (f.name||'').trim().toLowerCase()===name) || null;
+}
 // Live-updates the Location panel's warning as the Phase select changes,
 // rather than showing it unconditionally — it should only appear once
 // there's actually a move about to happen (see the rd-move-panel it lives
@@ -11234,8 +11287,14 @@ function _reqDetailPhaseFieldChanged(){
   const originalFeature=ROADMAP_FEATURES.find(f=>f.id===s.featureId);
   const newPhaseId=eid('rd-phase')?.value||'';
   if(originalFeature && newPhaseId && newPhaseId!==originalFeature.phaseId){
-    const siblingCount=ROADMAP_STORIES.filter(x=>x.featureId===originalFeature.id && x.id!==s.id).length;
-    warnEl.innerHTML=`<span class="material-icons-round" style="font-size:13px;flex-shrink:0;margin-top:1px;color:var(--rag-amber-fg)">info</span><span>Moves the whole "${escH(originalFeature.name)}" function${siblingCount>0?` — and its other ${siblingCount} requirement${siblingCount===1?'':'s'}`:''} — into this phase.</span>`;
+    const targetPhase=PHASES.find(p=>p.id===newPhaseId);
+    const targetPhaseName=escH(targetPhase?targetPhase.name:'that phase');
+    const existing=_reqFindPhaseClone(originalFeature,newPhaseId);
+    const action=existing
+      ? `move it into the existing "${escH(originalFeature.name)}" function already in ${targetPhaseName}`
+      : `create a new "${escH(originalFeature.name)}" function in ${targetPhaseName} and move it there`;
+    const originalPhaseName=escH(PHASES.find(p=>p.id===originalFeature.phaseId)?.name||'its current phase');
+    warnEl.innerHTML=`<span class="material-icons-round" style="font-size:13px;flex-shrink:0;margin-top:1px;color:var(--rag-amber-fg)">info</span><span>Moves only this requirement — will ${action}. Other requirements under "${escH(originalFeature.name)}" stay in ${originalPhaseName}.</span>`;
     warnEl.style.display='flex';
   } else {
     warnEl.style.display='none';
@@ -11263,29 +11322,51 @@ function _reqDetailSave(){
   const s=ROADMAP_STORIES.find(x=>x.id===_reqDetailStoryId);
   if(!s)return;
 
-  // Phase move — applies to the function this requirement WAS under when the
-  // modal opened, moving every other requirement under it along too (that's
-  // the whole point: "move this to phase X" means the function itself lives
-  // in phase X now, not just this one requirement). Deliberately independent
-  // of the Function reassignment below, which only ever touches this single
-  // requirement — see _renderReqDetail's Phase field helper text.
+  // Function reassignment — an explicit pick from the Function dropdown
+  // always wins: this requirement only, any Function anywhere, applied
+  // directly with no clone/confirm logic. If the Function wasn't touched but
+  // Phase was, the block below handles that instead.
+  const pickedFeatureId=eid('rd-feature')?.value||s.featureId;
   const originalFeature=ROADMAP_FEATURES.find(f=>f.id===s.featureId);
   const newPhaseId=eid('rd-phase')?.value||'';
-  if(originalFeature && newPhaseId && newPhaseId!==originalFeature.phaseId){
-    const siblingCount=ROADMAP_STORIES.filter(x=>x.featureId===originalFeature.id && x.id!==s.id).length;
+
+  if(pickedFeatureId!==s.featureId){
+    s.featureId=pickedFeatureId;
+  } else if(originalFeature && newPhaseId && newPhaseId!==originalFeature.phaseId){
+    // Phase move — touches ONLY this requirement (previously this moved the
+    // whole Function, and every other requirement under it, into the new
+    // phase — changed on explicit request; see this block's prior revision
+    // if that behaviour is ever needed again). Finds (or creates) a same-named Function under the same Functional
+    // Area already living in the target phase, and re-parents just this
+    // story onto it. The original Function — and every other requirement
+    // still under it — is left exactly where it was, INCLUDING if that now
+    // leaves it with zero requirements: deliberately not auto-deleted, since
+    // a Function can legitimately be empty (e.g. mid-planning, before any
+    // requirements are written under it), so silently deleting one just
+    // because its last requirement moved away risks losing a description/
+    // icon/Jira key someone set up on purpose.
     const targetPhase=PHASES.find(p=>p.id===newPhaseId);
-    const msg=siblingCount>0
-      ? `Move the whole "${originalFeature.name}" function to ${targetPhase?targetPhase.name:'the selected phase'}? This will also move its other ${siblingCount} requirement${siblingCount===1?'':'s'}.`
-      : `Move "${originalFeature.name}" to ${targetPhase?targetPhase.name:'the selected phase'}?`;
+    const targetPhaseName=targetPhase?targetPhase.name:'the selected phase';
+    const existing=_reqFindPhaseClone(originalFeature,newPhaseId);
+    const msg=existing
+      ? `Move this requirement into the existing "${originalFeature.name}" function already in ${targetPhaseName}?`
+      : `Create a new "${originalFeature.name}" function in ${targetPhaseName} and move just this requirement there?`;
     if(confirm(msg)){
-      originalFeature.phaseId=newPhaseId;
-      dbUpsertFeature(originalFeature);
+      let targetFeature=existing;
+      if(!targetFeature){
+        targetFeature={
+          id:'FT'+Date.now(), epicId:originalFeature.epicId, phaseId:newPhaseId,
+          name:originalFeature.name, desc:originalFeature.desc, icon:originalFeature.icon,
+          status:originalFeature.status, stretch:originalFeature.stretch,
+          order:ROADMAP_FEATURES.filter(x=>x.epicId===originalFeature.epicId&&x.phaseId===newPhaseId).length,
+          jiraKey:'', // deliberately NOT copied — a Jira ticket is scoped to one phase's delivery, not shared across phases
+        };
+        ROADMAP_FEATURES.push(targetFeature);
+        dbUpsertFeature(targetFeature);
+      }
+      s.featureId=targetFeature.id;
     }
   }
-
-  // Function reassignment — this requirement only, any Function anywhere.
-  const newFeatureId=eid('rd-feature')?.value||s.featureId;
-  if(newFeatureId!==s.featureId) s.featureId=newFeatureId;
 
   const text=(eid('rd-text')?.value||'').trim();
   if(text) s.text=text;
@@ -11418,17 +11499,36 @@ function _tplComputeProductBreakdown(baseStories){
       // the same verification per story) — cheap either way now that
       // _tplStoryVerification itself is memoized per render, but no reason
       // to ask the cache twice for the same key.
-      let verifiedCount=0, openFailCount=0;
+      // Mutually exclusive, exhaustive: every story lands in exactly one of
+      // notTested / verified (2nd pass) / openFail / firstPass.
+      let verifiedCount=0, openFailCount=0, firstPassCount=0, notTestedCount=0, totalActivity=0;
       stories.forEach(s=>{
         const v=_tplStoryVerification(s.id,p.id);
-        if(v.verified) verifiedCount++;
-        if(v.openFail) openFailCount++;
+        if(!v.rows.length) notTestedCount++;
+        else if(v.verified) verifiedCount++;
+        else if(v.openFail) openFailCount++;
+        else firstPassCount++; // rows.length>=1, 0 fails, not yet 2 distinct passers
+        // "Total activity" = every interaction currently on file for this
+        // requirement — its current Pass/Fail test results (rows.length)
+        // plus its snag's cycleCount (how many times reported/reopened —
+        // the one part of this that's a genuine running total, since a
+        // snag's cycleCount only ever increments, unlike a TEST_RESULTS row
+        // which is overwritten in place per (story,tester,product) on
+        // retest — see that array's declaration comment. So an earlier Fail
+        // a tester later overwrote with a Pass isn't separately counted
+        // here; this is current-state activity, not a full event log (same
+        // limitation already flagged for the "1st-pass" stat above).
+        const snag=SNAGS.find(sn=>sn.storyId===s.id && sn.productId===p.id);
+        totalActivity+=v.rows.length+(snag?snag.cycleCount:0);
       });
       return {
         epic,
         total:stories.length,
+        notTestedCount,
+        firstPassCount,
         verifiedCount,
         openFailCount,
+        totalActivity,
         // Not-Resolved, not just plain 'Open' — a snag sitting at 'Needs
         // Clarification' is still an unresolved issue, just waiting on the
         // tester instead of the developer, so it should still count here.
@@ -11509,6 +11609,9 @@ function renderTestPlan(){
     </div>
     <button class="mbtn mbtn-cancel" style="flex-shrink:0" onclick="_tplOpenReport()" title="Open a printable summary of testing progress">
       <span class="material-icons-round" style="font-size:14px;vertical-align:-2px;margin-right:4px">summarize</span>Test Report
+    </button>
+    <button class="mbtn mbtn-cancel" data-requires-admin style="flex-shrink:0;display:none" onclick="dbCaptureProgressSnapshotNow()" title="Capture today's % Verified per product now, instead of waiting for the daily trigger — feeds the report's Progress by Day chart">
+      <span class="material-icons-round" style="font-size:14px;vertical-align:-2px;margin-right:4px">camera_alt</span>Capture Snapshot
     </button>
   </div>`;
 
@@ -11987,8 +12090,15 @@ function _tplSignoffChipsHtml(v){
 // something waiting on a first/second pass. See _tplReqRowHtml for the two
 // cases this is used for (verified, and blocked-on-Fail).
 function _tplReqRowCompactHtml(s, productId, v, covered){
-  const pillC=v.verified?TPL_RESULT_COLOURS.Pass:TPL_RESULT_COLOURS.Fail;
-  const pillLabel=v.verified?'✓ Verified':`${v.failCount} failing`;
+  // Three reasons a caller (_tplReqRowHtml) routes a row here: fully
+  // Verified, blocked on an open Fail, or — the remaining case, since those
+  // two are mutually exclusive with each other and with everything else —
+  // the signed-in viewer is the ONE distinct passer on file so far. That
+  // third case is a valid in-progress state, not a failure, so it gets the
+  // same neutral "not started" pill colour the full row already uses for it
+  // (see _tplReqRowHtml's pillC), not the red Fail one.
+  const pillC=v.verified?TPL_RESULT_COLOURS.Pass:(v.openFail?TPL_RESULT_COLOURS.Fail:{fg:'var(--wf-ns-fg)',bg:'var(--wf-ns-bg)'});
+  const pillLabel=v.verified?'✓ Verified':(v.openFail?`${v.failCount} failing`:`${v.passers.length}/2 passed — awaiting 2nd tester`);
   return `<div class="tpl-req-row tpl-req-row-compact${v.openFail?' tpl-req-row-fail':''}">
     <div class="req-code-badge req-code-badge-clickable" title="View full details" onclick="openReqDetail('${s.id}')">${escH(s.code||'—')}</div>
     <div class="tpl-req-row-text">${escH(s.text)}</div>
@@ -12012,14 +12122,24 @@ function _tplReqRowHtml(s, productId){
   // instead, so the notes textarea gets the whole card's width to work with.
   const isMarking=_tplMarkingKey===markKey;
   const clarifySnag=_tplNeedsClarificationSnag(s.id,productId);
+  // The signed-in viewer already IS the one distinct passer on file (1/2,
+  // no fail, not yet verified) — Verified requires a SECOND, DIFFERENT
+  // tester (see _tplStoryVerification), so re-submitting as the same person
+  // is a no-op: their own row just gets overwritten, passers stays length 1.
+  // There is genuinely nothing left for THIS viewer to do here, same as the
+  // Verified/openFail cases below — someone else has to be the one to see
+  // the "Second Pass" button.
+  const myEmail=gCurrentUser?gCurrentUser.email.trim().toLowerCase():null;
+  const isOwnOnlyPass=!v.openFail && v.passers.length===1 && myEmail && v.passers.includes(myEmail);
   // Compact when there's genuinely nothing to do right now: already verified
-  // (2 clean passes), or blocked on a Fail — a Fail can never self-clear via
+  // (2 clean passes), blocked on a Fail — a Fail can never self-clear via
   // Retest (the old Fail row in TEST_RESULTS persists until Development
   // squashes the snag and resets it, see _tplStoryVerification), so showing
-  // a "Retest" button there was a dead end, not a real action. A pending
+  // a "Retest" button there was a dead end, not a real action — or the
+  // viewer's own first pass awaiting someone else's second. A pending
   // clarification question is the one exception — THAT is something the
   // tester owes a reply to, so it stays expanded regardless of state.
-  if(!isMarking && !clarifySnag && (v.verified || v.openFail)){
+  if(!isMarking && !clarifySnag && (v.verified || v.openFail || isOwnOnlyPass)){
     return _tplReqRowCompactHtml(s, productId, v, covered);
   }
   const pillC=v.verified?TPL_RESULT_COLOURS.Pass:(v.openFail?TPL_RESULT_COLOURS.Fail:{fg:'var(--wf-ns-fg)',bg:'var(--wf-ns-bg)'});
@@ -12905,13 +13025,66 @@ async function _tplSubmitClarifyReply(id){
   await dbUpsertSnag(sn);
   await _tplPostAutoComment(entityType, entityId, `💬 ${text}`);
 }
+// Inline comment history for a clarification banner — shared by both the
+// Snag/story flavor (_tplClarificationBannerHtml) and the Page Snag flavor
+// (_trPageSnagClarificationBannerHtml). Previously neither banner showed any
+// comment history at all: the developer's question and any earlier
+// back-and-forth were only visible via the separate Comments panel, which
+// nothing here linked to. That compounds with a second issue — replying
+// flips the snag's status to 'Open', which makes THIS ENTIRE BANNER
+// disappear on the next render (see needsClarification's status check) — so
+// a tester who'd just sent a reply had nowhere left to see it and confirm
+// it actually saved, even though the write itself (addComment, 'viewer'
+// rank, always allowed — see POST_MIN_ROLE) was going through correctly.
+// Shows the last few comments on this entity's existing thread (the SAME
+// thread Fail/Squash/Clarification-request auto-comments already post into
+// — see _tplPostAutoComment's comment) with a link to the full Comments
+// panel for anything older.
+function _tplClarifyThreadHtml(entityType, entityId){
+  const list=COMMENTS_BY_ENTITY[_cmtKey(entityType,entityId)]||[];
+  if(!list.length) return '';
+  const recent=list.slice(-4);
+  const rows=recent.map(c=>`<div style="padding:5px 0;border-top:1px solid rgba(0,0,0,.08)">
+    <div style="font-size:10px;font-weight:600;color:#555">${escH((c.authorEmail||'').split('@')[0])} <span style="font-weight:400;color:#888">· ${_cmtFmtDate(c.createdAt)}</span></div>
+    <div style="font-size:11px;color:#333;margin-top:1px;white-space:pre-wrap">${_cmtLinkifyMentions(c.text||'')}</div>
+  </div>`).join('');
+  const moreLink=list.length>recent.length?`<div style="font-size:10px;margin-top:3px"><a href="javascript:void(0)" onclick="event.stopPropagation();openCommentsPanel('${entityType}','${String(entityId).replace(/'/g,"\\'")}','Clarification')" style="color:var(--accent);font-weight:600">View all ${list.length} comments</a></div>`:'';
+  return `<div style="max-height:150px;overflow-y:auto;background:rgba(255,255,255,.5);border-radius:6px;padding:0 8px">${rows}</div>${moreLink}`;
+}
+// Whether entityType/entityId has EVER had a clarification requested (a '❓'
+// auto-comment on file — see _tplSubmitClarification/_trSubmitPageSnagClarification's
+// posted text) — independent of whether one is pending right now. Used to
+// keep the exchange visible after it's no longer 'Needs Clarification'.
+function _tplHasClarificationHistory(entityType, entityId){
+  const list=COMMENTS_BY_ENTITY[_cmtKey(entityType,entityId)]||[];
+  return list.some(c=>(c.text||'').startsWith('❓'));
+}
+// Read-only counterpart to _tplClarificationBannerHtml for a snag/story that
+// HAS had a clarification exchange but isn't waiting on one right now — same
+// thread snippet, neutral styling (no "needs attention" amber, no reply
+// form). Without this, a tester's reply vanished from the snag card the
+// instant it was sent: replying flips status away from 'Needs
+// Clarification', which is the ONLY condition the amber banner ever
+// rendered under, so the whole exchange (question AND reply) disappeared
+// from view right as the reply landed — exactly what "the response just
+// gets lost" describes.
+function _tplClarifyHistorySnippetHtml(entityType, entityId){
+  const thread=_tplClarifyThreadHtml(entityType, entityId);
+  if(!thread) return '';
+  return `<div style="padding:6px 10px;border-radius:8px;background:var(--surface2);border:1px solid var(--border)">
+    <div style="font-size:10px;font-weight:600;color:var(--text3);margin-bottom:2px">Clarification history</div>
+    ${thread}
+  </div>`;
+}
 // Shared by the Snag card, Functional Tab row, and Scenario card — one
 // consistent "developer needs more info" prompt wherever a tester might
 // actually be looking when they'd want to answer it.
 function _tplClarificationBannerHtml(sn){
   const isReplying=_tplClarifyReplyingId===sn.id;
+  const entityType=sn.storyId?'story':'snag', entityId=sn.storyId||sn.id;
   return `<div style="display:flex;flex-direction:column;gap:6px;padding:8px 10px;border-radius:8px;background:var(--rag-amber-bg);border:1px solid var(--rag-amber-fg)" onclick="event.stopPropagation()">
     <div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--rag-amber-fg)"><span class="material-icons-round" style="font-size:14px">help_outline</span>Developer needs clarification</div>
+    ${_tplClarifyThreadHtml(entityType, entityId)}
     ${isReplying
       ? `<div class="tpl-mark-form">
            <textarea class="tpl-mark-notes" id="tpl-clarify-reply-${sn.id}" placeholder="Answer the developer's question…" autofocus></textarea>
@@ -12959,7 +13132,9 @@ function _tplSnagCardHtml(sn){
       ${isPlainOpen&&!isSquashing?`<div data-requires-squash><button class="tpl-mark-btn tpl-mark-btn-primary" onclick="_tplStartSquash('${sn.id}')">Squash</button></div>`:''}
     </div>
     ${isSquashing?`<div data-requires-squash>${_tplSquashFormHtml(sn)}</div>`:''}
-    ${needsClarification?_tplClarificationBannerHtml(sn):''}
+    ${needsClarification
+      ? _tplClarificationBannerHtml(sn)
+      : (isResolved?'':_tplClarifyHistorySnippetHtml(entityType, entityId))}
   </div>`;
 }
 
@@ -13021,9 +13196,13 @@ function _tplSnagEpicAccordionHtml(epic,snags,productId){
 
 // ── Manual snag entry — "found and submitted through other means", not
 // discovered via a failed functional test. Requires a Product and a
-// Functional Area (so it shows up grouped the same way as everything else);
-// requirement link is optional since exploratory/reported bugs often don't
-// map to one specific requirement.
+// Functional Area (so it shows up grouped the same way as everything else).
+// Picking an existing requirement is optional, but SOME requirement always
+// ends up behind the snag either way — if none is picked, saveAddSnagModal
+// auto-creates a lightweight placeholder under a "Manual Snag" Function (see
+// _snagFindOrCreateManualFeature/_snagCreatePlaceholderStory) so every
+// manual snag gets the same retest/Verify-Fix workflow once resolved,
+// instead of dead-ending with nothing for a tester to confirm.
 function openAddSnagModal(){
   if(!canReportSnags()){showToast('View-only access — editing is disabled');return;}
   if(!gCurrentUser){showToast('Sign in to add a snag');return;}
@@ -13065,10 +13244,10 @@ function _renderAddSnagModal(){
         ${epics.map(e=>`<option value="${e.id}"${e.id===d.epicId?' selected':''}>${escH(e.name)}</option>`).join('')}
       </select>
     </div>
-    <div class="mfield"><label>Related requirement (optional)</label>
+    <div class="mfield"><label>Related requirement</label>
       <select class="mselect" id="addSnagStorySelect" ${!d.epicId?'disabled':''}>
-        <option value="">— Not linked to a specific requirement —</option>
-        ${stories.map(s=>`<option value="${s.id}"${s.id===d.storyId?' selected':''}>${escH(s.code||s.text.slice(0,50))}</option>`).join('')}
+        <option value="">— Auto-create one for this report —</option>
+        ${stories.map(s=>`<option value="${s.id}"${s.id===d.storyId?' selected':''}>${escH(s.code?s.code+' — ':'')}${escH(s.text.slice(0,70))}</option>`).join('')}
       </select>
     </div>
     <div class="mfield"><label>Description</label>
@@ -13076,20 +13255,62 @@ function _renderAddSnagModal(){
     </div>
   `;
 }
+// Find-or-create a "Manual Snag" Function under the given Functional Area
+// (same phase-scoped find-or-create pattern as the requirement detail's
+// phase-move clone — see _reqFindPhaseClone) — one per (epic,phase), reused
+// across every manually-reported snag in that area/phase rather than
+// creating a fresh one each time, so they stay organised together instead of
+// scattering one-off Functions across the Roadmap.
+function _snagFindOrCreateManualFeature(epicId, phaseId){
+  const existing=ROADMAP_FEATURES.find(f=>f.epicId===epicId && f.phaseId===phaseId && (f.name||'').trim().toLowerCase()==='manual snag');
+  if(existing) return existing;
+  const f={id:'FT'+Date.now(), epicId, phaseId, name:'Manual Snag',
+    desc:'Auto-created to hold manually-reported snags not linked to an existing requirement — see each one\'s own description.',
+    icon:ROADMAP_ICONS[0], status:'Planned', stretch:false,
+    order:ROADMAP_FEATURES.filter(x=>x.epicId===epicId&&x.phaseId===phaseId).length, jiraKey:''};
+  ROADMAP_FEATURES.push(f);
+  dbUpsertFeature(f);
+  return f;
+}
+// Lightweight placeholder requirement for a manually-reported snag with no
+// existing requirement linked — same id/code convention as a normal
+// Requirements Tracker/Roadmap "add requirement" (see saveRmStory/
+// _reqGenerateCode). Giving the snag a real storyId is what actually unlocks
+// the retest/Verify-Fix workflow every other snag already gets (nothing in
+// that workflow checks a snag's source, only storyId+productId) — otherwise
+// a manual snag has no requirement to reset TEST_RESULTS against, so
+// resolving it was previously a dead end with nothing for a tester to
+// confirm.
+function _snagCreatePlaceholderStory(featureId, text){
+  const story={id:'ST'+Date.now(), code:_reqGenerateCode(featureId), featureId,
+    text:text||'(no description)', stretch:false, type:'', devStatus:'Not Started', testStatus:'Not Started',
+    owner:'', source:'Manually reported snag', order:ROADMAP_STORIES.filter(s=>s.featureId===featureId).length, jiraKey:''};
+  ROADMAP_STORIES.push(story);
+  dbUpsertStory(story);
+  return story;
+}
 async function saveAddSnagModal(){
   const d=_tplSnagDraft;
   if(!d) return;
   const productId=d.productId;
   const epicId=d.epicId;
-  const storyId=eid('addSnagStorySelect')?.value||'';
+  let storyId=eid('addSnagStorySelect')?.value||'';
   const title=(eid('addSnagTitleInput')?.value||'').trim();
   if(!productId){showToast('Select a product');return;}
   if(!epicId){showToast('Select a functional area');return;}
   if(!storyId && !title){showToast('Add a description, or link an existing requirement');return;}
+  // No existing requirement picked — auto-create a placeholder one (under a
+  // "Manual Snag" Function) instead of leaving this snag unlinked, so it
+  // gets the same retest workflow as any other snag once resolved. See
+  // _snagFindOrCreateManualFeature/_snagCreatePlaceholderStory.
+  if(!storyId){
+    const feature=_snagFindOrCreateManualFeature(epicId, curPhase);
+    storyId=_snagCreatePlaceholderStory(feature.id, title).id;
+  }
   const now=new Date().toISOString();
   const email=(gCurrentUser&&gCurrentUser.email||'').trim().toLowerCase();
   const snag={id:'SNAG'+Date.now()+'_'+Math.floor(Math.random()*1e6),
-    storyId, productId, epicId, title:storyId?'':title,
+    storyId, productId, epicId, title:'',
     status:'Open', source:'manual', reporterEmail:email, cycleCount:1,
     createdAt:now, resolvedBy:'', resolvedAt:'', updatedAt:now};
   SNAGS.push(snag);
@@ -13146,15 +13367,19 @@ function _tplReportBuildHtml(){
 
   let breakdownRows='';
   breakdown.forEach(b=>{
-    b.epics.forEach(({epic,total:eTotal,verifiedCount,openFailCount})=>{
+    b.epics.forEach(({epic,total:eTotal,notTestedCount,verifiedCount,firstPassCount,openFailCount,totalActivity})=>{
       const pct=eTotal?Math.round(verifiedCount/eTotal*100):0;
       const colour=epic.colour||EPIC_COLOURS[0];
       breakdownRows+=`<tr>
         <td>${escH(b.product.name)}</td>
         <td><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${colour};margin-right:6px;vertical-align:middle"></span>${escH(epic.name)}</td>
         <td style="text-align:center">${eTotal}</td>
+        <td style="text-align:center">${notTestedCount||'—'}</td>
+        <td style="text-align:center">${firstPassCount||'—'}</td>
+        <td style="text-align:center">${verifiedCount||'—'}</td>
         <td style="text-align:center;font-weight:700;color:${pct>=100?'#2E7D58':pct<=0?'#C2503F':'#B5852C'}">${pct}%</td>
         <td style="text-align:center">${openFailCount?`<span style="color:#C2503F;font-weight:700">${openFailCount}</span>`:'—'}</td>
+        <td style="text-align:center">${totalActivity||'—'}</td>
       </tr>`;
     });
   });
@@ -13169,15 +13394,214 @@ function _tplReportBuildHtml(){
       const chain=_reqResolveChain(s);
       const v=_tplStoryVerification(s.id,b.product.id);
       const breadcrumb=[b.product.name,chain.epic?.name,chain.feature?.name].filter(Boolean).join(' › ');
-      const failNotes=v.rows.filter(r=>r.result==='Fail').map(r=>`${escH(r.testerEmail)}${r.notes?': '+escH(r.notes):''}`).join('<br>');
+      // Each failing tester gets its own block — name as a small chip, note
+      // on its own line below it — instead of "name: note<br>name: note"
+      // run together, which is what was crowding this column before.
+      const failNotes=v.rows.filter(r=>r.result==='Fail').map(r=>{
+        const note=r.notes?`<div style="color:#666;margin-top:3px;line-height:1.4">${escH(r.notes)}</div>`:'';
+        return `<div style="margin-bottom:9px"><span style="display:inline-block;background:#FBEAE7;color:#A83B2B;font-weight:600;font-size:10px;padding:2px 8px;border-radius:10px;white-space:nowrap">${escH(r.testerEmail)}</span>${note}</div>`;
+      }).join('');
       failureRows+=`<tr>
         <td>${escH(s.code||'—')}</td>
         <td>${escH(s.text)}</td>
         <td style="font-size:10px;color:#666">${escH(breadcrumb)}</td>
-        <td style="font-size:10px">${failNotes}</td>
+        <td>${failNotes}</td>
       </tr>`;
     });
   });
+
+  // Not Started / 1st-Pass Success — per (story,product) pair, same scope as
+  // the breakdown/failure rows above.
+  // "1st-pass success" = individual Pass results on a pair that has NEVER
+  // had a Snag filed against it, by anyone. TEST_RESULTS is upserted in
+  // place per (story,tester,product) (see its declaration comment) — once a
+  // tester retests and passes, their own earlier Fail is overwritten, not
+  // kept, so a tester's personal retry history can't be reconstructed. A
+  // pair's SNAGS existence is the only surviving trace of "this was ever
+  // failed", and it's item-wide, not per-tester, so this can exclude a
+  // tester's clean pass on an item some OTHER tester once failed — but it
+  // never falsely counts a pair that truly needed rework, which is the
+  // safer direction to be wrong in for a report.
+  let notStartedCount=0, firstPassCount=0;
+  breakdown.forEach(b=>{
+    _tplStoriesInProduct(stories,b.product.id).forEach(s=>{
+      const v=_tplStoryVerification(s.id,b.product.id);
+      if(!v.rows.length){ notStartedCount++; return; }
+      const everFailed=SNAGS.some(sn=>sn.storyId===s.id && sn.productId===b.product.id);
+      if(!everFailed) firstPassCount+=v.rows.filter(r=>r.result==='Pass').length;
+    });
+  });
+
+  // Fixes Applied, Waiting Retest — snag Resolved by a developer but the
+  // pair hasn't earned back Verified status yet (needs 2 fresh passes,
+  // exactly the "Verify Fix" case _tplStoryMarkHtml already special-cases).
+  const waitingRetestSnags=SNAGS.filter(sn=>sn.status==='Resolved' && inScopeIds.has(sn.storyId) && !_tplStoryVerification(sn.storyId,sn.productId).verified);
+  // Needs Clarification — snag sitting with the tester, not the developer;
+  // previously invisible anywhere in this report (only Open/unresolved
+  // failures and scenario fails were listed).
+  const needsClarificationSnags=SNAGS.filter(sn=>sn.status==='Needs Clarification' && inScopeIds.has(sn.storyId));
+  const _tplReportSnagRow=sn=>{
+    const s=ROADMAP_STORIES.find(x=>x.id===sn.storyId);
+    const product=ROADMAP_PRODUCTS.find(p=>p.id===sn.productId);
+    const chain=s?_reqResolveChain(s):{};
+    const breadcrumb=[product?.name,chain.epic?.name,chain.feature?.name].filter(Boolean).join(' › ');
+    return {s,breadcrumb};
+  };
+  let waitingRetestRows='';
+  waitingRetestSnags.forEach(sn=>{
+    const {s,breadcrumb}=_tplReportSnagRow(sn);
+    waitingRetestRows+=`<tr>
+      <td>${escH(s?.code||'—')}</td>
+      <td>${escH(s?.text||sn.title||'—')}</td>
+      <td style="font-size:10px;color:#666">${escH(breadcrumb)}</td>
+      <td style="font-size:10px">${escH(sn.resolvedBy||'')}${sn.cycleCount>1?` (cycle ${sn.cycleCount})`:''}</td>
+    </tr>`;
+  });
+  let needsClarificationRows='';
+  needsClarificationSnags.forEach(sn=>{
+    const {s,breadcrumb}=_tplReportSnagRow(sn);
+    needsClarificationRows+=`<tr>
+      <td>${escH(s?.code||'—')}</td>
+      <td>${escH(s?.text||sn.title||'—')}</td>
+      <td style="font-size:10px;color:#666">${escH(breadcrumb)}</td>
+      <td style="font-size:10px">${escH(sn.reporterEmail||'')}</td>
+    </tr>`;
+  });
+
+  // Daily activity, last 30 days — tests passed/failed (TEST_RESULTS.testedAt)
+  // and snags squashed (SNAGS.resolvedAt). Deliberately NOT scoped to
+  // inScopeIds/selectedPhases like the rest of this report: these are
+  // operational throughput metrics (how much testing/dev activity happened
+  // on a given day), not coverage metrics, and a manually-logged snag (no
+  // storyId, so never in inScopeIds) squashed by a developer is still real
+  // activity that shouldn't silently vanish because of the phase filter
+  // that happened to be selected when the report was opened.
+  // Local-calendar-day key (not a UTC slice) so an evening entry buckets
+  // into the day the person actually experienced it, not whatever day UTC
+  // happened to be at that instant.
+  const _tplDayKey=d=>{
+    const dt=d instanceof Date?d:new Date(d);
+    if(isNaN(dt)) return null;
+    return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+  };
+  const reportDays=[];
+  { const t=new Date(); t.setHours(0,0,0,0);
+    for(let i=29;i>=0;i--){ const d=new Date(t); d.setDate(d.getDate()-i); reportDays.push(_tplDayKey(d)); }
+  }
+  const dailyTestMap=new Map(reportDays.map(k=>[k,{pass:0,fail:0}]));
+  TEST_RESULTS.forEach(r=>{
+    const key=_tplDayKey(r.testedAt);
+    if(!key || !dailyTestMap.has(key)) return;
+    const b=dailyTestMap.get(key);
+    if(r.result==='Pass') b.pass++; else if(r.result==='Fail') b.fail++;
+  });
+  const dailySquashMap=new Map(reportDays.map(k=>[k,0]));
+  SNAGS.forEach(sn=>{
+    if(!sn.resolvedAt) return;
+    const key=_tplDayKey(sn.resolvedAt);
+    if(!key || !dailySquashMap.has(key)) return;
+    dailySquashMap.set(key, dailySquashMap.get(key)+1);
+  });
+  // Vertical GROUPED bar chart, pure CSS/HTML (no chart library — matches
+  // this report's existing zero-dependency posture): dates along the x axis,
+  // counts along the y axis, 4 separate colour-coded bars sitting side by
+  // side per day (Passed / Failed / Squashed / Total Activity) — explicitly
+  // NOT stacked, so each series' own bar length is directly comparable day
+  // to day without having to mentally subtract a segment's start position.
+  // Total Activity is the same pass+fail+squash sum used by the Coverage
+  // table's Total Activity column, just per-day instead of per-requirement.
+  const dailyTotals=reportDays.map(k=>{
+    const t=dailyTestMap.get(k), sq=dailySquashMap.get(k);
+    return {pass:t.pass, fail:t.fail, squash:sq, total:t.pass+t.fail+sq};
+  });
+  const DAILY_SERIES=[
+    {key:'pass',  label:'Tests Passed',   colour:'#2E7D58'},
+    {key:'fail',  label:'Tests Failed',   colour:'#C2503F'},
+    {key:'squash',label:'Snags Squashed', colour:'#3D6FB4'},
+    {key:'total', label:'Total Activity', colour:'#15294F'},
+  ];
+  const H=140;
+  const dailyMax=Math.max(1, ...dailyTotals.map(d=>d.total));
+  const dailyBarsRow=reportDays.map((key,i)=>{
+    const d=dailyTotals[i];
+    const bars=DAILY_SERIES.map(s=>{
+      const v=d[s.key];
+      const h=Math.round(v/dailyMax*H);
+      return `<div title="${escH(s.label)}: ${v}" style="flex:1;max-width:7px;height:${h}px;background:${s.colour};border-radius:1px 1px 0 0"></div>`;
+    }).join('');
+    return `<div style="flex:1;min-width:0;height:100%;display:flex;align-items:flex-end;justify-content:center;gap:1px">${bars}</div>`;
+  }).join('');
+  const dailyLabelsRow=reportDays.map(key=>{
+    const [y,m,d]=key.split('-').map(Number);
+    const dLabel=new Date(y,m-1,d).toLocaleDateString(undefined,{day:'numeric',month:'short'});
+    return `<div style="flex:1;min-width:0;display:flex;justify-content:center"><span style="font-size:7px;color:#888;writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap">${escH(dLabel)}</span></div>`;
+  }).join('');
+  const dailyActivityLegendHtml=`<div style="display:flex;gap:14px;margin:0 0 6px 30px;font-size:10px;color:#555">${DAILY_SERIES.map(s=>`<span><span style="display:inline-block;width:8px;height:8px;background:${s.colour};border-radius:2px;margin-right:4px;vertical-align:middle"></span>${escH(s.label)}</span>`).join('')}</div>`;
+  const dailyActivityChartHtml=`${dailyActivityLegendHtml}<div style="display:flex;gap:6px">
+    <div style="display:flex;flex-direction:column;justify-content:space-between;height:${H}px;font-size:9px;color:#888;text-align:right;width:22px;flex-shrink:0">
+      <span>${dailyMax}</span><span>${Math.round(dailyMax/2)}</span><span>0</span>
+    </div>
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;align-items:flex-end;height:${H}px;border-left:1px solid #ddd;border-bottom:1px solid #ddd;padding-left:3px;gap:1px">${dailyBarsRow}</div>
+      <div style="display:flex;padding-left:3px;gap:1px">${dailyLabelsRow}</div>
+    </div>
+  </div>`;
+
+  // Progress by Day — % Verified per product, from PRODUCT_PROGRESS (the
+  // backend's daily snapshot — see its declaration comment). Same "Verified"
+  // definition as the Coverage table above (2 distinct passing testers, 0
+  // open fails), but computed by the backend across ALL phases, not scoped
+  // to the phase selection here — a background trigger has no UI phase
+  // filter to read, same reasoning as Daily Activity's own scope note.
+  // Distinct products seen in the snapshot history, ordered to match the
+  // live Product list where the product still exists — a since-deleted
+  // product's history stays plottable, labelled with whatever name was
+  // captured at the time (productName is denormalised for exactly this).
+  const progressProductIds=[...new Set(PRODUCT_PROGRESS.map(r=>r.productId))];
+  const progressProducts=progressProductIds.map(pid=>{
+    const live=ROADMAP_PRODUCTS.find(p=>p.id===pid);
+    const rows=PRODUCT_PROGRESS.filter(r=>r.productId===pid).sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);
+    return {id:pid, name:live?live.name:(rows[rows.length-1]?.productName||pid), rows};
+  }).sort((a,b)=>{
+    const ai=ROADMAP_PRODUCTS.findIndex(p=>p.id===a.id), bi=ROADMAP_PRODUCTS.findIndex(p=>p.id===b.id);
+    if(ai===-1 && bi===-1) return 0;
+    if(ai===-1) return 1;
+    if(bi===-1) return -1;
+    return ai-bi;
+  });
+  const progressDates=[...new Set(PRODUCT_PROGRESS.map(r=>r.date))].sort();
+  const progressChartHtml=(()=>{
+    if(!progressDates.length) return '<div class="empty">No progress history yet — the daily snapshot hasn\'t run. See the backend\'s QUICK-START CHECKLIST to add the trigger, or an admin can capture one now via "Capture Snapshot" on the Test Plan toolbar.</div>';
+    if(progressDates.length===1){
+      const tiles=progressProducts.map(p=>{
+        const r=p.rows[p.rows.length-1];
+        return `<div class="stat"><div class="num">${r?r.pct:0}%</div><div class="lbl">${escH(p.name)}</div></div>`;
+      }).join('');
+      return `<div class="meta" style="margin-bottom:6px">Only one day of history so far (${escH(progressDates[0])}) — check back after a few more days to see a trend.</div><div class="stats">${tiles}</div>`;
+    }
+    const PW=640, PHt=170, padL=34, padR=8, padT=8, padB=22;
+    const plotW=PW-padL-padR, plotH=PHt-padT-padB;
+    const dateIndex={}; progressDates.forEach((d,i)=>{ dateIndex[d]=i; });
+    const xFor=i=>padL+(progressDates.length>1?i/(progressDates.length-1)*plotW:0);
+    const yFor=pct=>padT+(1-Math.max(0,Math.min(100,pct))/100)*plotH;
+    const gridlines=[0,50,100].map(pct=>`<line x1="${padL}" y1="${yFor(pct)}" x2="${PW-padR}" y2="${yFor(pct)}" stroke="#eee" stroke-width="1"/><text x="${padL-5}" y="${yFor(pct)+3}" font-size="8" fill="#888" text-anchor="end">${pct}%</text>`).join('');
+    const labelStride=Math.max(1,Math.ceil(progressDates.length/10));
+    const xLabels=progressDates.map((d,i)=>{
+      if(i%labelStride!==0 && i!==progressDates.length-1) return '';
+      const [y,m,dd]=d.split('-').map(Number);
+      const lbl=new Date(y,m-1,dd).toLocaleDateString(undefined,{day:'numeric',month:'short'});
+      return `<text x="${xFor(i)}" y="${PHt-6}" font-size="7" fill="#888" text-anchor="middle">${escH(lbl)}</text>`;
+    }).join('');
+    const lines=progressProducts.map((p,pi)=>{
+      const colour=EPIC_COLOURS[pi%EPIC_COLOURS.length];
+      const known=p.rows.filter(r=>dateIndex[r.date]!==undefined);
+      const pts=known.map(r=>`${xFor(dateIndex[r.date])},${yFor(r.pct)}`).join(' ');
+      const dots=known.map(r=>`<circle cx="${xFor(dateIndex[r.date])}" cy="${yFor(r.pct)}" r="2.2" fill="${colour}"/>`).join('');
+      return `<polyline points="${pts}" fill="none" stroke="${colour}" stroke-width="2"/>${dots}`;
+    }).join('');
+    const legend=`<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:6px;font-size:10px;color:#555">${progressProducts.map((p,pi)=>`<span><span style="display:inline-block;width:8px;height:8px;background:${EPIC_COLOURS[pi%EPIC_COLOURS.length]};border-radius:2px;margin-right:4px;vertical-align:middle"></span>${escH(p.name)}</span>`).join('')}</div>`;
+    return `${legend}<svg viewBox="0 0 ${PW} ${PHt}" style="width:100%;height:${PHt}px" xmlns="http://www.w3.org/2000/svg">${gridlines}${lines}${xLabels}</svg>`;
+  })();
 
   let scenarioFailRows='';
   scenarioFail.forEach(sc=>{
@@ -13202,6 +13626,7 @@ function _tplReportBuildHtml(){
   table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
   th{text-align:left;background:#ECEFF4;color:#15294F;padding:7px 9px;font-size:10px;text-transform:uppercase;letter-spacing:.03em}
   td{padding:7px 9px;border-bottom:1px solid #eee;vertical-align:top}
+  .fail-table td{padding:11px 10px}
   .empty{font-size:12px;color:#999;padding:10px 0}
   .no-print{margin-bottom:20px}
   .no-print button{background:#15294F;color:#fff;border:none;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer}
@@ -13216,10 +13641,26 @@ function _tplReportBuildHtml(){
     <div class="stat"><div class="num">${scenarioCoveredCount}/${total}</div><div class="lbl">Scenario Covered — ${scenarioPct}%</div></div>
     <div class="stat"><div class="num">${overallOpenFailCount}</div><div class="lbl">Open Failures</div></div>
   </div>
+  <div class="stats">
+    <div class="stat"><div class="num">${notStartedCount}</div><div class="lbl">Not Started</div></div>
+    <div class="stat"><div class="num">${firstPassCount}</div><div class="lbl">Successful 1st-Pass Tests</div></div>
+    <div class="stat"><div class="num">${waitingRetestSnags.length}</div><div class="lbl">Fixes Applied — Waiting Retest</div></div>
+    <div class="stat"><div class="num">${needsClarificationSnags.length}</div><div class="lbl">Needs Clarification</div></div>
+  </div>
+  <h2>Daily Activity — Last 30 Days</h2>
+  <div class="meta" style="margin-bottom:10px">Not scoped to the phase selection above — this is total activity across the whole app.</div>
+  ${dailyActivityChartHtml}
+  <h2>Progress by Day — % Verified per Product</h2>
+  <div class="meta" style="margin-bottom:10px">Not scoped to the phase selection above. Tracked forward only from whenever the daily snapshot was first captured — no history from before then.</div>
+  ${progressChartHtml}
   <h2>Coverage by Product / Functional Area</h2>
-  ${breakdownRows?`<table><thead><tr><th>Product</th><th>Functional Area</th><th style="text-align:center">Reqs</th><th style="text-align:center">Verified</th><th style="text-align:center">Failing</th></tr></thead><tbody>${breakdownRows}</tbody></table>`:'<div class="empty">No requirements in the current phase scope.</div>'}
+  ${breakdownRows?`<table><thead><tr><th>Product</th><th>Functional Area</th><th style="text-align:center">Reqs</th><th style="text-align:center">Not Tested</th><th style="text-align:center">1st Pass</th><th style="text-align:center">2nd Pass</th><th style="text-align:center">Verified %</th><th style="text-align:center">Failing</th><th style="text-align:center">Total Activity</th></tr></thead><tbody>${breakdownRows}</tbody></table>`:'<div class="empty">No requirements in the current phase scope.</div>'}
   <h2>Open Failures — Functional Tests</h2>
-  ${failureRows?`<table><thead><tr><th>ID</th><th>Requirement</th><th>Location</th><th>Failing tester(s)</th></tr></thead><tbody>${failureRows}</tbody></table>`:'<div class="empty">No open failures.</div>'}
+  ${failureRows?`<table class="fail-table"><colgroup><col style="width:8%"><col style="width:28%"><col style="width:19%"><col style="width:45%"></colgroup><thead><tr><th>ID</th><th>Requirement</th><th>Location</th><th>Tester &amp; Notes</th></tr></thead><tbody>${failureRows}</tbody></table>`:'<div class="empty">No open failures.</div>'}
+  <h2>Fixes Applied — Waiting Retest</h2>
+  ${waitingRetestRows?`<table><thead><tr><th>ID</th><th>Requirement</th><th>Location</th><th>Resolved by</th></tr></thead><tbody>${waitingRetestRows}</tbody></table>`:'<div class="empty">No fixes waiting on a retest.</div>'}
+  <h2>Needs Clarification</h2>
+  ${needsClarificationRows?`<table><thead><tr><th>ID</th><th>Requirement</th><th>Location</th><th>Reported by</th></tr></thead><tbody>${needsClarificationRows}</tbody></table>`:'<div class="empty">Nothing waiting on tester clarification.</div>'}
   <h2>Scenario Tests</h2>
   <div class="stats">
     <div class="stat"><div class="num">${scenarioPass}</div><div class="lbl">Pass</div></div>

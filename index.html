@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- StrategicSitemapper  v98 -->
+<!-- StrategicSitemapper  v100 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -1909,6 +1909,22 @@ a.pt-url-val:hover{text-decoration:underline}
   <div class="mfoot">
     <button class="mbtn mbtn-cancel" onclick="closeModal('tplPromptModal')">Close</button>
     <button class="mbtn mbtn-save" onclick="_tplCopyPromptTemplate()">Copy to clipboard</button>
+  </div>
+</div>
+</div>
+
+<!-- Product Roadmap: Markdown Export Modal -->
+<div class="modal-bg" id="rmExportModal">
+<div class="modal" style="max-width:720px">
+  <div class="mhead"><h3>Roadmap Markdown Export</h3><button class="mclose" onclick="closeModal('rmExportModal')">✕</button></div>
+  <div class="mbody">
+    <div style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.5">Every product, functional area, phase, feature and requirement on the roadmap, as Markdown — copy or download it to analyse in ChatGPT, Claude, or any other AI tool.</div>
+    <textarea id="rmExportText" readonly style="width:100%;box-sizing:border-box;min-height:420px;padding:10px 12px;border:1px solid var(--md-outline-variant);border-radius:8px;background:var(--md-surface);font-size:11px;font-family:var(--font-mono,monospace);line-height:1.5;resize:vertical"></textarea>
+  </div>
+  <div class="mfoot">
+    <button class="mbtn mbtn-cancel" onclick="closeModal('rmExportModal')">Close</button>
+    <button class="mbtn mbtn-cancel" onclick="_rmDownloadExportMarkdown()">Download .md</button>
+    <button class="mbtn mbtn-save" onclick="_rmCopyExportMarkdown()">Copy to clipboard</button>
   </div>
 </div>
 </div>
@@ -3827,7 +3843,7 @@ exact shape.
 
 (Paste your actual list of requirement codes alongside this prompt so the tool
 references real codes instead of guessing.)`;
-let _tplSubTab='functional';       // 'functional' | 'scenario' | 'snags' | 'enhancements'
+let _tplSubTab='functional';       // 'functional' | 'scenario' | 'snags'
 let _tplSearchQuery='';
 // Composite storyId+'::'+productId — since a Functional Area can now need
 // testing across more than one product (see _tplEpicTestProductIds), the
@@ -10155,6 +10171,9 @@ function renderRoadmap(){
   if(ROADMAP_PRODUCTS.length) html+=`<div class="rm-tab${isAllMode?' active':''}" onclick="_rmSelectProduct('ALL')">All</div>`;
   html+=ROADMAP_PRODUCTS.map(p=>`<div class="rm-tab${p.id===_rmActiveProductId?' active':''}" onclick="_rmSelectProduct('${p.id}')">${escH(p.name)}</div>`).join('');
   html+=`</div>`;
+  html+=`<button class="mbtn mbtn-cancel" style="flex-shrink:0" onclick="openRmExportModal()" title="Export the whole roadmap (every product, functional area, phase, feature and requirement) as Markdown, to analyse in an AI tool">
+    <span class="material-icons-round" style="font-size:14px;vertical-align:-2px;margin-right:4px">description</span>Export Markdown
+  </button>`;
   html+=`<div class="rm-tab-add" data-requires-edit onclick="openAddRmProduct()">+ Add product</div>`;
   if(activeProduct){
     html+=`<button class="mbtn mbtn-cancel" data-requires-edit style="flex-shrink:0" onclick="openEditRmProduct('${activeProduct.id}')">Edit product</button>`;
@@ -10263,6 +10282,99 @@ function renderRoadmap(){
   // (with default/visible display) — re-apply role gating immediately rather
   // than waiting for the next sign-in-time applyRoleUI() pass.
   if(typeof applyRoleUI==='function') applyRoleUI();
+}
+
+// ── Markdown export — "everything on the Roadmap page", for pasting/
+// uploading into an external AI tool. Always covers every Product (not just
+// the active tab) and every real phase via _rmPhases() (excludes PH0, the
+// pre-transformation baseline — same exclusion the board itself applies, see
+// renderRoadmap's own comment on why), same "ignore local view filters, show
+// the full current picture" convention the Test Report already uses. Skips
+// an (epic,phase) cell entirely when it has no features, rather than
+// printing an empty heading for every possible slot — this describes what
+// actually exists, not the full grid shape.
+function _rmBuildMarkdownExport(){
+  const phases=_rmPhases();
+  const lines=[];
+  lines.push('# Product Roadmap Export');
+  lines.push('');
+  lines.push(`Generated: ${new Date().toLocaleString()}`);
+  lines.push(`${ROADMAP_PRODUCTS.length} product(s) · ${ROADMAP_EPICS.length} functional area(s) · ${ROADMAP_FEATURES.length} feature(s) · ${ROADMAP_STORIES.length} requirement(s) · ${phases.length} phase(s)`);
+  lines.push('');
+
+  ROADMAP_PRODUCTS.slice().sort((a,b)=>(a.order||0)-(b.order||0)).forEach(prod=>{
+    lines.push(`## Product: ${prod.name}`);
+    if(prod.desc) lines.push('', prod.desc);
+    lines.push('');
+    const epics=ROADMAP_EPICS.filter(e=>e.productId===prod.id).sort((a,b)=>(a.order||0)-(b.order||0));
+    if(!epics.length){ lines.push('_No functional areas yet._',''); return; }
+    epics.forEach(ep=>{
+      lines.push(`### Functional Area: ${ep.name}`);
+      if(ep.desc) lines.push('', ep.desc);
+      lines.push('');
+      let epicHadAnyFeature=false;
+      phases.forEach(ph=>{
+        const feats=ROADMAP_FEATURES.filter(f=>f.epicId===ep.id && f.phaseId===ph.id).sort((a,b)=>(a.order||0)-(b.order||0));
+        if(!feats.length) return;
+        epicHadAnyFeature=true;
+        lines.push(`#### Phase: ${ph.name}${ph.desc?' — '+ph.desc:''}`);
+        lines.push('');
+        // Core features first, Fast Follow after — same grouping/order the board itself uses.
+        const ordered=[...feats.filter(f=>!f.stretch), ...feats.filter(f=>f.stretch)];
+        ordered.forEach(f=>{
+          const fTags=[`Status: ${f.status||'Planned'}`];
+          if(f.stretch) fTags.push('Fast Follow');
+          if(f.jiraKey) fTags.push(`Jira: ${f.jiraKey}`);
+          lines.push(`##### ${f.name} (${fTags.join(', ')})`);
+          if(f.desc) lines.push('', f.desc);
+          const stories=ROADMAP_STORIES.filter(s=>s.featureId===f.id).sort((a,b)=>(a.order||0)-(b.order||0));
+          if(stories.length){
+            lines.push('');
+            const orderedStories=[...stories.filter(s=>!s.stretch), ...stories.filter(s=>s.stretch)];
+            orderedStories.forEach(s=>{
+              const sMeta=[];
+              if(s.type) sMeta.push(`Type: ${s.type}`);
+              if(s.devStatus) sMeta.push(`Dev: ${s.devStatus}`);
+              if(s.testStatus) sMeta.push(`Test: ${s.testStatus}`);
+              if(s.owner) sMeta.push(`Owner: ${s.owner}`);
+              if(s.stretch) sMeta.push('Fast Follow');
+              if(s.jiraKey) sMeta.push(`Jira: ${s.jiraKey}`);
+              const metaStr=sMeta.length?` _(${sMeta.join(' · ')})_`:'';
+              lines.push(`- **${s.code||s.id}** — ${s.text}${metaStr}`);
+            });
+          }
+          lines.push('');
+        });
+      });
+      if(!epicHadAnyFeature) lines.push('_No features in any phase yet._','');
+    });
+  });
+  return lines.join('\n');
+}
+function openRmExportModal(){
+  const ta=eid('rmExportText');
+  if(ta) ta.value=_rmBuildMarkdownExport();
+  openModal('rmExportModal');
+}
+function _rmCopyExportMarkdown(){
+  const text=eid('rmExportText')?.value||'';
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(()=>showToast('Roadmap markdown copied')).catch(()=>showToast('Could not copy — select text manually'));
+  } else {
+    showToast('Clipboard not available — select text manually');
+  }
+}
+function _rmDownloadExportMarkdown(){
+  const text=eid('rmExportText')?.value||'';
+  const blob=new Blob([text],{type:'text/markdown'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=`roadmap-export-${new Date().toISOString().slice(0,10)}.md`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 // Updates the sticky corner cell to name whichever product's section is
@@ -11526,19 +11638,16 @@ function _tplComputeProductBreakdown(baseStories){
         // Not-Resolved, not just plain 'Open' — a snag sitting at 'Needs
         // Clarification' is still an unresolved issue, just waiting on the
         // tester instead of the developer, so it should still count here.
-        // Enhancements are counted separately (openEnhancementCount) — they
-        // follow the same upsert/lifecycle rows as a Snag (see SNAGS.kind)
-        // but live in their own tab, so a "Snags" badge shouldn't include
-        // them and vice versa.
-        openSnagCount:SNAGS.filter(sn=>sn.status!=='Resolved' && sn.kind!=='Enhancement' && sn.productId===p.id && sn.epicId===epic.id).length,
-        openEnhancementCount:SNAGS.filter(sn=>sn.status!=='Resolved' && sn.kind==='Enhancement' && sn.productId===p.id && sn.epicId===epic.id).length,
+        // Snags and Enhancements share one list/tab/count (see SNAGS.kind) —
+        // only the individual card's colour distinguishes them, so this
+        // count is deliberately kind-agnostic.
+        openSnagCount:SNAGS.filter(sn=>sn.status!=='Resolved' && sn.productId===p.id && sn.epicId===epic.id).length,
       };
     }).sort((a,b)=>(a.epic.order||0)-(b.epic.order||0));
     const verifiedCount=epics.reduce((sum,e)=>sum+e.verifiedCount,0);
     const openFailCount=epics.reduce((sum,e)=>sum+e.openFailCount,0);
-    const openSnagCount=SNAGS.filter(sn=>sn.status!=='Resolved' && sn.kind!=='Enhancement' && sn.productId===p.id).length;
-    const openEnhancementCount=SNAGS.filter(sn=>sn.status!=='Resolved' && sn.kind==='Enhancement' && sn.productId===p.id).length;
-    return {product:p, total:pStories.length, verifiedCount, openFailCount, openSnagCount, openEnhancementCount, epics};
+    const openSnagCount=SNAGS.filter(sn=>sn.status!=='Resolved' && sn.productId===p.id).length;
+    return {product:p, total:pStories.length, verifiedCount, openFailCount, openSnagCount, epics};
   });
 }
 // A scenario is in scope if it's linked to at least one in-scope requirement,
@@ -11635,8 +11744,7 @@ function renderTestPlan(){
   }
 
   const overallOpenSnagCount=breakdown.reduce((sum,b)=>sum+b.openSnagCount,0);
-  const overallOpenEnhancementCount=breakdown.reduce((sum,b)=>sum+b.openEnhancementCount,0);
-  html+=`<div style="padding:10px 20px 0">${_tplSummaryAccordionHtml(breakdown,total,scenarioCoveredCount,scenarioPct,overallOpenFailCount+scenarioOpenFailCount,overallOpenSnagCount,overallOpenEnhancementCount)}</div>`;
+  html+=`<div style="padding:10px 20px 0">${_tplSummaryAccordionHtml(breakdown,total,scenarioCoveredCount,scenarioPct,overallOpenFailCount+scenarioOpenFailCount,overallOpenSnagCount)}</div>`;
 
   // Scenario tab stays scoped to the active product tab (whole-story
   // membership, not per-product verification — scenarios aren't split per
@@ -11647,13 +11755,10 @@ function renderTestPlan(){
 
   html+=`<div class="req-content tpl-content">`;
   if(_tplSubTab==='snags'){
-    // Not gated by `!total` — a product can have open snags (especially
-    // manually-reported ones) with zero formal requirements in scope yet.
+    // Not gated by `!total` — a product can have open snags/enhancements
+    // (especially manually-reported ones) with zero formal requirements in
+    // scope yet.
     html+=_tplRenderSnagsTab();
-  } else if(_tplSubTab==='enhancements'){
-    // Same reasoning as Snags above — an enhancement idea can exist with
-    // zero formal requirements in scope yet.
-    html+=_tplRenderEnhancementsTab();
   } else if(!total){
     html+=_tplEmptyStateHtml();
   } else if(_tplSubTab==='functional'){
@@ -11692,9 +11797,9 @@ function _tplDotHtml(verifiedCount,total,openFailCount){
 // same requirement can be Verified for one product and still failing for
 // another. Scenario Covered stays a single blended figure (not product-split
 // — see the TEST PLAN header comment). ───────────────────────────────────
-function _tplSummaryAccordionHtml(breakdown,total,scenarioCoveredCount,scenarioPct,openFailCount,totalOpenSnags,totalOpenEnhancements){
+function _tplSummaryAccordionHtml(breakdown,total,scenarioCoveredCount,scenarioPct,openFailCount,totalOpenSnags){
   const isOpen=_tplSummaryOpen;
-  const rows=breakdown.filter(b=>b.total>0||b.openSnagCount>0||b.openEnhancementCount>0).map(b=>{
+  const rows=breakdown.filter(b=>b.total>0||b.openSnagCount>0).map(b=>{
     const pct=b.total?Math.round(b.verifiedCount/b.total*100):0;
     const badge=_tplPctBadgeStyle(pct);
     return `<div class="tpl-summary-product-row" onclick="_tplSelectProduct('${b.product.id}')">
@@ -11703,7 +11808,6 @@ function _tplSummaryAccordionHtml(breakdown,total,scenarioCoveredCount,scenarioP
       <span class="tpl-summary-product-count">${b.verifiedCount}/${b.total} completed</span>
       <span class="tpl-hier-pct" style="color:${badge.fg};background:${badge.bg}">${pct}%</span>
       ${b.openSnagCount?`<span class="tpl-hier-fail-badge" title="Open snags on ${escH(b.product.name)}"><span class="material-icons-round" style="font-size:10px;vertical-align:-1px">bug_report</span> ${b.openSnagCount}</span>`:''}
-      ${b.openEnhancementCount?`<span class="tpl-hier-fail-badge" style="color:var(--rag-idea-fg);background:var(--rag-idea-bg)" title="Open enhancements on ${escH(b.product.name)}"><span class="material-icons-round" style="font-size:10px;vertical-align:-1px">lightbulb</span> ${b.openEnhancementCount}</span>`:''}
     </div>`;
   }).join('');
   return `<div class="tr-cmt-accordion tpl-summary-accordion">
@@ -11726,10 +11830,6 @@ function _tplSummaryAccordionHtml(breakdown,total,scenarioCoveredCount,scenarioP
         <div class="ar-metric-tile ${totalOpenSnags?'issue':'ok'}">
           <div class="ar-metric-num">${totalOpenSnags}</div>
           <div class="ar-metric-lbl">Open Snags (all products)</div>
-        </div>
-        <div class="ar-metric-tile" style="${totalOpenEnhancements?'border-top:4px solid var(--rag-idea-fg)':''}">
-          <div class="ar-metric-num">${totalOpenEnhancements}</div>
-          <div class="ar-metric-lbl">Open Enhancements (all products)</div>
         </div>
       </div>
     </div>`:''}
@@ -11771,7 +11871,6 @@ function renderTestPlanNav(breakdown, scenarios){
       <button class="tpl-subtab-btn${_tplSubTab==='functional'?' active':''}" style="flex:1" onclick="_tplSetSubTab('functional')">Functional</button>
       <button class="tpl-subtab-btn${_tplSubTab==='scenario'?' active':''}" style="flex:1" onclick="_tplSetSubTab('scenario')">Scenario</button>
       <button class="tpl-subtab-btn${_tplSubTab==='snags'?' active':''}" style="flex:1" onclick="_tplSetSubTab('snags')">Snags</button>
-      <button class="tpl-subtab-btn${_tplSubTab==='enhancements'?' active':''}" style="flex:1" onclick="_tplSetSubTab('enhancements')">Enhancements</button>
     </div>
   </div>`;
 
@@ -11841,37 +11940,6 @@ function renderTestPlanNav(breakdown, scenarios){
           <span class="tpl-dot tpl-dot-red">${openSnagCount}</span>
           <span class="tpl-nav-label">${escH(epic.name)}</span>
           <span class="tpl-nav-count">${openSnagCount} open</span>
-        </button>`).join('');
-    });
-    html+='</div>';
-    wrap.innerHTML=html;
-    return;
-  }
-
-  // Same shape/anchors as Snags above (_tplNavSelectSnagsProduct/
-  // _tplNavGoToSnagEpic are subtab-agnostic — they just set the active
-  // product and scroll to a [data-tpl-snag-anchor], which the Enhancements
-  // tab's accordions carry too, see _tplRenderEnhancementsTab) — only the
-  // count field and dot colour differ, since an open enhancement isn't a
-  // "red" issue.
-  if(_tplSubTab==='enhancements'){
-    html+=`<div class="tpl-nav-body">`;
-    const shown=breakdown.filter(b=>b.openEnhancementCount>0);
-    if(!shown.length){
-      html+='<div style="padding:16px;font-size:11px;color:var(--text3)">No open enhancements.</div>';
-    }
-    shown.forEach(b=>{
-      const isActive=_tplActiveProductId===b.product.id;
-      html+=`<button class="ar-nav-item tpl-nav-product${isActive?' active':''}" onclick="_tplNavSelectSnagsProduct('${b.product.id}')" title="${escH(b.product.name)}">
-        <span class="tpl-dot" style="background:var(--rag-idea-fg);color:#fff">${b.openEnhancementCount}</span>
-        <span class="tpl-nav-label">${escH(b.product.name)}</span>
-        <span class="tpl-nav-count">${b.openEnhancementCount} open</span>
-      </button>`;
-      html+=b.epics.filter(e=>e.openEnhancementCount>0).map(({epic,openEnhancementCount})=>`
-        <button class="ar-nav-item tpl-nav-epic" onclick="_tplNavGoToSnagEpic('${b.product.id}','${epic.id}')" title="${escH(epic.name)}">
-          <span class="tpl-dot" style="background:var(--rag-idea-fg);color:#fff">${openEnhancementCount}</span>
-          <span class="tpl-nav-label">${escH(epic.name)}</span>
-          <span class="tpl-nav-count">${openEnhancementCount} open</span>
         </button>`).join('');
     });
     html+='</div>';
@@ -13189,29 +13257,18 @@ function _tplSnagCardHtml(sn){
 // Same Product-tab-scoped, per-Epic-section, sticky-header structure as
 // Functional Tests (see _tplRenderFunctionalTab) — but grouped straight from
 // Product → Functional Area with no Feature level in between, since a
-// manually-logged snag has no Feature to nest under. Excludes Enhancements
-// (kind==='Enhancement') — those live in their own tab, see
-// _tplRenderEnhancementsTab, which shares this same rendering shell.
+// manually-logged snag has no Feature to nest under. Snags and Enhancements
+// share this one list/tab (not split into separate tabs) — each card's own
+// colour (red vs violet, see _tplSnagCardHtml's isEnhancement branch) is
+// what tells them apart, per the user's explicit "just use colour" request.
 function _tplRenderSnagsTab(){
-  return _tplRenderSnagsOrEnhancementsTab(sn=>sn.kind!=='Enhancement');
-}
-// Mirror of _tplRenderSnagsTab, scoped to kind==='Enhancement' — "a new
-// idea, not something broken" per the user's request, but following the
-// exact same auto-created-placeholder/retest workflow (see
-// _snagFindOrCreateManualFeature/_snagCreatePlaceholderStory/saveAddSnagModal),
-// so it's rendered with the same shared shell/cards, just filtered and with
-// the calmer "idea" styling _tplSnagCardHtml already applies per-row.
-function _tplRenderEnhancementsTab(){
-  return _tplRenderSnagsOrEnhancementsTab(sn=>sn.kind==='Enhancement');
-}
-function _tplRenderSnagsOrEnhancementsTab(filterFn){
   const productsToRender=_tplActiveProductId==='ALL'
     ? ROADMAP_PRODUCTS
     : ROADMAP_PRODUCTS.filter(p=>p.id===_tplActiveProductId);
   const showSeparator=_tplActiveProductId==='ALL';
   let bodyHtml='';
   productsToRender.forEach(prod=>{
-    const snags=SNAGS.filter(sn=>sn.productId===prod.id && filterFn(sn));
+    const snags=SNAGS.filter(sn=>sn.productId===prod.id);
     if(!snags.length) return;
     const epicMap={};
     snags.forEach(sn=>{
@@ -13239,15 +13296,13 @@ function _tplSnagEpicAccordionHtml(epic,snags,productId){
   const compositeId=epic.id+'::'+productId;
   const isOpen=!_tplClosedSnagEpics.has(compositeId);
   const openCount=snags.filter(sn=>sn.status!=='Resolved').length;
-  const isEnhancementGroup=snags.length>0 && snags[0].kind==='Enhancement';
-  const noun=isEnhancementGroup?'idea':'snag';
   const style=`background:${colour};color:#fff`;
   let html=`<div class="tpl-hier-group tpl-hier-epic" data-tpl-snag-anchor="${compositeId}">
     <button class="tpl-hier-hdr tpl-hier-hdr-epic" style="${style}" onclick="_tplToggleSnagEpic('${compositeId}')">
       <span class="material-icons-round tpl-hier-chev" style="font-size:15px;color:#fff">${isOpen?'expand_more':'chevron_right'}</span>
       <span class="tpl-hier-label" title="${escH(epic.name)}">${escH(epic.name)}</span>
-      <span class="tpl-hier-count" style="color:rgba(255,255,255,.85)">${snags.length} ${noun}${snags.length===1?'':'s'}</span>
-      ${openCount?`<span class="tpl-hier-fail-badge"${isEnhancementGroup?' style="color:var(--rag-idea-fg);background:var(--rag-idea-bg)"':''}>${openCount} open</span>`:''}
+      <span class="tpl-hier-count" style="color:rgba(255,255,255,.85)">${snags.length} snag${snags.length===1?'':'s'}</span>
+      ${openCount?`<span class="tpl-hier-fail-badge">${openCount} open</span>`:''}
     </button>`;
   if(isOpen) html+=`<div class="tpl-hier-body tpl-hier-body-leaf">${snags.map(sn=>_tplSnagCardHtml(sn)).join('')}</div>`;
   html+=`</div>`;
@@ -13394,7 +13449,7 @@ async function saveAddSnagModal(){
   await dbUpsertSnag(snag);
   _tplSnagDraft=null;
   closeModal('addSnagModal');
-  _tplSubTab=isEnhancement?'enhancements':'snags';
+  _tplSubTab='snags';
   renderTestPlan();
   showToast(isEnhancement?'Enhancement added':'Snag added');
 }

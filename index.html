@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- StrategicSitemapper  v95 -->
+<!-- StrategicSitemapper  v98 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -114,6 +114,7 @@
   --rag-amber-fg:#B5852C; --rag-amber-bg:#F8F1DE;  /* At risk   */
   --rag-red-fg:#C2503F;   --rag-red-bg:#F8E7E3;    /* Blocked   */
   --rag-none-fg:#8B93A3;  --rag-none-bg:#EEF0F3;   /* No status */
+  --rag-idea-fg:#6B5394;  --rag-idea-bg:#ECE8F5;   /* Enhancement — an idea, not a defect (same violet as --wf-wf-*) */
 }
 
 .material-icons-round,.material-icons-outlined,.material-symbols-outlined{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;font-variation-settings:'opsz' 20,'wght' 300,'FILL' 0,'GRAD' 0;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;white-space:nowrap;word-wrap:normal;direction:ltr;-webkit-font-feature-settings:'liga';font-feature-settings:'liga';-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
@@ -320,7 +321,7 @@ header{height:56px;background:var(--md-surface);border-bottom:1px solid var(--md
 .orphan-desc{font-size:10px;color:#9c7a3e;margin-bottom:10px;font-style:italic}
 .orphan-cards{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
 
-/* ── LINK LINE PRIORITY ── overrides in drawConnectors SVG are handled in JS */
+/* ── LINK LINE PRIORITY ── overrides in the connector-routing SVG are handled in JS */
 /* These CSS vars control the line weights used in the SVG path builders */
 
 /* ── ICON HEADER BUTTONS ── */
@@ -1598,6 +1599,7 @@ a.pt-url-val:hover{text-decoration:underline}
 .tpl-failures-hdr .tpl-hier-chev{color:var(--rag-red-fg)}
 .tpl-req-row{display:flex;flex-direction:column;gap:6px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--white)}
 .tpl-req-row-fail{border-color:var(--rag-red-fg);background:var(--rag-red-bg)}
+.tpl-req-row-enhancement{border-color:var(--rag-idea-fg);background:var(--rag-idea-bg)}
 /* Verified/blocked-on-Fail rows collapse to one line — see _tplReqRowCompactHtml. */
 .tpl-req-row-compact{flex-direction:row;align-items:center;gap:8px;padding:4px 10px;flex-wrap:nowrap}
 .tpl-req-row-compact .tpl-req-row-text{flex:1;min-width:0;font-size:11px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1828,11 +1830,11 @@ a.pt-url-val:hover{text-decoration:underline}
 <!-- Snags: Add Snag Modal — manual entry, "found and submitted through other means" -->
 <div class="modal-bg" id="addSnagModal">
 <div class="modal">
-  <div class="mhead"><h3>Add Snag</h3><button class="mclose" onclick="closeModal('addSnagModal')">✕</button></div>
+  <div class="mhead"><h3 id="addSnagModalTitle">Add Snag</h3><button class="mclose" onclick="closeModal('addSnagModal')">✕</button></div>
   <div class="mbody" id="addSnagModalBody"></div>
   <div class="mfoot">
     <button class="mbtn mbtn-cancel" onclick="closeModal('addSnagModal')">Cancel</button>
-    <button class="mbtn mbtn-save" onclick="saveAddSnagModal()">Add Snag</button>
+    <button class="mbtn mbtn-save" id="addSnagModalSaveBtn" onclick="saveAddSnagModal()">Add Snag</button>
   </div>
 </div>
 </div>
@@ -3022,7 +3024,7 @@ async function loadFromSheets() {
     TEST_RESULTS = (data.testResults||[]).map(r=>({id:String(r.id||''),storyId:String(r.storyId||''),testerEmail:String(r.testerEmail||'').trim().toLowerCase(),result:r.result||'',notes:r.notes||'',testedAt:r.testedAt||null,productId:String(r.productId||'')}));
     TEST_SCENARIOS = (data.scenarios||[]).map(r=>({id:String(r.id||''),code:r.code||'',title:r.title||'',mode:r.mode||'freeform',type:r.type||'',priority:r.priority||'',phaseId:String(r.phaseId||''),objective:r.objective||'',preconditions:r.preconditions||'',testData:r.testData||'',stepsJson:r.stepsJson||'',overallExpected:r.overallExpected||'',reqCodes:r.reqCodes||'',text:r.text||'',status:r.status||'Not Tested',lastTestedBy:String(r.lastTestedBy||'').trim().toLowerCase(),lastTestedAt:r.lastTestedAt||null,notes:r.notes||'',createdBy:String(r.createdBy||'').trim().toLowerCase(),createdAt:r.createdAt||null}));
     TEST_SCENARIO_LINKS = (data.scenarioLinks||[]).map(r=>({id:String(r.id||''),scenarioId:String(r.scenarioId||''),storyId:String(r.storyId||'')}));
-    SNAGS = (data.snags||[]).map(r=>({id:String(r.id||''),storyId:String(r.storyId||''),productId:String(r.productId||''),epicId:String(r.epicId||''),title:r.title||'',status:r.status||'Open',source:r.source||'test',reporterEmail:String(r.reporterEmail||'').trim().toLowerCase(),cycleCount:Number(r.cycleCount)||1,createdAt:r.createdAt||null,resolvedBy:String(r.resolvedBy||'').trim().toLowerCase(),resolvedAt:r.resolvedAt||null,updatedAt:r.updatedAt||null}));
+    SNAGS = (data.snags||[]).map(r=>({id:String(r.id||''),storyId:String(r.storyId||''),productId:String(r.productId||''),epicId:String(r.epicId||''),title:r.title||'',status:r.status||'Open',kind:r.kind==='Enhancement'?'Enhancement':'Snag',source:r.source||'test',reporterEmail:String(r.reporterEmail||'').trim().toLowerCase(),cycleCount:Number(r.cycleCount)||1,createdAt:r.createdAt||null,resolvedBy:String(r.resolvedBy||'').trim().toLowerCase(),resolvedAt:r.resolvedAt||null,updatedAt:r.updatedAt||null}));
     // Same shape as SNAGS, keyed on nodeId instead of storyId/productId/epicId
     // — see the Transformation Report's Page Snags panel.
     PAGE_SNAGS = (data.pageSnags||[]).map(r=>({id:String(r.id||''),nodeId:String(r.nodeId||''),componentId:String(r.componentId||''),title:r.title||'',status:r.status||'Open',source:r.source||'manual',reporterEmail:String(r.reporterEmail||'').trim().toLowerCase(),cycleCount:Number(r.cycleCount)||1,createdAt:r.createdAt||null,resolvedBy:String(r.resolvedBy||'').trim().toLowerCase(),resolvedAt:r.resolvedAt||null,updatedAt:r.updatedAt||null}));
@@ -3400,7 +3402,7 @@ async function dbUpsertTestResult(r){try{await sheetPost({action:'upsertTestResu
 // Report or reopen a snag — the backend forces status:'Open' regardless of
 // what's sent here (see the doPost case), so this can never resolve one;
 // only dbSquashSnag can.
-async function dbUpsertSnag(sn){try{await sheetPost({action:'upsertSnag',row:{id:sn.id,storyId:sn.storyId||'',productId:sn.productId||'',epicId:sn.epicId||'',title:sn.title||'',status:sn.status||'Open',source:sn.source||'test',reporterEmail:sn.reporterEmail||'',cycleCount:sn.cycleCount||1,createdAt:sn.createdAt||'',resolvedBy:sn.resolvedBy||'',resolvedAt:sn.resolvedAt||'',updatedAt:sn.updatedAt||''}});}catch(e){console.error('dbUpsertSnag:',e);showToast('Sheet write error: '+e.message);}}
+async function dbUpsertSnag(sn){try{await sheetPost({action:'upsertSnag',row:{id:sn.id,storyId:sn.storyId||'',productId:sn.productId||'',epicId:sn.epicId||'',title:sn.title||'',status:sn.status||'Open',kind:sn.kind||'Snag',source:sn.source||'test',reporterEmail:sn.reporterEmail||'',cycleCount:sn.cycleCount||1,createdAt:sn.createdAt||'',resolvedBy:sn.resolvedBy||'',resolvedAt:sn.resolvedAt||'',updatedAt:sn.updatedAt||''}});}catch(e){console.error('dbUpsertSnag:',e);showToast('Sheet write error: '+e.message);}}
 // Narrow counterpart to dbUpsertSnag — the one action a Developer actually
 // takes (mark resolved). Hits the backend's squashSnag action, which checks
 // the caller's role server-side (Developer/Editor/Admin only — Tester and
@@ -3641,8 +3643,7 @@ let OWNER_C={Marketing:'#B5683C',Product:'#2D4A6B',Engineering:'#2E7D6B',Legal:'
 // Requirement Types — same shape/pattern as OWNER_C (name -> single hex colour),
 // user-configurable via Settings, used by the Requirements Tracker view.
 let REQTYPE_C={'Functional Requirement':'#2D4A6B','Business Rule':'#6B5394','Regulatory Requirement':'#A23F4D'};
-// Development/Testing status — fixed enum (not user-configurable, unlike
-// REQTYPE_C), mirroring ROADMAP_STATUSES' role for Features.
+// Development/Testing status — fixed enum (not user-configurable, unlike REQTYPE_C).
 const REQ_STATUSES=['Not Started','In Progress','Blocked','Done'];
 const REQ_STATUS_COLOURS={
   'Not Started':{fg:'var(--wf-ns-fg)',  bg:'var(--wf-ns-bg)'},
@@ -3701,7 +3702,6 @@ let ROADMAP_EPICS=[];    // [{id,productId,name,desc,colour,order}]
 let ROADMAP_FEATURES=[]; // [{id,epicId,phaseId,name,desc,icon,status,order}]
 let ROADMAP_STORIES=[];  // [{id,featureId,text,stretch,type,devStatus,testStatus,owner,source,order}] — also the Requirements Tracker's rows
 const EPIC_COLOURS=PH_COLOURS; // reuse the same swatch palette used for phases/journeys
-const ROADMAP_STATUSES=['Planned','In Progress','Done'];
 // Fixed, roadmap-only status pill colours — distinct from Settings > Statuses
 // (the page-transformation pipeline) — reusing existing --wf-*/design tokens so
 // the palette stays visually consistent with the rest of the app.
@@ -3827,7 +3827,7 @@ exact shape.
 
 (Paste your actual list of requirement codes alongside this prompt so the tool
 references real codes instead of guessing.)`;
-let _tplSubTab='functional';       // 'functional' | 'scenario'
+let _tplSubTab='functional';       // 'functional' | 'scenario' | 'snags' | 'enhancements'
 let _tplSearchQuery='';
 // Composite storyId+'::'+productId — since a Functional Area can now need
 // testing across more than one product (see _tplEpicTestProductIds), the
@@ -3918,7 +3918,6 @@ let activeJourneyId=null;
 let addingCompFor=null;
 let addingStepFor=null;
 let navOpen=false;
-let ctaExpanded={};
 let extlinkExpanded={};
 // linesVisible mirrors LAYERS.links.on — controlled by the Page Links pill.
 let linesVisible=LAYERS.links?.on??true;
@@ -5533,8 +5532,6 @@ function buildCard(node,jSet){
 
   el.addEventListener('click',e=>{if(!e.target.closest('.cta-header')&&!e.target.closest('.cta-blocks')&&!e.target.closest('.links-header')&&!e.target.closest('.links-blocks')){e.stopPropagation();_focusNodeId=_focusNodeId===node.id?null:node.id;selNodeId=node.id;renderCanvas();scrollToCard(node.id);openTray(node.id)}});
   el.addEventListener('dblclick',e=>{e.stopPropagation();if(canEdit())openEditNode(node.id);});
-  // Enable drag in IA view
-  enableCardDrag(el, node.id);
   return el;
 }
 
@@ -5566,9 +5563,6 @@ function hexToRgb(hex){
 /* ═══════════════════════════════════════════
    SVG CONNECTORS
 ═══════════════════════════════════════════ */
-
-// Drag state for IA view node overrides
-const dragOffsets = {}; // nodeId → {dx, dy} pixel offset from natural position
 
 // ── getCardRect: Option B — reads from _cardLayout (zero DOM reads for appblocks)
 // For touchpoints/orphans added after the rAF pass, _cardLayout is also populated.
@@ -5817,7 +5811,7 @@ function _safeTrunk(candidates, preferred, segFn){
 }
 
 // ── Channel-centric Manhattan router with occupancy-based lane reservation ────
-// Replaces gutterPath — uses _routingInfra channel grid + occupancy maps.
+// Uses _routingInfra channel grid + occupancy maps.
 // laneIndex/laneTotal are hints; actual offset is derived from the occupancy model.
 // bounds (optional) = {xl,xr,yt,yb} — when both nodes share an appblock, all
 // trunk coordinates are clamped to this rectangle so lines stay inside the block.
@@ -6112,9 +6106,6 @@ function channelRoute(a,b,laneIndex,laneTotal,bounds,pitchOverride){
   return pts.join(' ');
 }
 
-// Legacy alias kept for any remaining call sites
-function gutterPath(a,b,hG,vG,bl,li,lt){ return channelRoute(a,b,li,lt); }
-
 // ── Module-level routing infra stub (compatibility alias) ────────────────────
 // The real _routingInfra is built in drawNavLines via buildRoutingInfra().
 
@@ -6150,8 +6141,6 @@ let _ecoDragUp   = null;
      2. connSvg    <path class="nav-hit">        — wide transparent hit-targets
      3. connSvg    <rect class="node-boundary">  — dashed outline rings
 ─────────────────────────────────────────────────────────────────────────────── */
-
-const BOUNDARY_PAD = 1; // ring inset — traces the card outline closely
 
 // Create a plain, unmasked <g> group for visual line paths.
 // Visual lines go into connSvgBg (z-index:0) so they render BELOW card surfaces.
@@ -6488,14 +6477,6 @@ function syncSvgSize(){
   svg.setAttribute('height', h);
   if(svgBg){ svgBg.setAttribute('width', w); svgBg.setAttribute('height', h); }
 }
-
-// ── Tree connectors: no longer draw parent-child lines ──
-function drawConnectors(vnSet){ syncSvgSize(); }
-
-// Drag disabled — layout is algorithm-controlled
-function enableCardDrag(el, nodeId){ /* no-op */ }
-// No-op stubs kept for any remaining call sites
-const nodeManualPos = {};
 
 /* ═══════════════════════════════════════════
    DRAWER
@@ -7291,9 +7272,6 @@ function delNodeDoc(nodeId, docId){
   if(trayBody&&eid('tray-panel')?.style.display!=='none') _renderTrayEditTab('phase variants',nodeId,trayBody);
 }
 
-
-// Human-readable field label map
-const DIFF_LABELS={title:'Title',slug:'As-Is URL',newSlug:'To-Be URL',cms:'System',owner:'Owner',status:'Status',notes:'Notes',redirectFrom:'Redirect from',redirectTo:'Redirect to',bgImg:'Bg image',badgeImg:'Badge image',badgeLabel:'Badge label',ctas:'CTAs',links:'Links',components:'Components'};
 
 function saveNode(){if(!canEdit()){showToast('View-only access — editing is disabled');return;}
   const titleEl=eid('ne-title');
@@ -11464,7 +11442,23 @@ function _tplStoryVerification(storyId, productId){
   });
   const passers=[...new Set(rows.filter(r=>r.result==='Pass').map(r=>r.testerEmail))];
   const failers=rows.filter(r=>r.result==='Fail');
-  const result={rows, passers, failCount:failers.length, verified:passers.length>=2 && failers.length===0, openFail:failers.length>0};
+  const openFail=failers.length>0;
+  // A manually-logged snag (reported straight to Development, never via a
+  // Fail test result) leaves rows empty — openFail alone would miss it and
+  // let the tester view show an active "Test" button as if nothing were
+  // wrong. status==='Open' specifically (not 'Needs Clarification', which is
+  // the tester's own turn to answer, not Development's) or (not 'Resolved',
+  // which is the tester's turn to verify the fix).
+  const priorSnag=SNAGS.find(sn=>sn.storyId===storyId && sn.productId===productId);
+  // An Enhancement follows this exact same auto-created-placeholder/retest
+  // path as a bug snag (see _snagFindOrCreateManualFeature/
+  // _snagCreatePlaceholderStory) but isn't "something broken" — kept
+  // separate from openSnag so the row can still block the Test button
+  // (nothing for a tester to do while it's with Development) while getting
+  // its own, calmer styling instead of the red Fail treatment.
+  const openSnag=!!priorSnag && priorSnag.status==='Open' && priorSnag.kind!=='Enhancement';
+  const openEnhancement=!!priorSnag && priorSnag.status==='Open' && priorSnag.kind==='Enhancement';
+  const result={rows, passers, failCount:failers.length, verified:passers.length>=2 && failers.length===0, openFail, openSnag, openEnhancement, blocked:openFail||openSnag||openEnhancement};
   if(_tplVerifyCache) _tplVerifyCache.set(key, result);
   return result;
 }
@@ -11532,13 +11526,19 @@ function _tplComputeProductBreakdown(baseStories){
         // Not-Resolved, not just plain 'Open' — a snag sitting at 'Needs
         // Clarification' is still an unresolved issue, just waiting on the
         // tester instead of the developer, so it should still count here.
-        openSnagCount:SNAGS.filter(sn=>sn.status!=='Resolved' && sn.productId===p.id && sn.epicId===epic.id).length,
+        // Enhancements are counted separately (openEnhancementCount) — they
+        // follow the same upsert/lifecycle rows as a Snag (see SNAGS.kind)
+        // but live in their own tab, so a "Snags" badge shouldn't include
+        // them and vice versa.
+        openSnagCount:SNAGS.filter(sn=>sn.status!=='Resolved' && sn.kind!=='Enhancement' && sn.productId===p.id && sn.epicId===epic.id).length,
+        openEnhancementCount:SNAGS.filter(sn=>sn.status!=='Resolved' && sn.kind==='Enhancement' && sn.productId===p.id && sn.epicId===epic.id).length,
       };
     }).sort((a,b)=>(a.epic.order||0)-(b.epic.order||0));
     const verifiedCount=epics.reduce((sum,e)=>sum+e.verifiedCount,0);
     const openFailCount=epics.reduce((sum,e)=>sum+e.openFailCount,0);
-    const openSnagCount=SNAGS.filter(sn=>sn.status!=='Resolved' && sn.productId===p.id).length;
-    return {product:p, total:pStories.length, verifiedCount, openFailCount, openSnagCount, epics};
+    const openSnagCount=SNAGS.filter(sn=>sn.status!=='Resolved' && sn.kind!=='Enhancement' && sn.productId===p.id).length;
+    const openEnhancementCount=SNAGS.filter(sn=>sn.status!=='Resolved' && sn.kind==='Enhancement' && sn.productId===p.id).length;
+    return {product:p, total:pStories.length, verifiedCount, openFailCount, openSnagCount, openEnhancementCount, epics};
   });
 }
 // A scenario is in scope if it's linked to at least one in-scope requirement,
@@ -11610,6 +11610,12 @@ function renderTestPlan(){
     <button class="mbtn mbtn-cancel" style="flex-shrink:0" onclick="_tplOpenReport()" title="Open a printable summary of testing progress">
       <span class="material-icons-round" style="font-size:14px;vertical-align:-2px;margin-right:4px">summarize</span>Test Report
     </button>
+    <button class="mbtn mbtn-save" data-requires-snag-report style="flex-shrink:0;display:none" onclick="openAddSnagModal()" title="Report a snag — something broken">
+      <span class="material-icons-round" style="font-size:14px;vertical-align:-2px;margin-right:4px">bug_report</span>+ Add Snag
+    </button>
+    <button class="mbtn mbtn-save" data-requires-snag-report style="flex-shrink:0;display:none" onclick="openAddEnhancementModal()" title="Suggest an enhancement — a new idea, not something broken">
+      <span class="material-icons-round" style="font-size:14px;vertical-align:-2px;margin-right:4px">lightbulb</span>+ Add Enhancement
+    </button>
     <button class="mbtn mbtn-cancel" data-requires-admin style="flex-shrink:0;display:none" onclick="dbCaptureProgressSnapshotNow()" title="Capture today's % Verified per product now, instead of waiting for the daily trigger — feeds the report's Progress by Day chart">
       <span class="material-icons-round" style="font-size:14px;vertical-align:-2px;margin-right:4px">camera_alt</span>Capture Snapshot
     </button>
@@ -11629,7 +11635,8 @@ function renderTestPlan(){
   }
 
   const overallOpenSnagCount=breakdown.reduce((sum,b)=>sum+b.openSnagCount,0);
-  html+=`<div style="padding:10px 20px 0">${_tplSummaryAccordionHtml(breakdown,total,scenarioCoveredCount,scenarioPct,overallOpenFailCount+scenarioOpenFailCount,overallOpenSnagCount)}</div>`;
+  const overallOpenEnhancementCount=breakdown.reduce((sum,b)=>sum+b.openEnhancementCount,0);
+  html+=`<div style="padding:10px 20px 0">${_tplSummaryAccordionHtml(breakdown,total,scenarioCoveredCount,scenarioPct,overallOpenFailCount+scenarioOpenFailCount,overallOpenSnagCount,overallOpenEnhancementCount)}</div>`;
 
   // Scenario tab stays scoped to the active product tab (whole-story
   // membership, not per-product verification — scenarios aren't split per
@@ -11643,6 +11650,10 @@ function renderTestPlan(){
     // Not gated by `!total` — a product can have open snags (especially
     // manually-reported ones) with zero formal requirements in scope yet.
     html+=_tplRenderSnagsTab();
+  } else if(_tplSubTab==='enhancements'){
+    // Same reasoning as Snags above — an enhancement idea can exist with
+    // zero formal requirements in scope yet.
+    html+=_tplRenderEnhancementsTab();
   } else if(!total){
     html+=_tplEmptyStateHtml();
   } else if(_tplSubTab==='functional'){
@@ -11681,9 +11692,9 @@ function _tplDotHtml(verifiedCount,total,openFailCount){
 // same requirement can be Verified for one product and still failing for
 // another. Scenario Covered stays a single blended figure (not product-split
 // — see the TEST PLAN header comment). ───────────────────────────────────
-function _tplSummaryAccordionHtml(breakdown,total,scenarioCoveredCount,scenarioPct,openFailCount,totalOpenSnags){
+function _tplSummaryAccordionHtml(breakdown,total,scenarioCoveredCount,scenarioPct,openFailCount,totalOpenSnags,totalOpenEnhancements){
   const isOpen=_tplSummaryOpen;
-  const rows=breakdown.filter(b=>b.total>0||b.openSnagCount>0).map(b=>{
+  const rows=breakdown.filter(b=>b.total>0||b.openSnagCount>0||b.openEnhancementCount>0).map(b=>{
     const pct=b.total?Math.round(b.verifiedCount/b.total*100):0;
     const badge=_tplPctBadgeStyle(pct);
     return `<div class="tpl-summary-product-row" onclick="_tplSelectProduct('${b.product.id}')">
@@ -11692,6 +11703,7 @@ function _tplSummaryAccordionHtml(breakdown,total,scenarioCoveredCount,scenarioP
       <span class="tpl-summary-product-count">${b.verifiedCount}/${b.total} completed</span>
       <span class="tpl-hier-pct" style="color:${badge.fg};background:${badge.bg}">${pct}%</span>
       ${b.openSnagCount?`<span class="tpl-hier-fail-badge" title="Open snags on ${escH(b.product.name)}"><span class="material-icons-round" style="font-size:10px;vertical-align:-1px">bug_report</span> ${b.openSnagCount}</span>`:''}
+      ${b.openEnhancementCount?`<span class="tpl-hier-fail-badge" style="color:var(--rag-idea-fg);background:var(--rag-idea-bg)" title="Open enhancements on ${escH(b.product.name)}"><span class="material-icons-round" style="font-size:10px;vertical-align:-1px">lightbulb</span> ${b.openEnhancementCount}</span>`:''}
     </div>`;
   }).join('');
   return `<div class="tr-cmt-accordion tpl-summary-accordion">
@@ -11714,6 +11726,10 @@ function _tplSummaryAccordionHtml(breakdown,total,scenarioCoveredCount,scenarioP
         <div class="ar-metric-tile ${totalOpenSnags?'issue':'ok'}">
           <div class="ar-metric-num">${totalOpenSnags}</div>
           <div class="ar-metric-lbl">Open Snags (all products)</div>
+        </div>
+        <div class="ar-metric-tile" style="${totalOpenEnhancements?'border-top:4px solid var(--rag-idea-fg)':''}">
+          <div class="ar-metric-num">${totalOpenEnhancements}</div>
+          <div class="ar-metric-lbl">Open Enhancements (all products)</div>
         </div>
       </div>
     </div>`:''}
@@ -11755,6 +11771,7 @@ function renderTestPlanNav(breakdown, scenarios){
       <button class="tpl-subtab-btn${_tplSubTab==='functional'?' active':''}" style="flex:1" onclick="_tplSetSubTab('functional')">Functional</button>
       <button class="tpl-subtab-btn${_tplSubTab==='scenario'?' active':''}" style="flex:1" onclick="_tplSetSubTab('scenario')">Scenario</button>
       <button class="tpl-subtab-btn${_tplSubTab==='snags'?' active':''}" style="flex:1" onclick="_tplSetSubTab('snags')">Snags</button>
+      <button class="tpl-subtab-btn${_tplSubTab==='enhancements'?' active':''}" style="flex:1" onclick="_tplSetSubTab('enhancements')">Enhancements</button>
     </div>
   </div>`;
 
@@ -11824,6 +11841,37 @@ function renderTestPlanNav(breakdown, scenarios){
           <span class="tpl-dot tpl-dot-red">${openSnagCount}</span>
           <span class="tpl-nav-label">${escH(epic.name)}</span>
           <span class="tpl-nav-count">${openSnagCount} open</span>
+        </button>`).join('');
+    });
+    html+='</div>';
+    wrap.innerHTML=html;
+    return;
+  }
+
+  // Same shape/anchors as Snags above (_tplNavSelectSnagsProduct/
+  // _tplNavGoToSnagEpic are subtab-agnostic — they just set the active
+  // product and scroll to a [data-tpl-snag-anchor], which the Enhancements
+  // tab's accordions carry too, see _tplRenderEnhancementsTab) — only the
+  // count field and dot colour differ, since an open enhancement isn't a
+  // "red" issue.
+  if(_tplSubTab==='enhancements'){
+    html+=`<div class="tpl-nav-body">`;
+    const shown=breakdown.filter(b=>b.openEnhancementCount>0);
+    if(!shown.length){
+      html+='<div style="padding:16px;font-size:11px;color:var(--text3)">No open enhancements.</div>';
+    }
+    shown.forEach(b=>{
+      const isActive=_tplActiveProductId===b.product.id;
+      html+=`<button class="ar-nav-item tpl-nav-product${isActive?' active':''}" onclick="_tplNavSelectSnagsProduct('${b.product.id}')" title="${escH(b.product.name)}">
+        <span class="tpl-dot" style="background:var(--rag-idea-fg);color:#fff">${b.openEnhancementCount}</span>
+        <span class="tpl-nav-label">${escH(b.product.name)}</span>
+        <span class="tpl-nav-count">${b.openEnhancementCount} open</span>
+      </button>`;
+      html+=b.epics.filter(e=>e.openEnhancementCount>0).map(({epic,openEnhancementCount})=>`
+        <button class="ar-nav-item tpl-nav-epic" onclick="_tplNavGoToSnagEpic('${b.product.id}','${epic.id}')" title="${escH(epic.name)}">
+          <span class="tpl-dot" style="background:var(--rag-idea-fg);color:#fff">${openEnhancementCount}</span>
+          <span class="tpl-nav-label">${escH(epic.name)}</span>
+          <span class="tpl-nav-count">${openEnhancementCount} open</span>
         </button>`).join('');
     });
     html+='</div>';
@@ -11977,7 +12025,7 @@ function _tplCollapseAllAccordions(){
 function _tplHierHdrHtml(level,compositeId,label,groupStories,extraClass,colour,productId){
   const pct=_tplGroupPct(groupStories,productId);
   const badge=_tplPctBadgeStyle(pct);
-  const failCount=groupStories.filter(s=>_tplStoryVerification(s.id,productId).openFail).length;
+  const failCount=groupStories.filter(s=>_tplStoryVerification(s.id,productId).blocked).length;
   const closedSet=level==='epic'?_tplClosedEpics:_tplClosedFeatures;
   const isOpen=!closedSet.has(compositeId);
   // Feature header's tint (${colour}14 ≈ 8% alpha) used to be safe as a
@@ -11997,7 +12045,7 @@ function _tplHierHdrHtml(level,compositeId,label,groupStories,extraClass,colour,
     <span class="material-icons-round tpl-hier-chev" style="font-size:15px;${chevStyle}">${isOpen?'expand_more':'chevron_right'}</span>
     <span class="tpl-hier-label" title="${escH(label)}">${escH(label)}</span>
     <span class="tpl-hier-count" style="${countStyle}">${groupStories.length} requirement${groupStories.length===1?'':'s'}</span>
-    ${failCount?`<span class="tpl-hier-fail-badge">${failCount} failing</span>`:''}
+    ${failCount?`<span class="tpl-hier-fail-badge">${failCount} open</span>`:''}
     <span class="tpl-hier-pct" style="color:${badge.fg};background:${badge.bg}">${pct}%</span>
   </button>`};
 }
@@ -12020,7 +12068,7 @@ function _tplEpicAllResolved(stories, productId){
   return stories.every(s=>{
     const v=_tplStoryVerification(s.id,productId);
     if(v.verified) return true;
-    if(v.openFail) return !_tplNeedsClarificationSnag(s.id,productId);
+    if(v.blocked) return !_tplNeedsClarificationSnag(s.id,productId);
     return false;
   });
 }
@@ -12097,9 +12145,10 @@ function _tplReqRowCompactHtml(s, productId, v, covered){
   // third case is a valid in-progress state, not a failure, so it gets the
   // same neutral "not started" pill colour the full row already uses for it
   // (see _tplReqRowHtml's pillC), not the red Fail one.
-  const pillC=v.verified?TPL_RESULT_COLOURS.Pass:(v.openFail?TPL_RESULT_COLOURS.Fail:{fg:'var(--wf-ns-fg)',bg:'var(--wf-ns-bg)'});
-  const pillLabel=v.verified?'✓ Verified':(v.openFail?`${v.failCount} failing`:`${v.passers.length}/2 passed — awaiting 2nd tester`);
-  return `<div class="tpl-req-row tpl-req-row-compact${v.openFail?' tpl-req-row-fail':''}">
+  const pillC=v.verified?TPL_RESULT_COLOURS.Pass:(v.openEnhancement?{fg:'var(--rag-idea-fg)',bg:'var(--rag-idea-bg)'}:(v.blocked?TPL_RESULT_COLOURS.Fail:{fg:'var(--wf-ns-fg)',bg:'var(--wf-ns-bg)'}));
+  const pillLabel=v.verified?'✓ Verified':(v.openFail?`${v.failCount} failing`:(v.openSnag?'Snag reported — with Development':(v.openEnhancement?'Enhancement — with Development':`${v.passers.length}/2 passed — awaiting 2nd tester`)));
+  const blockedClass=v.openEnhancement?' tpl-req-row-enhancement':(v.blocked?' tpl-req-row-fail':'');
+  return `<div class="tpl-req-row tpl-req-row-compact${blockedClass}">
     <div class="req-code-badge req-code-badge-clickable" title="View full details" onclick="openReqDetail('${s.id}')">${escH(s.code||'—')}</div>
     <div class="tpl-req-row-text">${escH(s.text)}</div>
     <div class="tpl-signoff-chips">${_tplSignoffChipsHtml(v)}</div>
@@ -12130,7 +12179,7 @@ function _tplReqRowHtml(s, productId){
   // Verified/openFail cases below — someone else has to be the one to see
   // the "Second Pass" button.
   const myEmail=gCurrentUser?gCurrentUser.email.trim().toLowerCase():null;
-  const isOwnOnlyPass=!v.openFail && v.passers.length===1 && myEmail && v.passers.includes(myEmail);
+  const isOwnOnlyPass=!v.blocked && v.passers.length===1 && myEmail && v.passers.includes(myEmail);
   // Compact when there's genuinely nothing to do right now: already verified
   // (2 clean passes), blocked on a Fail — a Fail can never self-clear via
   // Retest (the old Fail row in TEST_RESULTS persists until Development
@@ -12139,22 +12188,24 @@ function _tplReqRowHtml(s, productId){
   // viewer's own first pass awaiting someone else's second. A pending
   // clarification question is the one exception — THAT is something the
   // tester owes a reply to, so it stays expanded regardless of state.
-  if(!isMarking && !clarifySnag && (v.verified || v.openFail || isOwnOnlyPass)){
+  if(!isMarking && !clarifySnag && (v.verified || v.blocked || isOwnOnlyPass)){
     return _tplReqRowCompactHtml(s, productId, v, covered);
   }
-  const pillC=v.verified?TPL_RESULT_COLOURS.Pass:(v.openFail?TPL_RESULT_COLOURS.Fail:{fg:'var(--wf-ns-fg)',bg:'var(--wf-ns-bg)'});
-  const pillLabel=v.verified?'✓ Verified':(v.openFail?`${v.passers.length}/2 — Fail open`:`${v.passers.length}/2 passed`);
+  const pillC=v.verified?TPL_RESULT_COLOURS.Pass:(v.openEnhancement?{fg:'var(--rag-idea-fg)',bg:'var(--rag-idea-bg)'}:(v.blocked?TPL_RESULT_COLOURS.Fail:{fg:'var(--wf-ns-fg)',bg:'var(--wf-ns-bg)'}));
+  const pillLabel=v.verified?'✓ Verified':(v.openFail?`${v.passers.length}/2 — Fail open`:(v.openSnag?'Snag reported — with Development':(v.openEnhancement?'Enhancement — with Development':`${v.passers.length}/2 passed`)));
+  const rowBlockedClass=v.openEnhancement?' tpl-req-row-enhancement':(v.blocked?' tpl-req-row-fail':'');
   const typeC=REQTYPE_C[s.type]||null;
   const typeLabel=s.type||'Untyped';
   // Button label: "Test" for a first-ever pass, "Second Pass" once one clean
   // pass is in and a second (different tester) is needed to verify, or
-  // "Verify Fix" for the specific case of a requirement whose snag was just
-  // Resolved by a developer and hasn't been retested since (rows.length===0
-  // again post-squash, but NOT because it was never tested at all).
+  // "Verify Fix"/"Verify Enhancement" for the specific case of a requirement
+  // whose snag was just Resolved by a developer and hasn't been retested
+  // since (rows.length===0 again post-squash, but NOT because it was never
+  // tested at all).
   const priorSnag=SNAGS.find(sn=>sn.storyId===s.id && sn.productId===productId);
   const isVerifyFix=!v.rows.length && priorSnag && priorSnag.status==='Resolved';
-  const btnLabel=!v.rows.length?(isVerifyFix?'Verify Fix':'Test'):'Second Pass';
-  return `<div class="tpl-req-row${v.openFail?' tpl-req-row-fail':''}">
+  const btnLabel=!v.rows.length?(isVerifyFix?(priorSnag.kind==='Enhancement'?'Verify Enhancement':'Verify Fix'):'Test'):'Second Pass';
+  return `<div class="tpl-req-row${rowBlockedClass}">
     <div class="tpl-req-row-main">
       <div class="req-code-badge req-code-badge-clickable" title="View full details" onclick="openReqDetail('${s.id}')">${escH(s.code||'—')}</div>
       <div class="tpl-req-row-text">${escH(s.text)}</div>
@@ -12163,12 +12214,12 @@ function _tplReqRowHtml(s, productId){
     <div class="tpl-req-row-meta">
       <div class="tpl-signoff-chips">
         ${_tplSignoffChipsHtml(v)}
-        ${!v.rows.length?'<span style="font-size:10px;color:var(--text3)">Not tested</span>':''}
+        ${(!v.rows.length && !v.openSnag && !v.openEnhancement)?'<span style="font-size:10px;color:var(--text3)">Not tested</span>':''}
       </div>
       <span class="tpl-verify-pill" style="color:${pillC.fg};background:${pillC.bg}">${pillLabel}</span>
       <span class="tpl-coverage-icon" title="${covered?'Covered by a passed scenario':'No passed scenario linked'}">${covered?'✅':'—'}</span>
       ${commentBadgeHtml('story',s.id,{label:s.text.slice(0,60)})}
-      ${(!isMarking && !v.openFail)?`<div data-requires-test><button class="tpl-mark-btn tpl-mark-btn-primary" onclick="_tplStartMarkStory('${s.id}','${productId}')">${btnLabel}</button></div>`:''}
+      ${(!isMarking && !v.blocked)?`<div data-requires-test><button class="tpl-mark-btn tpl-mark-btn-primary" onclick="_tplStartMarkStory('${s.id}','${productId}')">${btnLabel}</button></div>`:''}
     </div>
     ${isMarking?`<div data-requires-test>${_tplMarkFormHtml(s,productId)}</div>`:''}
     ${clarifySnag?_tplClarificationBannerHtml(clarifySnag):''}
@@ -12189,7 +12240,7 @@ function _tplRenderFunctionalTab(stories){
   let html='';
   productsToRender.forEach(prod=>{
     const productStories=_tplStoriesInProduct(stories, prod.id);
-    const failingStories=productStories.filter(s=>_tplStoryVerification(s.id,prod.id).openFail);
+    const failingStories=productStories.filter(s=>_tplStoryVerification(s.id,prod.id).blocked);
     const tree=_tplBuildEpicTree(productStories);
     if(!tree.length) return;
     if(showSeparator) html+=`<div class="rm-product-sep">${escH(prod.name)}</div>`;
@@ -13051,14 +13102,6 @@ function _tplClarifyThreadHtml(entityType, entityId){
   const moreLink=list.length>recent.length?`<div style="font-size:10px;margin-top:3px"><a href="javascript:void(0)" onclick="event.stopPropagation();openCommentsPanel('${entityType}','${String(entityId).replace(/'/g,"\\'")}','Clarification')" style="color:var(--accent);font-weight:600">View all ${list.length} comments</a></div>`:'';
   return `<div style="max-height:150px;overflow-y:auto;background:rgba(255,255,255,.5);border-radius:6px;padding:0 8px">${rows}</div>${moreLink}`;
 }
-// Whether entityType/entityId has EVER had a clarification requested (a '❓'
-// auto-comment on file — see _tplSubmitClarification/_trSubmitPageSnagClarification's
-// posted text) — independent of whether one is pending right now. Used to
-// keep the exchange visible after it's no longer 'Needs Clarification'.
-function _tplHasClarificationHistory(entityType, entityId){
-  const list=COMMENTS_BY_ENTITY[_cmtKey(entityType,entityId)]||[];
-  return list.some(c=>(c.text||'').startsWith('❓'));
-}
 // Read-only counterpart to _tplClarificationBannerHtml for a snag/story that
 // HAS had a clarification exchange but isn't waiting on one right now — same
 // thread snippet, neutral styling (no "needs attention" amber, no reply
@@ -13102,6 +13145,7 @@ function _tplSnagCardHtml(sn){
   const story = sn.storyId ? ROADMAP_STORIES.find(s=>s.id===sn.storyId) : null;
   const code = story ? (story.code||'—') : null;
   const text = story ? story.text : (sn.title||'(no description)');
+  const isEnhancement = sn.kind==='Enhancement';
   const isResolved = sn.status==='Resolved';
   const needsClarification = sn.status==='Needs Clarification';
   const isPlainOpen = sn.status==='Open';
@@ -13112,7 +13156,11 @@ function _tplSnagCardHtml(sn){
     ? {label:'Resolved',fg:'var(--rag-green-fg)',bg:'var(--rag-green-bg)'}
     : needsClarification
       ? {label:'Needs Clarification',fg:'var(--rag-amber-fg)',bg:'var(--rag-amber-bg)'}
-      : {label:'Open',fg:'var(--rag-red-fg)',bg:'var(--rag-red-bg)'};
+      // An open Enhancement isn't a defect — same "Open" label, calmer violet
+      // instead of red, matching the Functional Requirements view's treatment.
+      : isEnhancement
+        ? {label:'Open',fg:'var(--rag-idea-fg)',bg:'var(--rag-idea-bg)'}
+        : {label:'Open',fg:'var(--rag-red-fg)',bg:'var(--rag-red-bg)'};
   // Every card on this list is already an open issue by definition — painting
   // the whole row red on top of that was redundant with the Open/Resolved
   // status pill below and just made the list noisy. Normal card styling now;
@@ -13121,7 +13169,7 @@ function _tplSnagCardHtml(sn){
     <div class="tpl-req-row-main">
       ${code?`<div class="req-code-badge req-code-badge-clickable" title="View full details" onclick="openReqDetail('${story.id}')">${escH(code)}</div>`:''}
       <div class="tpl-req-row-text">${escH(text)}</div>
-      ${sn.source==='manual'?`<span class="tpl-req-chip">Manually reported</span>`:`<span class="tpl-req-chip">Failed test</span>`}
+      ${isEnhancement?`<span class="tpl-req-chip">💡 Enhancement idea</span>`:(sn.source==='manual'?`<span class="tpl-req-chip">Manually reported</span>`:`<span class="tpl-req-chip">Failed test</span>`)}
     </div>
     ${story?`<div>${_reqChainPillsHtml(story)}</div>`:''}
     <div class="tpl-req-row-meta">
@@ -13129,7 +13177,7 @@ function _tplSnagCardHtml(sn){
       ${sn.cycleCount>1?`<span class="tpl-hier-fail-badge" title="Sent back to development ${sn.cycleCount-1} time(s) before this">↻ Cycle ${sn.cycleCount}</span>`:''}
       <span style="font-size:10px;color:var(--text3)">Reported by ${escH(sn.reporterEmail||'—')}${sn.resolvedBy?` · Squashed by ${escH(sn.resolvedBy)}`:''}</span>
       ${commentBadgeHtml(entityType,entityId,{label:text.slice(0,60)})}
-      ${isPlainOpen&&!isSquashing?`<div data-requires-squash><button class="tpl-mark-btn tpl-mark-btn-primary" onclick="_tplStartSquash('${sn.id}')">Squash</button></div>`:''}
+      ${isPlainOpen&&!isSquashing?`<div data-requires-squash><button class="tpl-mark-btn tpl-mark-btn-primary" onclick="_tplStartSquash('${sn.id}')">${isEnhancement?'Resolve':'Squash'}</button></div>`:''}
     </div>
     ${isSquashing?`<div data-requires-squash>${_tplSquashFormHtml(sn)}</div>`:''}
     ${needsClarification
@@ -13141,18 +13189,29 @@ function _tplSnagCardHtml(sn){
 // Same Product-tab-scoped, per-Epic-section, sticky-header structure as
 // Functional Tests (see _tplRenderFunctionalTab) — but grouped straight from
 // Product → Functional Area with no Feature level in between, since a
-// manually-logged snag has no Feature to nest under.
+// manually-logged snag has no Feature to nest under. Excludes Enhancements
+// (kind==='Enhancement') — those live in their own tab, see
+// _tplRenderEnhancementsTab, which shares this same rendering shell.
 function _tplRenderSnagsTab(){
+  return _tplRenderSnagsOrEnhancementsTab(sn=>sn.kind!=='Enhancement');
+}
+// Mirror of _tplRenderSnagsTab, scoped to kind==='Enhancement' — "a new
+// idea, not something broken" per the user's request, but following the
+// exact same auto-created-placeholder/retest workflow (see
+// _snagFindOrCreateManualFeature/_snagCreatePlaceholderStory/saveAddSnagModal),
+// so it's rendered with the same shared shell/cards, just filtered and with
+// the calmer "idea" styling _tplSnagCardHtml already applies per-row.
+function _tplRenderEnhancementsTab(){
+  return _tplRenderSnagsOrEnhancementsTab(sn=>sn.kind==='Enhancement');
+}
+function _tplRenderSnagsOrEnhancementsTab(filterFn){
   const productsToRender=_tplActiveProductId==='ALL'
     ? ROADMAP_PRODUCTS
     : ROADMAP_PRODUCTS.filter(p=>p.id===_tplActiveProductId);
   const showSeparator=_tplActiveProductId==='ALL';
-  let html=`<div data-requires-snag-report style="padding:0 20px 14px">
-    <button class="mbtn mbtn-save" onclick="openAddSnagModal()"><span class="material-icons-round" style="font-size:14px;vertical-align:-2px;margin-right:4px">bug_report</span>+ Add Snag</button>
-  </div>`;
   let bodyHtml='';
   productsToRender.forEach(prod=>{
-    const snags=SNAGS.filter(sn=>sn.productId===prod.id);
+    const snags=SNAGS.filter(sn=>sn.productId===prod.id && filterFn(sn));
     if(!snags.length) return;
     const epicMap={};
     snags.forEach(sn=>{
@@ -13168,8 +13227,7 @@ function _tplRenderSnagsTab(){
     bodyHtml+=epics.map(({epic,snags})=>_tplSnagEpicAccordionHtml(epic,snags,prod.id)).join('');
     bodyHtml+=`</div>`;
   });
-  html+=bodyHtml||_tplEmptyStateHtml();
-  return html;
+  return bodyHtml||_tplEmptyStateHtml();
 }
 function _tplToggleSnagEpic(compositeId){
   if(_tplClosedSnagEpics.has(compositeId)) _tplClosedSnagEpics.delete(compositeId);
@@ -13181,13 +13239,15 @@ function _tplSnagEpicAccordionHtml(epic,snags,productId){
   const compositeId=epic.id+'::'+productId;
   const isOpen=!_tplClosedSnagEpics.has(compositeId);
   const openCount=snags.filter(sn=>sn.status!=='Resolved').length;
+  const isEnhancementGroup=snags.length>0 && snags[0].kind==='Enhancement';
+  const noun=isEnhancementGroup?'idea':'snag';
   const style=`background:${colour};color:#fff`;
   let html=`<div class="tpl-hier-group tpl-hier-epic" data-tpl-snag-anchor="${compositeId}">
     <button class="tpl-hier-hdr tpl-hier-hdr-epic" style="${style}" onclick="_tplToggleSnagEpic('${compositeId}')">
       <span class="material-icons-round tpl-hier-chev" style="font-size:15px;color:#fff">${isOpen?'expand_more':'chevron_right'}</span>
       <span class="tpl-hier-label" title="${escH(epic.name)}">${escH(epic.name)}</span>
-      <span class="tpl-hier-count" style="color:rgba(255,255,255,.85)">${snags.length} snag${snags.length===1?'':'s'}</span>
-      ${openCount?`<span class="tpl-hier-fail-badge">${openCount} open</span>`:''}
+      <span class="tpl-hier-count" style="color:rgba(255,255,255,.85)">${snags.length} ${noun}${snags.length===1?'':'s'}</span>
+      ${openCount?`<span class="tpl-hier-fail-badge"${isEnhancementGroup?' style="color:var(--rag-idea-fg);background:var(--rag-idea-bg)"':''}>${openCount} open</span>`:''}
     </button>`;
   if(isOpen) html+=`<div class="tpl-hier-body tpl-hier-body-leaf">${snags.map(sn=>_tplSnagCardHtml(sn)).join('')}</div>`;
   html+=`</div>`;
@@ -13199,17 +13259,21 @@ function _tplSnagEpicAccordionHtml(epic,snags,productId){
 // Functional Area (so it shows up grouped the same way as everything else).
 // Picking an existing requirement is optional, but SOME requirement always
 // ends up behind the snag either way — if none is picked, saveAddSnagModal
-// auto-creates a lightweight placeholder under a "Manual Snag" Function (see
-// _snagFindOrCreateManualFeature/_snagCreatePlaceholderStory) so every
-// manual snag gets the same retest/Verify-Fix workflow once resolved,
-// instead of dead-ending with nothing for a tester to confirm.
-function openAddSnagModal(){
+// auto-creates a lightweight placeholder under a "Manual Snag"/"Enhancement"
+// Function (see _snagFindOrCreateManualFeature/_snagCreatePlaceholderStory)
+// so every manual snag gets the same retest/Verify-Fix workflow once
+// resolved, instead of dead-ending with nothing for a tester to confirm.
+// `kind` ('Snag'|'Enhancement') follows the draft all the way through save —
+// see openAddEnhancementModal, the one other entry point into this same
+// modal/flow.
+function openAddSnagModal(kind){
   if(!canReportSnags()){showToast('View-only access — editing is disabled');return;}
   if(!gCurrentUser){showToast('Sign in to add a snag');return;}
-  _tplSnagDraft={productId:_tplActiveProductId!=='ALL'?_tplActiveProductId:'', epicId:'', storyId:'', title:''};
+  _tplSnagDraft={kind:kind==='Enhancement'?'Enhancement':'Snag', productId:_tplActiveProductId!=='ALL'?_tplActiveProductId:'', epicId:'', storyId:'', title:''};
   _renderAddSnagModal();
   openModal('addSnagModal');
 }
+function openAddEnhancementModal(){ openAddSnagModal('Enhancement'); }
 function _snagModalEpicsForProduct(productId){
   return ROADMAP_EPICS.filter(e=>_tplEpicTestProductIds(e).includes(productId));
 }
@@ -13227,8 +13291,13 @@ function _snagModalSetEpic(epicId){
 }
 function _renderAddSnagModal(){
   const d=_tplSnagDraft;
+  const isEnhancement=d.kind==='Enhancement';
   const epics=d.productId?_snagModalEpicsForProduct(d.productId):[];
   const stories=d.epicId?_snagModalStoriesForEpic(d.epicId):[];
+  const titleEl=eid('addSnagModalTitle');
+  if(titleEl) titleEl.textContent=isEnhancement?'Add Enhancement':'Add Snag';
+  const saveBtn=eid('addSnagModalSaveBtn');
+  if(saveBtn) saveBtn.textContent=isEnhancement?'Add Enhancement':'Add Snag';
   const body=eid('addSnagModalBody');
   if(!body) return;
   body.innerHTML=`
@@ -13251,21 +13320,27 @@ function _renderAddSnagModal(){
       </select>
     </div>
     <div class="mfield"><label>Description</label>
-      <textarea class="minput" id="addSnagTitleInput" rows="3" placeholder="What's wrong…">${escH(d.title)}</textarea>
+      <textarea class="minput" id="addSnagTitleInput" rows="3" placeholder="${isEnhancement?'What’s the idea…':'What’s wrong…'}">${escH(d.title)}</textarea>
     </div>
   `;
 }
-// Find-or-create a "Manual Snag" Function under the given Functional Area
-// (same phase-scoped find-or-create pattern as the requirement detail's
-// phase-move clone — see _reqFindPhaseClone) — one per (epic,phase), reused
-// across every manually-reported snag in that area/phase rather than
-// creating a fresh one each time, so they stay organised together instead of
-// scattering one-off Functions across the Roadmap.
-function _snagFindOrCreateManualFeature(epicId, phaseId){
-  const existing=ROADMAP_FEATURES.find(f=>f.epicId===epicId && f.phaseId===phaseId && (f.name||'').trim().toLowerCase()==='manual snag');
+// Find-or-create a "Manual Snag" (or, for kind==='Enhancement', a separate
+// "Enhancement") Function under the given Functional Area (same phase-scoped
+// find-or-create pattern as the requirement detail's phase-move clone — see
+// _reqFindPhaseClone) — one per (epic,phase,kind), reused across every
+// manually-reported snag/enhancement in that area/phase rather than creating
+// a fresh one each time, so they stay organised together (and kept separate
+// from each other) instead of scattering one-off Functions across the
+// Roadmap.
+function _snagFindOrCreateManualFeature(epicId, phaseId, kind){
+  const isEnhancement=kind==='Enhancement';
+  const featureName=isEnhancement?'Enhancement':'Manual Snag';
+  const existing=ROADMAP_FEATURES.find(f=>f.epicId===epicId && f.phaseId===phaseId && (f.name||'').trim().toLowerCase()===featureName.toLowerCase());
   if(existing) return existing;
-  const f={id:'FT'+Date.now(), epicId, phaseId, name:'Manual Snag',
-    desc:'Auto-created to hold manually-reported snags not linked to an existing requirement — see each one\'s own description.',
+  const f={id:'FT'+Date.now(), epicId, phaseId, name:featureName,
+    desc:isEnhancement
+      ? 'Auto-created to hold enhancement ideas not linked to an existing requirement — see each one\'s own description.'
+      : 'Auto-created to hold manually-reported snags not linked to an existing requirement — see each one\'s own description.',
     icon:ROADMAP_ICONS[0], status:'Planned', stretch:false,
     order:ROADMAP_FEATURES.filter(x=>x.epicId===epicId&&x.phaseId===phaseId).length, jiraKey:''};
   ROADMAP_FEATURES.push(f);
@@ -13281,10 +13356,10 @@ function _snagFindOrCreateManualFeature(epicId, phaseId){
 // a manual snag has no requirement to reset TEST_RESULTS against, so
 // resolving it was previously a dead end with nothing for a tester to
 // confirm.
-function _snagCreatePlaceholderStory(featureId, text){
+function _snagCreatePlaceholderStory(featureId, text, kind){
   const story={id:'ST'+Date.now(), code:_reqGenerateCode(featureId), featureId,
     text:text||'(no description)', stretch:false, type:'', devStatus:'Not Started', testStatus:'Not Started',
-    owner:'', source:'Manually reported snag', order:ROADMAP_STORIES.filter(s=>s.featureId===featureId).length, jiraKey:''};
+    owner:'', source:kind==='Enhancement'?'Manually reported enhancement':'Manually reported snag', order:ROADMAP_STORIES.filter(s=>s.featureId===featureId).length, jiraKey:''};
   ROADMAP_STORIES.push(story);
   dbUpsertStory(story);
   return story;
@@ -13292,6 +13367,8 @@ function _snagCreatePlaceholderStory(featureId, text){
 async function saveAddSnagModal(){
   const d=_tplSnagDraft;
   if(!d) return;
+  const kind=d.kind==='Enhancement'?'Enhancement':'Snag';
+  const isEnhancement=kind==='Enhancement';
   const productId=d.productId;
   const epicId=d.epicId;
   let storyId=eid('addSnagStorySelect')?.value||'';
@@ -13300,26 +13377,26 @@ async function saveAddSnagModal(){
   if(!epicId){showToast('Select a functional area');return;}
   if(!storyId && !title){showToast('Add a description, or link an existing requirement');return;}
   // No existing requirement picked — auto-create a placeholder one (under a
-  // "Manual Snag" Function) instead of leaving this snag unlinked, so it
-  // gets the same retest workflow as any other snag once resolved. See
-  // _snagFindOrCreateManualFeature/_snagCreatePlaceholderStory.
+  // "Manual Snag"/"Enhancement" Function) instead of leaving this unlinked,
+  // so it gets the same retest workflow as any other snag once resolved.
+  // See _snagFindOrCreateManualFeature/_snagCreatePlaceholderStory.
   if(!storyId){
-    const feature=_snagFindOrCreateManualFeature(epicId, curPhase);
-    storyId=_snagCreatePlaceholderStory(feature.id, title).id;
+    const feature=_snagFindOrCreateManualFeature(epicId, curPhase, kind);
+    storyId=_snagCreatePlaceholderStory(feature.id, title, kind).id;
   }
   const now=new Date().toISOString();
   const email=(gCurrentUser&&gCurrentUser.email||'').trim().toLowerCase();
   const snag={id:'SNAG'+Date.now()+'_'+Math.floor(Math.random()*1e6),
-    storyId, productId, epicId, title:'',
+    storyId, productId, epicId, title:'', kind,
     status:'Open', source:'manual', reporterEmail:email, cycleCount:1,
     createdAt:now, resolvedBy:'', resolvedAt:'', updatedAt:now};
   SNAGS.push(snag);
   await dbUpsertSnag(snag);
   _tplSnagDraft=null;
   closeModal('addSnagModal');
-  _tplSubTab='snags';
+  _tplSubTab=isEnhancement?'enhancements':'snags';
   renderTestPlan();
-  showToast('Snag added');
+  showToast(isEnhancement?'Enhancement added':'Snag added');
 }
 
 // ── Test Report — printable summary of testing progress ─────────────────

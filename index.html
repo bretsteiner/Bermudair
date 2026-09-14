@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- StrategicSitemapper  v100 -->
+<!-- StrategicSitemapper  v122 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -372,6 +372,18 @@ header{height:56px;background:var(--md-surface);border-bottom:1px solid var(--md
   .hdr-btn-label{display:inline;font-size:13px;font-family:var(--font-body);color:var(--md-on-surface)}
   .hdr-burger-btn{display:flex}
 }
+/* Even with the secondary actions already collapsed into the burger menu
+   above, the remaining always-visible row (logo+text, View, Settings,
+   burger, presence, avatar — all flex-shrink:0) still adds up to more than
+   a phone-width viewport, pushing the rightmost buttons off-screen with no
+   way to reach them. Dropping the logo's text label (icon stays) recovers
+   the ~150px needed; tightening the header's own padding/gap buys a little
+   more margin on the narrowest phones (~360px).  */
+@media (max-width:480px){
+  .logo-text{display:none}
+  header{padding:0 10px;gap:6px}
+  .header-actions{gap:4px}
+}
 
 /* User avatar — collapsed to just the round avatar in the header; name/role/
    sign-out live in a click-to-open dropdown instead of sitting inline, so
@@ -388,7 +400,7 @@ header{height:56px;background:var(--md-surface);border-bottom:1px solid var(--md
 .hdr-user-dd-signout{border-top:1px solid var(--border);margin-top:4px;padding-top:10px}
 
 /* ── PROJECT DOCS PANEL ── */
-.proj-docs-panel{position:fixed;z-index:2000;background:var(--md-surface);border:1px solid var(--md-outline-variant);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.2);width:320px;max-height:480px;display:none;flex-direction:column;overflow:hidden}
+.proj-docs-panel{position:fixed;z-index:2000;background:var(--md-surface);border:1px solid var(--md-outline-variant);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.2);width:320px;max-width:92vw;max-height:480px;display:none;flex-direction:column;overflow:hidden}
 .proj-docs-head{padding:12px 14px 10px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--md-outline-variant);flex-shrink:0}
 .proj-docs-head-title{font-size:13px;font-weight:600;color:var(--md-on-surface);flex:1;letter-spacing:-.1px}
 .proj-docs-close{background:none;border:none;color:var(--text3);cursor:pointer;font-size:17px;padding:0 2px;line-height:1;border-radius:4px}
@@ -700,7 +712,7 @@ header{height:56px;background:var(--md-surface);border-bottom:1px solid var(--md
 /* ── MODALS — MD3 dialog ── */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.32);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(4px)}
 .modal-bg.open{opacity:1;pointer-events:all}
-.modal{background:var(--md-surface);border:none;border-radius:20px;width:480px;max-height:86vh;overflow-y:auto;box-shadow:var(--el-4);transform:translateY(20px) scale(.96);transition:transform .28s cubic-bezier(.34,1.56,.64,1)}
+.modal{background:var(--md-surface);border:none;border-radius:20px;width:480px;max-width:96vw;max-height:86vh;overflow-y:auto;box-shadow:var(--el-4);transform:translateY(20px) scale(.96);transition:transform .28s cubic-bezier(.34,1.56,.64,1)}
 .modal-bg.open .modal{transform:translateY(0) scale(1)}
 .modal.wide{width:580px}
 .mhead{padding:20px 22px 14px;border-bottom:1px solid var(--md-outline-variant);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
@@ -753,7 +765,7 @@ header{height:56px;background:var(--md-surface);border-bottom:1px solid var(--md
    two-column grouped grid of view tiles instead of a narrow login card. */
 .start-screen{position:fixed;top:56px;right:0;bottom:0;left:0;background:radial-gradient(rgba(255,255,255,.05) 1px,transparent 1px) 0 0/22px 22px,radial-gradient(1100px 720px at 50% -12%,#22406C 0%,#15294F 46%,#0E1C39 100%);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;z-index:998;padding:5vh 20px}
 .start-screen.hidden{display:none}
-.start-screen-inner{max-width:980px;width:94vw;text-align:center;margin:auto}
+.start-screen-inner{max-width:980px;width:100%;text-align:center;margin:auto}
 .start-mark{width:56px;height:56px;display:block;margin:0 auto 16px;padding:10px;background:var(--brand-primary-light);border-radius:16px}
 .start-title{font-family:var(--font-display);font-size:26px;font-weight:800;letter-spacing:-.4px;color:#fff;margin-bottom:10px}
 .start-note{font-size:13.5px;color:rgba(255,255,255,.82);margin:0 auto 34px;max-width:640px;line-height:1.6}
@@ -788,7 +800,7 @@ header{height:56px;background:var(--md-surface);border-bottom:1px solid var(--md
 .rbac-remove:hover{background:#fee2e2}
 
 /* ── RIGHT NODE TRAY ── */
-.node-tray{position:fixed;right:0;top:56px;bottom:44px;width:420px;background:var(--md-surface);border-left:1px solid var(--md-outline-variant);display:flex;flex-direction:column;z-index:100;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);box-shadow:-6px 0 24px rgba(0,0,0,.09);overflow:hidden}
+.node-tray{position:fixed;right:0;top:56px;bottom:44px;width:420px;max-width:100vw;background:var(--md-surface);border-left:1px solid var(--md-outline-variant);display:flex;flex-direction:column;z-index:100;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);box-shadow:-6px 0 24px rgba(0,0,0,.09);overflow:hidden}
 .node-tray.open{transform:translateX(0)}
 .tray-hd{padding:12px 16px 0;border-bottom:1px solid var(--md-outline-variant);flex-shrink:0;display:flex;flex-direction:column;gap:0}
 .tray-hd-top{display:flex;align-items:flex-start;gap:8px;padding-bottom:8px}
@@ -919,6 +931,23 @@ header{height:56px;background:var(--md-surface);border-bottom:1px solid var(--md
 .ar-action-status-select{font-size:10px;padding:2px 6px;border-radius:6px;border:1px solid var(--md-outline-variant);background:var(--md-surface);color:var(--md-on-surface);font-family:var(--font-body);cursor:pointer}
 /* ── ACTION REPORT LEFT NAV ── */
 .ar-left-nav{width:240px;min-width:200px;flex-shrink:0;background:var(--md-surface);border-right:1px solid var(--md-outline-variant);display:flex;flex-direction:column;overflow-y:auto;z-index:30}
+/* Mobile: this sidebar (shared by Action Report and Test Plan) sitting
+   beside the main content leaves too little room for either at phone
+   widths. Below the breakpoint it becomes an off-canvas drawer instead —
+   fixed position, slid off-screen by default, toggled via a header button
+   (see .mnav-toggle-btn) — rather than just hiding it outright, since it's
+   the only way to reach the Functional/Scenario/Snags subtab switcher
+   (Test Plan) or the outline (Action Report). */
+.mnav-backdrop{display:none;position:fixed;top:56px;left:0;right:0;bottom:0;background:rgba(0,0,0,.35);z-index:390}
+.mnav-toggle-btn{display:none}
+.mnav-fab{display:none;position:fixed;left:16px;bottom:16px;z-index:395;width:46px;height:46px;border-radius:50%;border:none;background:var(--brand-primary);color:#fff;box-shadow:0 4px 16px rgba(0,0,0,.3);align-items:center;justify-content:center;cursor:pointer}
+@media (max-width:820px){
+  .ar-left-nav{position:fixed;top:56px;bottom:0;left:0;transform:translateX(-100%);transition:transform .22s ease;box-shadow:0 0 28px rgba(0,0,0,.3);z-index:400}
+  .ar-left-nav.mnav-open{transform:translateX(0)}
+  .mnav-backdrop.mnav-open{display:block}
+  .mnav-toggle-btn{display:inline-flex}
+  .mnav-fab.mnav-visible{display:flex}
+}
 .ar-nav-hd{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);padding:10px 14px 4px;flex-shrink:0}
 .ar-nav-item{display:flex;align-items:center;gap:6px;width:100%;padding:7px 14px;border:none;background:none;cursor:pointer;font-family:var(--font-body);font-size:11px;color:var(--md-on-surface);text-align:left;transition:background .15s;line-height:1.3}
 .ar-nav-item:hover{background:var(--md-surface-variant)}
@@ -1268,7 +1297,7 @@ a.pt-url-val:hover{text-decoration:underline}
 .link-line{fill:none;stroke-width:1.5;stroke-dasharray:4 3}
 
 /* ── SETTINGS PANEL ── */
-.settings-panel{position:fixed;right:0;top:0;bottom:0;width:440px;background:var(--md-surface);border-left:1px solid var(--md-outline-variant);display:flex;flex-direction:column;z-index:150;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);box-shadow:-8px 0 32px rgba(0,0,0,.1)}
+.settings-panel{position:fixed;right:0;top:0;bottom:0;width:440px;max-width:100vw;background:var(--md-surface);border-left:1px solid var(--md-outline-variant);display:flex;flex-direction:column;z-index:150;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);box-shadow:-8px 0 32px rgba(0,0,0,.1)}
 .settings-panel.open{transform:translateX(0)}
 .settings-hd{padding:18px 22px 0;border-bottom:1px solid var(--md-outline-variant);flex-shrink:0}
 .settings-hd-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
@@ -1355,6 +1384,14 @@ a.pt-url-val:hover{text-decoration:underline}
 .rm-wrap{display:flex;flex-direction:column;height:100%;min-width:0;flex:1;background:var(--canvas)}
 .rm-header{display:flex;align-items:center;gap:10px;flex-shrink:0;padding:0 14px;border-bottom:1px solid var(--border);background:var(--white)}
 .rm-tabs{display:flex;gap:0;overflow-x:auto;flex:1;min-width:0}
+/* The action buttons after .rm-tabs (Export Markdown, + Add product, Edit
+   product…) have nowhere to shrink to once the tabs themselves hit their
+   own min-width:0 floor — wrap them onto a second line rather than letting
+   them run off the right edge with no way to reach them. */
+@media (max-width:600px){
+  .rm-header{flex-wrap:wrap;row-gap:8px;padding:8px 14px}
+  .rm-tabs{flex-basis:100%}
+}
 .rm-tab{padding:12px 16px;font-size:12px;font-weight:600;cursor:pointer;color:var(--secondary);border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;font-family:var(--font-body)}
 .rm-tab:hover{color:var(--ink)}
 .rm-tab.active{color:var(--brand-primary);border-bottom-color:var(--brand-primary)}
@@ -1377,7 +1414,15 @@ a.pt-url-val:hover{text-decoration:underline}
    scroll past one, the corner cell above (sticky) takes over showing which
    product you're currently in, so the separator itself doesn't need to stay
    pinned — see _rmUpdateCornerLabel(). */
-.rm-product-sep{background:var(--brand-primary);color:#fff;font-family:var(--font-display);font-weight:700;font-size:13px;padding:9px 16px;letter-spacing:.02em}
+/* Design review 2026-09: was a solid navy block — same visual weight as a
+   Functional Area (Epic) header sitting directly beneath it (Epic headers
+   default to EPIC_COLOURS[0], a navy close enough to --brand-primary to
+   read as the same hierarchy level), which made Product → Functional Area
+   nesting hard to scan in Test Plan/Snags. Switched to the same light
+   uppercase label treatment the Start Screen already uses for its own
+   section groupings (.start-group-title) — a product is a grouping label,
+   not an interactive block, so it should look like one. */
+.rm-product-sep{background:transparent;color:var(--brand-accent);font-family:var(--font-body);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.06em;padding:18px 16px 6px;border-bottom:1px solid var(--md-outline-variant)}
 .rm-product-sep-empty{padding:10px 16px;font-size:11px;color:var(--text3);font-style:italic;background:var(--md-surface-container)}
 .rm-swimlane-label{padding:12px;border-radius:0}
 /* Sticky within the swimlane's own row: as you scroll through a tall list of
@@ -1585,7 +1630,14 @@ a.pt-url-val:hover{text-decoration:underline}
    treatment other .tpl-hier-group variants (e.g. Open Snags) still have. */
 .tpl-hier-epic,.tpl-hier-feature{border-radius:0;overflow:visible}
 .tpl-hier-hdr-epic{background:var(--md-surface);font-weight:600;font-size:11.5px;position:sticky;top:0;z-index:4}
-.tpl-hier-hdr-feature{background:var(--white);font-weight:600;font-size:11px;border-bottom:1px solid var(--border);position:sticky;top:36px;z-index:3}
+/* top was a hardcoded 36px guess at the epic header's height — silently
+   wrong (feature header overlapping/hiding content, or a blank gap opening
+   up) the moment the real epic header is a different height: a longer name,
+   a device's larger accessibility text size, or just a narrower viewport
+   forcing a wrap, all change it. --tpl-epic-hdr-h is set from the REAL
+   measured height after every render — see _tplSyncStickyOffsets(). 36px
+   only survives as the fallback for the first paint before that JS runs. */
+.tpl-hier-hdr-feature{background:var(--white);font-weight:600;font-size:11px;border-bottom:1px solid var(--border);position:sticky;top:var(--tpl-epic-hdr-h,36px);z-index:3}
 .tpl-hier-chev{color:var(--text3);flex-shrink:0}
 .tpl-hier-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tpl-hier-count{font-size:10px;font-weight:600;color:var(--text3);flex-shrink:0;white-space:nowrap}
@@ -1595,6 +1647,13 @@ a.pt-url-val:hover{text-decoration:underline}
 .tpl-hier-body-leaf{padding:8px 10px}
 .tpl-failures-group{border-color:var(--rag-red-fg)}
 .tpl-failures-hdr{background:var(--rag-red-bg);color:var(--rag-red-fg)}
+/* Design review 2026-09: Invalid Test Cases was reusing the alarm-red
+   Open Snags styling wholesale — wrong signal, since "invalid" means
+   deliberately excluded/not-applicable, not broken. Neutral grey instead,
+   same shape/structure as the failures group so it still reads as "its own
+   collapsible section," just not an alert. */
+.tpl-invalid-group{border-color:var(--md-outline-variant)}
+.tpl-invalid-hdr{background:var(--md-surface-container);color:var(--text2)}
 .tpl-failures-hdr:hover{filter:brightness(0.96)}
 .tpl-failures-hdr .tpl-hier-chev{color:var(--rag-red-fg)}
 .tpl-req-row{display:flex;flex-direction:column;gap:6px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--white)}
@@ -2170,6 +2229,16 @@ a.pt-url-val:hover{text-decoration:underline}
   <!-- TEST PLAN LEFT NAV (shown only in Test Plan view) -->
   <div id="tplLeftNav" class="ar-left-nav tpl-left-nav" style="display:none"></div>
 
+  <!-- Mobile-only backdrop for whichever .ar-left-nav drawer is open (see
+       toggleMobileNav()) — click anywhere on it to close. -->
+  <div class="mnav-backdrop" id="mnavBackdrop" onclick="toggleMobileNav(false)"></div>
+
+  <!-- Floating drawer-open button for Action Report specifically — it has
+       no consistent header bar to host an inline toggle the way Test Plan's
+       req-header does (see toggleMobileNav's caller there), so this is a
+       fixed-position fallback instead. switchView() shows/hides it. -->
+  <button class="mnav-fab" id="mnavFab" onclick="toggleMobileNav()" title="Navigate" style="display:none"><span class="material-icons-outlined" style="font-size:20px">menu</span></button>
+
   <!-- CANVAS AREA -->
   <div class="canvas-area">
     <!-- IA View (default) -->
@@ -2474,24 +2543,42 @@ async function handleGoogleCredential(response) {
   };
   _sessionExpiredHandled = false;
 
-  hideAuthOverlay();
-  // If this role can only reach exactly one view (Tester's built-in default
-  // is just Test Plan — see allowedViewIds()), skip the homepage and land
-  // there directly rather than showing a start screen with a single tile.
-  // Generic by role, not hard-coded to Tester specifically.
-  const onlyView = allowedViewIds(role);
-  if (onlyView.length === 1) switchView(onlyView[0]);
-  else showStartScreen();
-  renderUserPill();
-  applyRoleUI();
-  showToast(`Signed in as ${payload.name} (${role})`);
-  // Start presence AFTER the main data load finishes rather than alongside
-  // it — Apps Script Web Apps have a low concurrent-execution ceiling (see
-  // upsertRowsBatch's comment), so firing getAll + heartbeat + getPresence
-  // all at once on sign-in made them compete for execution slots right when
-  // load speed matters most. Presence isn't time-critical; a few seconds'
-  // delay showing who else is online is imperceptible.
-  loadFromSheets().then(startPresence);
+  // Everything below was previously unguarded — the loader ("Signing in…")
+  // is only ever hidden by loadFromSheets() itself (it shows its own
+  // "Loading from Sheets…" message, then hides on completion) or by the
+  // !role branch above, so ANY uncaught exception in this stretch (a bad
+  // DOM assumption in switchView/showStartScreen/renderUserPill/applyRoleUI,
+  // a viewport-dependent code path, anything) left the user stuck on
+  // "Signing in…" forever with zero feedback and no way to retry — reported
+  // 2026-09-14, reproduced on mobile within seconds (i.e. not the 20s
+  // backend timeout above; something here was throwing synchronously).
+  // Wrapping it means a future failure surfaces an actual error and a
+  // retryable state instead of a silent hang.
+  try {
+    hideAuthOverlay();
+    // If this role can only reach exactly one view (Tester's built-in
+    // default is just Test Plan — see allowedViewIds()), skip the homepage
+    // and land there directly rather than showing a start screen with a
+    // single tile. Generic by role, not hard-coded to Tester specifically.
+    const onlyView = allowedViewIds(role);
+    if (onlyView.length === 1) switchView(onlyView[0]);
+    else showStartScreen();
+    renderUserPill();
+    applyRoleUI();
+    showToast(`Signed in as ${payload.name} (${role})`);
+    // Start presence AFTER the main data load finishes rather than alongside
+    // it — Apps Script Web Apps have a low concurrent-execution ceiling (see
+    // upsertRowsBatch's comment), so firing getAll + heartbeat + getPresence
+    // all at once on sign-in made them compete for execution slots right when
+    // load speed matters most. Presence isn't time-critical; a few seconds'
+    // delay showing who else is online is imperceptible.
+    loadFromSheets().then(startPresence);
+  } catch(e) {
+    console.error('Post-sign-in setup failed:', e);
+    hideLoader();
+    _googleAuthHandled = false;
+    showToast('Sign-in error: ' + e.message + ' — please try again.');
+  }
 }
 
 function signOut() {
@@ -2896,7 +2983,21 @@ async function sheetGet(action, params) {
   return json;
 }
 
+// Guards against two overlapping runs — normally impossible from the header
+// button (one user, one click), but reported 2026-09-14: on mobile, signing
+// in showed the loader steps flickering, then a blank screen once it
+// "finished". That pattern (loader steps resetting mid-sequence, a
+// corrupted final state) is exactly what two interleaved calls would
+// produce — each one's own initLoaderSteps()/setLoaderStep() fighting the
+// other's, and both reassigning module-level arrays like NODES/LINKS out
+// from under each other. Root cause not confirmed (no mobile console access
+// to verify Google Identity Services double-firing the credential
+// callback), but this makes a second overlapping call a safe no-op instead
+// of a race, regardless of what triggers it.
+let _loadingFromSheets = false;
 async function loadFromSheets() {
+  if (_loadingFromSheets) { console.warn('loadFromSheets() already in progress — ignoring overlapping call'); return; }
+  _loadingFromSheets = true;
   showLoader('Loading from Sheets…');
   showToast('Loading from Sheets…');
   initLoaderSteps();
@@ -3231,6 +3332,8 @@ async function loadFromSheets() {
   } catch (err) {
     console.error('loadFromSheets error:', err);
     showToast('Load failed: ' + err.message); hideLoader();
+  } finally {
+    _loadingFromSheets = false;
   }
 }
 
@@ -3845,6 +3948,12 @@ exact shape.
 references real codes instead of guessing.)`;
 let _tplSubTab='functional';       // 'functional' | 'scenario' | 'snags'
 let _tplSearchQuery='';
+// "Hide fully tested" view filter — Functional Tab hides Verified rows,
+// Scenario Tab hides Pass scenarios. View-only: never changes the underlying
+// counts/badges (see _tplHierHdrHtml, which always computes off the full
+// unfiltered group), only which rows actually render.
+let _tplHideFullyTested=false;
+function _tplToggleHideFullyTested(){ _tplHideFullyTested=!_tplHideFullyTested; renderTestPlan(); }
 // Composite storyId+'::'+productId — since a Functional Area can now need
 // testing across more than one product (see _tplEpicTestProductIds), the
 // SAME story renders once per relevant product section, so "which inline
@@ -3869,6 +3978,10 @@ let _tplSummaryOpen=false;
 // (epics/features/scenarios default open) since a tester has nothing to do
 // on a failing row until Development squashes it — see _tplReqRowHtml.
 let _tplOpenFailureSections=new Set();
+// Invalid Test Cases accordion (functional tab) — same per-product Set/
+// default-closed convention as _tplOpenFailureSections above, see
+// _tplInvalidAccordionHtml.
+let _tplOpenInvalidSections=new Set();
 // Scenario tab's own Open Snags accordion — a single flat section (scenarios
 // aren't split per-product), same "empty/false = closed" default as above.
 let _tplOpenScenarioFailuresSection=false;
@@ -4671,6 +4784,22 @@ function toggleNav(){
   eid('leftNav').classList.toggle('collapsed',!navOpen);
   eid('navToggleBtn').classList.toggle('active-icon',navOpen);
   renderLegend();
+}
+// The Journeys sidebar (#leftNav) renders visually OPEN by default — nothing
+// syncs its 'collapsed' class to navOpen's own initial value until the user
+// manually toggles it once (see toggleNav above). Fine on desktop, but on a
+// phone it eats most of the width for a secondary nav before anyone's
+// touched anything, squeezing IA/Ecosystem/Platform/Audit (the views that
+// still show it — see switchView's noLeftNav list) into an unusably narrow
+// remainder. Collapse it explicitly at startup on narrow viewports; desktop
+// keeps its existing default-open behaviour untouched. Runs as plain
+// top-level code (this script sits at the end of <body>, so #leftNav is
+// already in the DOM by the time this line executes) rather than waiting on
+// any load event.
+if(window.innerWidth<=820){
+  navOpen=false;
+  const _ln=eid('leftNav');
+  if(_ln) _ln.classList.add('collapsed');
 }
 function renderNav(){
   const nb=eid('navBody');
@@ -8021,6 +8150,25 @@ function switchView(v){
     case 'redirects':      renderRedirectTracker(); break;
     case 'testplan':       renderTestPlan(); break;
   }
+  toggleMobileNav(false);
+  // Only Action Report needs the floating fallback button — Test Plan hosts
+  // its own inline toggle in req-header instead (see renderTestPlan()), so
+  // showing both there would be redundant.
+  const fab=eid('mnavFab');
+  if(fab) fab.classList.toggle('mnav-visible', v==='actionreport');
+}
+// Opens/closes whichever .ar-left-nav drawer belongs to the CURRENT view
+// (Action Report or Test Plan share that one class — see its CSS comment)
+// as a mobile off-canvas panel. `open` true/false sets it explicitly; omit
+// to toggle. No-op for any other view, none of which have this sidebar.
+function toggleMobileNav(open){
+  const id = curView==='testplan' ? 'tplLeftNav' : curView==='actionreport' ? 'arLeftNav' : null;
+  const el = id ? eid(id) : null;
+  const backdrop = eid('mnavBackdrop');
+  if(!el) return;
+  const shouldOpen = open===undefined ? !el.classList.contains('mnav-open') : open;
+  el.classList.toggle('mnav-open', shouldOpen);
+  if(backdrop) backdrop.classList.toggle('mnav-open', shouldOpen);
 }
 
 /* ─── ECOSYSTEM — Force-directed with real node sizes, scrollable canvas ── */
@@ -11506,7 +11654,14 @@ function _tplEpicTestProductIds(epic){
 function _tplStoriesInProduct(stories, productId){
   return stories.filter(s=>{
     const epic=_reqResolveChain(s).epic;
-    return epic && _tplEpicTestProductIds(epic).includes(productId);
+    if(!epic || !_tplEpicTestProductIds(epic).includes(productId)) return false;
+    // A pair marked "Invalid Test Case" for THIS product (see
+    // _tplMarkInvalid) is excluded from every normal per-product
+    // computation that goes through this function — tree building, the
+    // Summary/breakdown counts, the report — without affecting the SAME
+    // requirement on any other product it also needs testing on. It still
+    // surfaces, just separately: see _tplInvalidAccordionHtml.
+    return !_tplStoryVerification(s.id,productId).invalid;
   });
 }
 function _tplScopedStories(){
@@ -11548,10 +11703,19 @@ function _tplStoryVerification(storyId, productId){
   if(_tplVerifyCache && _tplVerifyCache.has(key)) return _tplVerifyCache.get(key);
   const story=ROADMAP_STORIES.find(s=>s.id===storyId);
   const homeProductId=story?_reqResolveChain(story).product?.id||null:null;
-  const rows=TEST_RESULTS.filter(r=>{
+  const rawRows=TEST_RESULTS.filter(r=>{
     if(r.storyId!==storyId) return false;
     return r.productId ? r.productId===productId : productId===homeProductId;
   });
+  // "Invalid Test Case" (admin-only, see _tplMarkInvalid) is just another
+  // result value on the same per-tester row — an ADMIN's own row, upserted
+  // through the existing upsertTestResult action, no new field/endpoint
+  // needed. Its presence overrides whatever Pass/Fail rows exist for this
+  // (story,product) pair — those are excluded from `rows` below rather than
+  // deleted, so restoring (_tplRestoreInvalid blanks the Invalid row's
+  // result back to '') brings back any other tester's prior history intact.
+  const invalid=rawRows.some(r=>r.result==='Invalid');
+  const rows=rawRows.filter(r=>r.result==='Pass'||r.result==='Fail');
   const passers=[...new Set(rows.filter(r=>r.result==='Pass').map(r=>r.testerEmail))];
   const failers=rows.filter(r=>r.result==='Fail');
   const openFail=failers.length>0;
@@ -11570,7 +11734,7 @@ function _tplStoryVerification(storyId, productId){
   // its own, calmer styling instead of the red Fail treatment.
   const openSnag=!!priorSnag && priorSnag.status==='Open' && priorSnag.kind!=='Enhancement';
   const openEnhancement=!!priorSnag && priorSnag.status==='Open' && priorSnag.kind==='Enhancement';
-  const result={rows, passers, failCount:failers.length, verified:passers.length>=2 && failers.length===0, openFail, openSnag, openEnhancement, blocked:openFail||openSnag||openEnhancement};
+  const result={rows, passers, failCount:failers.length, verified:passers.length>=2 && failers.length===0, openFail, openSnag, openEnhancement, blocked:openFail||openSnag||openEnhancement, invalid};
   if(_tplVerifyCache) _tplVerifyCache.set(key, result);
   return result;
 }
@@ -11646,9 +11810,58 @@ function _tplComputeProductBreakdown(baseStories){
     }).sort((a,b)=>(a.epic.order||0)-(b.epic.order||0));
     const verifiedCount=epics.reduce((sum,e)=>sum+e.verifiedCount,0);
     const openFailCount=epics.reduce((sum,e)=>sum+e.openFailCount,0);
+    const notTestedCount=epics.reduce((sum,e)=>sum+e.notTestedCount,0);
+    const firstPassCount=epics.reduce((sum,e)=>sum+e.firstPassCount,0);
     const openSnagCount=SNAGS.filter(sn=>sn.status!=='Resolved' && sn.productId===p.id).length;
-    return {product:p, total:pStories.length, verifiedCount, openFailCount, openSnagCount, epics};
+    // Total/squashed/waiting-retest/clarification/repeat-failure counts —
+    // like openSnagCount above, deliberately NOT limited to this product's
+    // in-scope epics or the current phase selection: a manually-reported
+    // snag's placeholder Functional Area can sit outside both, and every
+    // snag always carries a real storyId (see saveAddSnagModal/
+    // _snagCreatePlaceholderStory), so a plain productId filter is enough —
+    // same convention openSnagCount already established.
+    const productSnags=SNAGS.filter(sn=>sn.productId===p.id);
+    const snagCount=productSnags.length;
+    const snagsSquashedCount=productSnags.filter(sn=>sn.status==='Resolved').length;
+    const waitingRetestCount=productSnags.filter(sn=>sn.status==='Resolved' && !_tplStoryVerification(sn.storyId,sn.productId).verified).length;
+    const needsClarificationCount=productSnags.filter(sn=>sn.status==='Needs Clarification').length;
+    // "2nd failed tests" — a snag that bounced back to Development more than
+    // once (cycleCount only ever increments — see its declaration comment).
+    const repeatFailureCount=productSnags.filter(sn=>(sn.cycleCount||1)>1).length;
+    return {product:p, total:pStories.length, notTestedCount, firstPassCount, verifiedCount, openFailCount, openSnagCount, snagCount, snagsSquashedCount, waitingRetestCount, needsClarificationCount, repeatFailureCount, epics};
   });
+}
+// Distinct-requirement overall stats — unlike the per-product breakdown
+// above (deliberately duplicated once per product a shared Functional Area
+// needs testing on, so summing it can double-count a single requirement),
+// these are mutually-exclusive buckets over the ACTUAL distinct requirement
+// set, so notTestedCount+verifiedCount+openFailCount+firstPassCount always
+// equals stories.length exactly. A requirement whose Functional Area is
+// tested on more than one product only counts as Verified once EVERY one of
+// those products is verified, and as Failing if ANY of them currently has an
+// open fail — same precedence order (notTested > verified > openFail >
+// firstPass) as the single-product buckets in _tplComputeProductBreakdown,
+// generalised across every product a requirement needs testing on. Used
+// anywhere an "overall"/"all products" figure needs to actually match
+// Total Requirements, instead of summing per-product pairs.
+function _tplDistinctReqStats(stories){
+  let notTestedCount=0, verifiedCount=0, openFailCount=0, firstPassCount=0;
+  stories.forEach(s=>{
+    const epic=_reqResolveChain(s).epic;
+    const allProds=epic?_tplEpicTestProductIds(epic):[];
+    // A product this requirement is marked "Invalid Test Case" against (see
+    // _tplMarkInvalid) doesn't count toward its status — if EVERY product
+    // is invalid, it falls through to Not Started rather than vanishing
+    // from the total, same safe default as having no test products at all.
+    const prods=allProds.filter(pid=>!_tplStoryVerification(s.id,pid).invalid);
+    if(!prods.length){ notTestedCount++; return; }
+    const verifs=prods.map(pid=>_tplStoryVerification(s.id,pid));
+    if(verifs.every(v=>!v.rows.length)) notTestedCount++;
+    else if(verifs.every(v=>v.verified)) verifiedCount++;
+    else if(verifs.some(v=>v.openFail)) openFailCount++;
+    else firstPassCount++;
+  });
+  return {notTestedCount, verifiedCount, openFailCount, firstPassCount, total:stories.length};
 }
 // A scenario is in scope if it's linked to at least one in-scope requirement,
 // OR it has no requirement links at all (an unlinked scenario is always
@@ -11702,7 +11915,12 @@ function renderTestPlan(){
   const baseStories=_tplScopedStories();
   const total=baseStories.length;
   const breakdown=_tplComputeProductBreakdown(baseStories);
-  const overallOpenFailCount=breakdown.reduce((sum,b)=>sum+b.openFailCount,0);
+  // Distinct-requirement count, not a per-product sum — see
+  // _tplDistinctReqStats's own comment for why that distinction matters (a
+  // Functional Area shared across products would otherwise get counted once
+  // per product it's failing on, inflating this past the real number of
+  // distinct requirements with a problem).
+  const overallOpenFailCount=_tplDistinctReqStats(baseStories).openFailCount;
   const scenarioCoveredCount=baseStories.filter(s=>_tplScenarioHasCoverage(s.id)).length;
   const scenarioOpenFailCount=baseStories.filter(s=>_tplScenarioHasOpenFail(s.id)).length;
   const scenarioPct=total?Math.round(scenarioCoveredCount/total*100):0;
@@ -11710,6 +11928,7 @@ function renderTestPlan(){
   let html=`<div class="req-wrap">`;
 
   html+=`<div class="req-header">
+    <button class="hbtn-icon mnav-toggle-btn" onclick="toggleMobileNav()" title="Functional / Scenario / Snags"><span class="material-icons-outlined" style="font-size:18px">menu</span></button>
     <div class="req-header-title">Test Plan</div>
     <div class="req-search-wrap">
       <span class="material-icons-round req-search-icon">search</span>
@@ -11775,6 +11994,23 @@ function renderTestPlan(){
   if(newContent) newContent.scrollTop=prevScrollTop;
   if(typeof applyRoleUI==='function') applyRoleUI();
   renderTestPlanNav(breakdown, _tplScopedScenarios(scenarioScopeStories));
+  _tplSyncStickyOffsets();
+}
+// See the CSS comment on .tpl-hier-hdr-feature — its sticky `top` has to
+// match the REAL height of the Epic header directly above it, which varies
+// (name length, a device's own text-size setting, viewport-driven wrapping)
+// rather than always being the 36px the CSS used to hardcode. Reported
+// 2026-09-14 as "large blank white sections" specifically worse in mobile
+// portrait than landscape — exactly what a taller-than-assumed epic header
+// would cause (the feature header sticks too high, overlapping/painting
+// over content its own opaque background hides). Sets a CSS custom property
+// per epic (not one global value) since different epics can render at
+// different heights on the same screen.
+function _tplSyncStickyOffsets(){
+  document.querySelectorAll('#viewTestPlan .tpl-hier-group.tpl-hier-epic').forEach(epicEl=>{
+    const hdr=epicEl.querySelector(':scope > .tpl-hier-hdr-epic');
+    if(hdr) epicEl.style.setProperty('--tpl-epic-hdr-h', hdr.offsetHeight+'px');
+  });
 }
 
 // Shared by the Summary accordion and the left nav (both product and
@@ -12090,12 +12326,15 @@ function _tplCollapseAllAccordions(){
 // `compositeId` (epicId/featureId+'::'+productId) keeps a shared Functional
 // Area's open/closed state independent across the different product sections
 // it can now appear in.
-function _tplHierHdrHtml(level,compositeId,label,groupStories,extraClass,colour,productId){
+function _tplHierHdrHtml(level,compositeId,label,groupStories,extraClass,colour,productId,forceClosed){
   const pct=_tplGroupPct(groupStories,productId);
   const badge=_tplPctBadgeStyle(pct);
   const failCount=groupStories.filter(s=>_tplStoryVerification(s.id,productId).blocked).length;
   const closedSet=level==='epic'?_tplClosedEpics:_tplClosedFeatures;
-  const isOpen=!closedSet.has(compositeId);
+  // forceClosed overrides the stored open/closed state — used when there's
+  // genuinely nothing to show regardless of what the user last clicked (see
+  // _tplFeatureAccordionHtml's "Hide fully tested" case).
+  const isOpen=!forceClosed && !closedSet.has(compositeId);
   // Feature header's tint (${colour}14 ≈ 8% alpha) used to be safe as a
   // plain translucent wash since nothing ever scrolled underneath it — now
   // that it's sticky (see the CSS comment on .tpl-hier-hdr-feature), a
@@ -12119,10 +12358,25 @@ function _tplHierHdrHtml(level,compositeId,label,groupStories,extraClass,colour,
 }
 function _tplFeatureAccordionHtml(fEntry, epicColour, productId){
   const rows=fEntry.stories;
+  // "Hide fully tested" only changes which rows RENDER — the header badge
+  // above (built from fEntry.stories, unfiltered) still reflects the true
+  // requirement count/% verified, so hiding rows can never make the numbers
+  // lie.
+  const visibleRows=_tplHideFullyTested?rows.filter(s=>!_tplStoryVerification(s.id,productId).verified):rows;
   const compositeId=fEntry.feature.id+'::'+productId;
-  const {isOpen,html:hdr}=_tplHierHdrHtml('feature',compositeId,fEntry.feature.name,fEntry.stories,'tpl-hier-hdr-feature',epicColour,productId);
-  let html=`<div class="tpl-hier-group tpl-hier-feature">${hdr}`;
-  if(isOpen) html+=`<div class="tpl-hier-body tpl-hier-body-leaf">${rows.map(s=>_tplReqRowHtml(s,productId)).join('')||'<div class="rm-empty">No requirements match this filter.</div>'}</div>`;
+  // Nothing to show because "Hide fully tested" hid every row here — force
+  // the accordion closed instead of expanding it just to display an
+  // explanatory message. Turn the filter off to see it, rather than
+  // expanding this one Feature.
+  const allHiddenByFilter=rows.length>0 && visibleRows.length===0;
+  const {isOpen,html:hdr}=_tplHierHdrHtml('feature',compositeId,fEntry.feature.name,fEntry.stories,'tpl-hier-hdr-feature',epicColour,productId,allHiddenByFilter);
+  // data-tpl-anchor lets _tplFindPrevRowAnchor fall back to this Feature's
+  // own header when the row being marked invalid is the first one in its
+  // body (no sibling row above it to anchor the scroll position on).
+  let html=`<div class="tpl-hier-group tpl-hier-feature" data-tpl-anchor="${compositeId}">${hdr}`;
+  if(isOpen){
+    html+=`<div class="tpl-hier-body tpl-hier-body-leaf">${visibleRows.map(s=>_tplReqRowHtml(s,productId)).join('')||'<div class="rm-empty">No requirements match this filter.</div>'}</div>`;
+  }
   html+=`</div>`;
   return html;
 }
@@ -12188,6 +12442,113 @@ function _tplFailuresAccordionHtml(failingStories, productId){
     ${isOpen?`<div class="tpl-hier-body">${failingStories.map(s=>_tplReqRowHtml(s,productId)).join('')}</div>`:''}
   </div>`;
 }
+// Invalid Test Cases — a (requirement,product) pair an admin has marked as
+// not applicable (see _tplMarkInvalid). Hidden from the normal tree entirely
+// (see _tplStoriesInProduct), surfaced only here, collapsed by default like
+// Open Snags above — anyone can see the count/expand it, but only an admin
+// can actually Restore one (data-requires-admin on the row's button).
+function _tplToggleInvalidAccordion(productId){
+  if(_tplOpenInvalidSections.has(productId)) _tplOpenInvalidSections.delete(productId);
+  else _tplOpenInvalidSections.add(productId);
+  renderTestPlan();
+}
+function _tplInvalidRowHtml(s, productId){
+  return `<div class="tpl-req-row tpl-req-row-compact" style="opacity:.72" data-tpl-row="${s.id}::${productId}">
+    <div class="req-code-badge req-code-badge-clickable" title="View full details" onclick="openReqDetail('${s.id}')">${escH(s.code||'—')}</div>
+    <div class="tpl-req-row-text">${escH(s.text)}</div>
+    <span class="tpl-verify-pill" style="color:var(--text2);background:var(--md-surface-container)">Invalid Test Case</span>
+    <div data-requires-admin style="display:none"><button class="tpl-mark-btn" onclick="_tplRestoreInvalid('${s.id}','${productId}')">Restore</button></div>
+  </div>`;
+}
+function _tplInvalidAccordionHtml(invalidStories, productId){
+  const isOpen=_tplOpenInvalidSections.has(productId);
+  // data-tpl-anchor — see _tplFindPrevRowAnchor's fallback when the row
+  // being restored is the first one in this accordion.
+  return `<div class="tpl-hier-group tpl-invalid-group" data-tpl-anchor="invalid::${productId}">
+    <button class="tpl-hier-hdr tpl-invalid-hdr" onclick="_tplToggleInvalidAccordion('${productId}')">
+      <span class="material-icons-round tpl-hier-chev" style="font-size:15px">${isOpen?'expand_more':'chevron_right'}</span>
+      <span class="material-icons-round" style="font-size:14px">visibility_off</span>
+      <span class="tpl-hier-label">Invalid Test Cases</span>
+      <span class="tpl-hier-fail-badge" style="background:var(--md-surface);color:var(--text2)">${invalidStories.length}</span>
+    </button>
+    ${isOpen?`<div class="tpl-hier-body">${invalidStories.map(s=>_tplInvalidRowHtml(s,productId)).join('')}</div>`:''}
+  </div>`;
+}
+// Admin-only — marks this (requirement,product) pair as an invalid test
+// case: hidden from the normal Test Plan list for THIS product only (see
+// _tplStoriesInProduct), while the SAME requirement stays fully visible and
+// testable on any other product it also needs testing on. Reuses the
+// existing per-tester TEST_RESULTS row/action rather than a new field or
+// endpoint — 'Invalid' is just another result value alongside Pass/Fail,
+// written through the same already-available upsertTestResult action.
+// Reuses an existing Invalid row for this pair (from ANY admin) if there
+// already is one, rather than piling up a second row keyed to whoever
+// clicked most recently.
+// Finds a stable, re-queryable CSS selector for whatever sits immediately
+// BEFORE the given row in its currently-rendered position, so the viewport
+// can be re-anchored on it after a render where the row itself moves
+// somewhere else on the page (into or out of the Invalid Test Cases
+// section) — the plain scrollTop restore renderTestPlan() already does
+// isn't enough once content shifts height around the scroll position.
+// Falls back to the row's own parent group header (Feature, or the Invalid
+// accordion itself) when it's the FIRST row in its body, since there's no
+// sibling row above it to anchor on instead.
+function _tplFindPrevRowAnchor(storyId, productId){
+  const el=document.querySelector(`[data-tpl-row="${storyId}::${productId}"]`);
+  if(!el) return null;
+  const prev=el.previousElementSibling;
+  if(prev && prev.hasAttribute('data-tpl-row')){
+    return `[data-tpl-row="${prev.getAttribute('data-tpl-row')}"]`;
+  }
+  const group=el.closest('[data-tpl-anchor]');
+  return group ? `[data-tpl-anchor="${group.getAttribute('data-tpl-anchor')}"]` : null;
+}
+// Re-queries the selector _tplFindPrevRowAnchor returned (the DOM was just
+// rebuilt by renderTestPlan(), so any earlier element reference is already
+// detached) and scrolls it back into view — 'nearest' so this only nudges
+// the viewport the minimum needed to keep the anchor visible, rather than
+// re-centering the page and creating a second, different jump.
+function _tplScrollToAnchor(selector){
+  if(!selector) return;
+  const el=document.querySelector(selector);
+  if(el) el.scrollIntoView({block:'nearest'});
+}
+async function _tplMarkInvalid(storyId, productId){
+  if(!isAdmin()){showToast('Admin access required');return;}
+  const email=gCurrentUser.email.trim().toLowerCase();
+  const now=new Date().toISOString();
+  const anchor=_tplFindPrevRowAnchor(storyId, productId);
+  let row=TEST_RESULTS.find(r=>r.storyId===storyId && r.productId===productId && r.result==='Invalid');
+  if(!row){
+    const id=storyId+'::'+email+'::'+productId;
+    row=TEST_RESULTS.find(r=>r.id===id);
+    if(!row){row={id,storyId,testerEmail:email,result:'Invalid',notes:'',testedAt:now,productId};TEST_RESULTS.push(row);}
+    else{row.result='Invalid';row.notes='';row.testedAt=now;}
+  }
+  renderTestPlan();
+  _tplScrollToAnchor(anchor);
+  showToast('Marked as an invalid test case for this product');
+  await dbUpsertTestResult(row);
+}
+// Reverses _tplMarkInvalid. Blanks the Invalid row's result (rather than
+// deleting it — there's no delete action exposed for TEST_RESULTS rows, see
+// the removed deleteTestResultsBatch note elsewhere in this file) so
+// _tplStoryVerification's rows/invalid checks both ignore it either way —
+// the pair goes back to exactly whatever Pass/Fail history any OTHER tester
+// already had on file, since only this one row is touched. Looks the row up
+// by (storyId,productId) rather than the current admin's own email, since
+// whoever marked it invalid might not be whoever restores it.
+async function _tplRestoreInvalid(storyId, productId){
+  if(!isAdmin()){showToast('Admin access required');return;}
+  const anchor=_tplFindPrevRowAnchor(storyId, productId);
+  const row=TEST_RESULTS.find(r=>r.storyId===storyId && r.productId===productId && r.result==='Invalid');
+  if(!row){renderTestPlan();return;}
+  row.result='';
+  renderTestPlan();
+  _tplScrollToAnchor(anchor);
+  showToast('Restored to Test Plan');
+  await dbUpsertTestResult(row);
+}
 // Shared by the full and compact row renderers — resolves a tester's initial
 // dots AND (see item 10 of the 2026-09-02 test-plan UX batch) their hover
 // tooltip, which now leads with their first name from NAME_TABLE (recorded
@@ -12216,14 +12577,22 @@ function _tplReqRowCompactHtml(s, productId, v, covered){
   const pillC=v.verified?TPL_RESULT_COLOURS.Pass:(v.openEnhancement?{fg:'var(--rag-idea-fg)',bg:'var(--rag-idea-bg)'}:(v.blocked?TPL_RESULT_COLOURS.Fail:{fg:'var(--wf-ns-fg)',bg:'var(--wf-ns-bg)'}));
   const pillLabel=v.verified?'✓ Verified':(v.openFail?`${v.failCount} failing`:(v.openSnag?'Snag reported — with Development':(v.openEnhancement?'Enhancement — with Development':`${v.passers.length}/2 passed — awaiting 2nd tester`)));
   const blockedClass=v.openEnhancement?' tpl-req-row-enhancement':(v.blocked?' tpl-req-row-fail':'');
-  return `<div class="tpl-req-row tpl-req-row-compact${blockedClass}">
+  return `<div class="tpl-req-row tpl-req-row-compact${blockedClass}" data-tpl-row="${s.id}::${productId}">
     <div class="req-code-badge req-code-badge-clickable" title="View full details" onclick="openReqDetail('${s.id}')">${escH(s.code||'—')}</div>
     <div class="tpl-req-row-text">${escH(s.text)}</div>
     <div class="tpl-signoff-chips">${_tplSignoffChipsHtml(v)}</div>
     <span class="tpl-verify-pill" style="color:${pillC.fg};background:${pillC.bg}">${pillLabel}</span>
     <span class="tpl-coverage-icon" title="${covered?'Covered by a passed scenario':'No passed scenario linked'}">${covered?'✅':'—'}</span>
     ${commentBadgeHtml('story',s.id,{label:s.text.slice(0,60)})}
+    ${_tplMarkInvalidBtnHtml(s.id,productId)}
   </div>`;
+}
+// Admin-only trigger for _tplMarkInvalid, shared by both row renderers —
+// deliberately available regardless of the row's current state (Verified,
+// Failing, mid-progress), since a requirement can turn out not to apply to a
+// product only after testing already started against it.
+function _tplMarkInvalidBtnHtml(storyId, productId){
+  return `<div data-requires-admin style="display:none"><button class="tpl-mark-btn" title="Mark as an invalid test case for this product" onclick="_tplMarkInvalid('${storyId}','${productId}')"><span class="material-icons-round" style="font-size:13px;vertical-align:-2px">visibility_off</span></button></div>`;
 }
 // `productId` is the SECTION this row is rendered under (a shared Functional
 // Area renders once per product it needs testing on, each with its own
@@ -12273,7 +12642,7 @@ function _tplReqRowHtml(s, productId){
   const priorSnag=SNAGS.find(sn=>sn.storyId===s.id && sn.productId===productId);
   const isVerifyFix=!v.rows.length && priorSnag && priorSnag.status==='Resolved';
   const btnLabel=!v.rows.length?(isVerifyFix?(priorSnag.kind==='Enhancement'?'Verify Enhancement':'Verify Fix'):'Test'):'Second Pass';
-  return `<div class="tpl-req-row${rowBlockedClass}">
+  return `<div class="tpl-req-row${rowBlockedClass}" data-tpl-row="${s.id}::${productId}">
     <div class="tpl-req-row-main">
       <div class="req-code-badge req-code-badge-clickable" title="View full details" onclick="openReqDetail('${s.id}')">${escH(s.code||'—')}</div>
       <div class="tpl-req-row-text">${escH(s.text)}</div>
@@ -12287,6 +12656,7 @@ function _tplReqRowHtml(s, productId){
       <span class="tpl-verify-pill" style="color:${pillC.fg};background:${pillC.bg}">${pillLabel}</span>
       <span class="tpl-coverage-icon" title="${covered?'Covered by a passed scenario':'No passed scenario linked'}">${covered?'✅':'—'}</span>
       ${commentBadgeHtml('story',s.id,{label:s.text.slice(0,60)})}
+      ${_tplMarkInvalidBtnHtml(s.id,productId)}
       ${(!isMarking && !v.blocked)?`<div data-requires-test><button class="tpl-mark-btn tpl-mark-btn-primary" onclick="_tplStartMarkStory('${s.id}','${productId}')">${btnLabel}</button></div>`:''}
     </div>
     ${isMarking?`<div data-requires-test>${_tplMarkFormHtml(s,productId)}</div>`:''}
@@ -12309,22 +12679,35 @@ function _tplRenderFunctionalTab(stories){
   productsToRender.forEach(prod=>{
     const productStories=_tplStoriesInProduct(stories, prod.id);
     const failingStories=productStories.filter(s=>_tplStoryVerification(s.id,prod.id).blocked);
+    // Raw (not invalid-excluded) product membership — _tplStoriesInProduct
+    // already filters these OUT, so they have to be found separately here to
+    // surface them at all (see _tplInvalidAccordionHtml). Admin-only, whole
+    // section — a non-admin viewer never even learns the count exists, not
+    // just the Restore action inside it.
+    const invalidStories=isAdmin()?stories.filter(s=>{
+      const epic=_reqResolveChain(s).epic;
+      return epic && _tplEpicTestProductIds(epic).includes(prod.id) && _tplStoryVerification(s.id,prod.id).invalid;
+    }):[];
     const tree=_tplBuildEpicTree(productStories);
-    if(!tree.length) return;
+    if(!tree.length && !invalidStories.length) return;
     if(showSeparator) html+=`<div class="rm-product-sep">${escH(prod.name)}</div>`;
     html+=`<div class="tpl-hier-tree">`;
     if(failingStories.length) html+=_tplFailuresAccordionHtml(failingStories, prod.id);
+    if(invalidStories.length) html+=_tplInvalidAccordionHtml(invalidStories, prod.id);
     html+=tree.map(eEntry=>_tplEpicAccordionHtml(eEntry, prod.id)).join('');
     html+=`</div>`;
   });
   if(!html) return _tplEmptyStateHtml();
-  const collapseControls=`<div style="display:flex;gap:8px;padding:0 20px 10px">
+  const collapseControls=`<div style="display:flex;gap:8px;align-items:center;padding:0 20px 10px">
     <button class="mbtn mbtn-cancel" onclick="_tplCollapseAllEpics()" title="Collapse every Functional Area shown below">
       <span class="material-icons-round" style="font-size:14px;vertical-align:-2px;margin-right:4px">unfold_less</span>Collapse Functional Areas
     </button>
     <button class="mbtn mbtn-cancel" onclick="_tplCollapseAllAccordions()" title="Collapse every Functional Area and Feature shown below">
       <span class="material-icons-round" style="font-size:14px;vertical-align:-2px;margin-right:4px">unfold_less</span>Collapse All
     </button>
+    <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer;margin-left:4px">
+      <input type="checkbox" ${_tplHideFullyTested?'checked':''} onchange="_tplToggleHideFullyTested()">Hide fully tested
+    </label>
   </div>`;
   return collapseControls+html;
 }
@@ -12349,7 +12732,7 @@ function _tplMarkFormHtml(s, productId){
 function _tplRenderScenarioTab(stories){
   let html=`<div class="tpl-scenario-list">`;
   const addingNew=_tplScenarioDraft && _tplScenarioDraft.id===null;
-  html+=`<div style="display:flex;gap:8px;align-items:center">
+  html+=`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
     <div data-requires-edit style="display:flex;gap:8px">
       <button class="mbtn mbtn-save" onclick="${addingNew?'_tplCancelScenarioDraft()':'_tplStartNewScenario()'}">${addingNew?'− Cancel':'+ New Scenario'}</button>
       <button class="mbtn mbtn-cancel" onclick="_tplToggleImport()">${_tplImportOpen?'− Cancel import':'⇪ Import from Markdown'}</button>
@@ -12357,6 +12740,9 @@ function _tplRenderScenarioTab(stories){
     <button class="tpl-copy-btn" onclick="openScenarioPromptModal()" title="Copy the AI prompt template for generating more scenario packs">
       <span class="material-icons-round" style="font-size:14px">chevron_right</span>
     </button>
+    <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer;margin-left:4px">
+      <input type="checkbox" ${_tplHideFullyTested?'checked':''} onchange="_tplToggleHideFullyTested()">Hide fully tested
+    </label>
   </div>`;
   if(addingNew) html+=_tplScenarioDraftFormHtml();
   if(_tplImportOpen) html+=_tplImportPanelHtml();
@@ -12378,8 +12764,14 @@ function _tplRenderScenarioTab(stories){
       // fix: each scenario appears in exactly one place.
       const failingScenarios=scenarios.filter(sc=>sc.status==='Fail');
       const otherScenarios=scenarios.filter(sc=>sc.status!=='Fail');
+      // "Fully tested" for a scenario = Pass (single-execution, no 2-tester
+      // gate like a requirement) — hiding it is view-only, same as the
+      // Functional tab's filter; Not Tested scenarios are never hidden.
+      const visibleOthers=_tplHideFullyTested?otherScenarios.filter(sc=>sc.status!=='Pass'):otherScenarios;
+      const hiddenCount=otherScenarios.length-visibleOthers.length;
       if(failingScenarios.length) html+=_tplScenarioFailuresAccordionHtml(failingScenarios);
-      otherScenarios.forEach(sc=>{ html+=_tplScenarioCardHtml(sc); });
+      visibleOthers.forEach(sc=>{ html+=_tplScenarioCardHtml(sc); });
+      if(hiddenCount) html+=`<div class="rm-empty" style="padding:8px 4px;font-size:11px">${hiddenCount} fully tested scenario${hiddenCount===1?'':'s'} hidden — <a href="javascript:void(0)" onclick="_tplToggleHideFullyTested()" style="color:var(--brand-primary)">show</a></div>`;
     }
   }
   html+=`</div>`;
@@ -12832,6 +13224,13 @@ async function _tplSubmitStoryResult(storyId,productId,result){
   const id=storyId+'::'+email+'::'+productId;
   const notes=(eid('tpl-mark-notes-'+storyId+'-'+productId)?.value||'').trim();
   const now=new Date().toISOString();
+  // A Pass/Fail can change this row's own rendered height (expanded ↔
+  // compact) or make it vanish from view entirely (Verified + "Hide fully
+  // tested" is on) — same reason _tplMarkInvalid needs this, see
+  // _tplFindPrevRowAnchor's comment: renderTestPlan()'s plain scrollTop
+  // restore isn't enough once content shifts height around the scroll
+  // position, so anchor on a stable neighbour instead.
+  const anchor=_tplFindPrevRowAnchor(storyId, productId);
   let row=TEST_RESULTS.find(r=>r.id===id);
   if(!row){row={id,storyId,testerEmail:email,result,notes,testedAt:now,productId};TEST_RESULTS.push(row);}
   else{row.result=result;row.notes=notes;row.testedAt=now;}
@@ -12843,6 +13242,7 @@ async function _tplSubmitStoryResult(storyId,productId,result){
   const snag = result==='Fail' ? _tplUpsertSnagLocal(storyId, productId, email) : null;
   _tplMarkingKey=null;
   renderTestPlan();
+  _tplScrollToAnchor(anchor);
   showToast(result==='Pass'?'Marked Pass':'Marked Fail — logged to Snags');
   // Sequenced, not concurrent — Apps Script Web Apps have a low concurrent-
   // execution ceiling (see upsertRowsBatch's comment); the UI above is
@@ -13209,30 +13609,31 @@ function _tplClarificationBannerHtml(sn){
   </div>`;
 }
 
+// Resolved snags never reach this function — _tplRenderSnagsTab filters
+// them out before grouping (see its own comment) — so every card here is
+// either Open or Needs Clarification, never Resolved. sn.resolvedBy is
+// likewise always blank in practice for the same reason.
 function _tplSnagCardHtml(sn){
   const story = sn.storyId ? ROADMAP_STORIES.find(s=>s.id===sn.storyId) : null;
   const code = story ? (story.code||'—') : null;
   const text = story ? story.text : (sn.title||'(no description)');
   const isEnhancement = sn.kind==='Enhancement';
-  const isResolved = sn.status==='Resolved';
   const needsClarification = sn.status==='Needs Clarification';
   const isPlainOpen = sn.status==='Open';
   const entityType = sn.storyId ? 'story' : 'snag';
   const entityId = sn.storyId || sn.id;
   const isSquashing = isPlainOpen && _tplSquashingSnagId===sn.id;
-  const statusPill = isResolved
-    ? {label:'Resolved',fg:'var(--rag-green-fg)',bg:'var(--rag-green-bg)'}
-    : needsClarification
-      ? {label:'Needs Clarification',fg:'var(--rag-amber-fg)',bg:'var(--rag-amber-bg)'}
-      // An open Enhancement isn't a defect — same "Open" label, calmer violet
-      // instead of red, matching the Functional Requirements view's treatment.
-      : isEnhancement
-        ? {label:'Open',fg:'var(--rag-idea-fg)',bg:'var(--rag-idea-bg)'}
-        : {label:'Open',fg:'var(--rag-red-fg)',bg:'var(--rag-red-bg)'};
+  const statusPill = needsClarification
+    ? {label:'Needs Clarification',fg:'var(--rag-amber-fg)',bg:'var(--rag-amber-bg)'}
+    // An open Enhancement isn't a defect — same "Open" label, calmer violet
+    // instead of red, matching the Functional Requirements view's treatment.
+    : isEnhancement
+      ? {label:'Open',fg:'var(--rag-idea-fg)',bg:'var(--rag-idea-bg)'}
+      : {label:'Open',fg:'var(--rag-red-fg)',bg:'var(--rag-red-bg)'};
   // Every card on this list is already an open issue by definition — painting
-  // the whole row red on top of that was redundant with the Open/Resolved
-  // status pill below and just made the list noisy. Normal card styling now;
-  // the pill still carries the red/amber/green status signal on its own.
+  // the whole row red on top of that was redundant with the status pill
+  // below and just made the list noisy. Normal card styling now; the pill
+  // still carries the red/amber/violet status signal on its own.
   return `<div class="tpl-req-row">
     <div class="tpl-req-row-main">
       ${code?`<div class="req-code-badge req-code-badge-clickable" title="View full details" onclick="openReqDetail('${story.id}')">${escH(code)}</div>`:''}
@@ -13243,14 +13644,12 @@ function _tplSnagCardHtml(sn){
     <div class="tpl-req-row-meta">
       <span class="tpl-verify-pill" style="color:${statusPill.fg};background:${statusPill.bg}">${statusPill.label}</span>
       ${sn.cycleCount>1?`<span class="tpl-hier-fail-badge" title="Sent back to development ${sn.cycleCount-1} time(s) before this">↻ Cycle ${sn.cycleCount}</span>`:''}
-      <span style="font-size:10px;color:var(--text3)">Reported by ${escH(sn.reporterEmail||'—')}${sn.resolvedBy?` · Squashed by ${escH(sn.resolvedBy)}`:''}</span>
+      <span style="font-size:10px;color:var(--text3)">Reported by ${escH(sn.reporterEmail||'—')}</span>
       ${commentBadgeHtml(entityType,entityId,{label:text.slice(0,60)})}
       ${isPlainOpen&&!isSquashing?`<div data-requires-squash><button class="tpl-mark-btn tpl-mark-btn-primary" onclick="_tplStartSquash('${sn.id}')">${isEnhancement?'Resolve':'Squash'}</button></div>`:''}
     </div>
     ${isSquashing?`<div data-requires-squash>${_tplSquashFormHtml(sn)}</div>`:''}
-    ${needsClarification
-      ? _tplClarificationBannerHtml(sn)
-      : (isResolved?'':_tplClarifyHistorySnippetHtml(entityType, entityId))}
+    ${needsClarification ? _tplClarificationBannerHtml(sn) : _tplClarifyHistorySnippetHtml(entityType, entityId)}
   </div>`;
 }
 
@@ -13268,7 +13667,13 @@ function _tplRenderSnagsTab(){
   const showSeparator=_tplActiveProductId==='ALL';
   let bodyHtml='';
   productsToRender.forEach(prod=>{
-    const snags=SNAGS.filter(sn=>sn.productId===prod.id);
+    // Resolved (fix applied, sent back to testing) drops off this list
+    // entirely — it's Development's queue, and a Resolved snag is no longer
+    // theirs to act on. Still fully tracked elsewhere: the "Verify Fix"
+    // button on the Functional tab's own row (_tplReqRowHtml's isVerifyFix)
+    // is how a tester actually retests it, and the Test Report's "Fixes
+    // Applied — Waiting Retest" section lists these explicitly.
+    const snags=SNAGS.filter(sn=>sn.productId===prod.id && sn.status!=='Resolved');
     if(!snags.length) return;
     const epicMap={};
     snags.forEach(sn=>{
@@ -13295,14 +13700,15 @@ function _tplSnagEpicAccordionHtml(epic,snags,productId){
   const colour=epic.colour||EPIC_COLOURS[0];
   const compositeId=epic.id+'::'+productId;
   const isOpen=!_tplClosedSnagEpics.has(compositeId);
-  const openCount=snags.filter(sn=>sn.status!=='Resolved').length;
   const style=`background:${colour};color:#fff`;
+  // No separate "N open" badge — every snag reaching this function is
+  // already non-Resolved (see _tplRenderSnagsTab's filter), so it would
+  // always exactly equal snags.length and just double the same number.
   let html=`<div class="tpl-hier-group tpl-hier-epic" data-tpl-snag-anchor="${compositeId}">
     <button class="tpl-hier-hdr tpl-hier-hdr-epic" style="${style}" onclick="_tplToggleSnagEpic('${compositeId}')">
       <span class="material-icons-round tpl-hier-chev" style="font-size:15px;color:#fff">${isOpen?'expand_more':'chevron_right'}</span>
       <span class="tpl-hier-label" title="${escH(epic.name)}">${escH(epic.name)}</span>
       <span class="tpl-hier-count" style="color:rgba(255,255,255,.85)">${snags.length} snag${snags.length===1?'':'s'}</span>
-      ${openCount?`<span class="tpl-hier-fail-badge">${openCount} open</span>`:''}
     </button>`;
   if(isOpen) html+=`<div class="tpl-hier-body tpl-hier-body-leaf">${snags.map(sn=>_tplSnagCardHtml(sn)).join('')}</div>`;
   html+=`</div>`;
@@ -13324,7 +13730,7 @@ function _tplSnagEpicAccordionHtml(epic,snags,productId){
 function openAddSnagModal(kind){
   if(!canReportSnags()){showToast('View-only access — editing is disabled');return;}
   if(!gCurrentUser){showToast('Sign in to add a snag');return;}
-  _tplSnagDraft={kind:kind==='Enhancement'?'Enhancement':'Snag', productId:_tplActiveProductId!=='ALL'?_tplActiveProductId:'', epicId:'', storyId:'', title:''};
+  _tplSnagDraft={kind:kind==='Enhancement'?'Enhancement':'Snag', productId:_tplActiveProductId!=='ALL'?_tplActiveProductId:'', epicId:'', functionId:'', storyId:'', title:''};
   _renderAddSnagModal();
   openModal('addSnagModal');
 }
@@ -13336,19 +13742,40 @@ function _snagModalStoriesForEpic(epicId){
   const featureIds=new Set(ROADMAP_FEATURES.filter(f=>f.epicId===epicId).map(f=>f.id));
   return ROADMAP_STORIES.filter(s=>featureIds.has(s.featureId));
 }
+function _snagModalFunctionsForEpic(epicId){
+  return ROADMAP_FEATURES.filter(f=>f.epicId===epicId);
+}
+function _snagModalStoriesForFunction(functionId){
+  return ROADMAP_STORIES.filter(s=>s.featureId===functionId);
+}
+// Sentinel for the always-present "Other" Functional Area option — distinct
+// from any real epic id (those are all 'EP...'), resolved into an actual
+// (found-or-created) Epic only on save — see _snagFindOrCreateOtherEpic.
+const SNAG_OTHER_EPIC='__other__';
 function _snagModalSetProduct(productId){
-  _tplSnagDraft.productId=productId; _tplSnagDraft.epicId=''; _tplSnagDraft.storyId='';
+  _tplSnagDraft.productId=productId; _tplSnagDraft.epicId=''; _tplSnagDraft.functionId=''; _tplSnagDraft.storyId='';
   _renderAddSnagModal();
 }
 function _snagModalSetEpic(epicId){
-  _tplSnagDraft.epicId=epicId; _tplSnagDraft.storyId='';
+  _tplSnagDraft.epicId=epicId; _tplSnagDraft.functionId=''; _tplSnagDraft.storyId='';
+  _renderAddSnagModal();
+}
+function _snagModalSetFunction(functionId){
+  _tplSnagDraft.functionId=functionId; _tplSnagDraft.storyId='';
   _renderAddSnagModal();
 }
 function _renderAddSnagModal(){
   const d=_tplSnagDraft;
   const isEnhancement=d.kind==='Enhancement';
   const epics=d.productId?_snagModalEpicsForProduct(d.productId):[];
-  const stories=d.epicId?_snagModalStoriesForEpic(d.epicId):[];
+  // "Other" is never disabled/hidden — a real epic gets found-or-created
+  // from it only on save (see _snagFindOrCreateOtherEpic), same lazy
+  // find-or-create pattern _snagFindOrCreateManualFeature already uses one
+  // level down, so a reporter is never blocked just because nothing in the
+  // existing structure fits.
+  const realEpicChosen=d.epicId && d.epicId!==SNAG_OTHER_EPIC;
+  const functions=realEpicChosen?_snagModalFunctionsForEpic(d.epicId):[];
+  const stories=d.functionId?_snagModalStoriesForFunction(d.functionId):(realEpicChosen?_snagModalStoriesForEpic(d.epicId):[]);
   const titleEl=eid('addSnagModalTitle');
   if(titleEl) titleEl.textContent=isEnhancement?'Add Enhancement':'Add Snag';
   const saveBtn=eid('addSnagModalSaveBtn');
@@ -13356,28 +13783,52 @@ function _renderAddSnagModal(){
   const body=eid('addSnagModalBody');
   if(!body) return;
   body.innerHTML=`
-    <div class="mfield"><label>Product</label>
+    <div class="mfield"><label>Product <span style="color:var(--rag-red-fg,#C2503F)">*</span></label>
       <select class="mselect" onchange="_snagModalSetProduct(this.value)">
         <option value="">— Select a product —</option>
         ${ROADMAP_PRODUCTS.map(p=>`<option value="${p.id}"${p.id===d.productId?' selected':''}>${escH(p.name)}</option>`).join('')}
       </select>
     </div>
-    <div class="mfield"><label>Functional area</label>
+    <div class="mfield"><label>Functional area <span style="color:var(--rag-red-fg,#C2503F)">*</span></label>
       <select class="mselect" onchange="_snagModalSetEpic(this.value)" ${!d.productId?'disabled':''}>
         <option value="">— Select a functional area —</option>
         ${epics.map(e=>`<option value="${e.id}"${e.id===d.epicId?' selected':''}>${escH(e.name)}</option>`).join('')}
+        <option value="${SNAG_OTHER_EPIC}"${d.epicId===SNAG_OTHER_EPIC?' selected':''}>Other</option>
       </select>
     </div>
-    <div class="mfield"><label>Related requirement</label>
+    <div class="mfield"><label>Function <span style="font-weight:400;color:var(--text3)">(optional)</span></label>
+      <select class="mselect" onchange="_snagModalSetFunction(this.value)" ${!realEpicChosen?'disabled':''}>
+        <option value="">— Auto-create (Manual Snag/Enhancement) —</option>
+        ${functions.map(f=>`<option value="${f.id}"${f.id===d.functionId?' selected':''}>${escH(f.name)}</option>`).join('')}
+      </select>
+    </div>
+    <div class="mfield"><label>Related requirement <span style="font-weight:400;color:var(--text3)">(optional)</span></label>
       <select class="mselect" id="addSnagStorySelect" ${!d.epicId?'disabled':''}>
         <option value="">— Auto-create one for this report —</option>
         ${stories.map(s=>`<option value="${s.id}"${s.id===d.storyId?' selected':''}>${escH(s.code?s.code+' — ':'')}${escH(s.text.slice(0,70))}</option>`).join('')}
       </select>
     </div>
-    <div class="mfield"><label>Description</label>
+    <div class="mfield"><label>Description <span style="font-weight:400;color:var(--text3)">(optional)</span></label>
       <textarea class="minput" id="addSnagTitleInput" rows="3" placeholder="${isEnhancement?'What’s the idea…':'What’s wrong…'}">${escH(d.title)}</textarea>
     </div>
   `;
+}
+// Find-or-create a catch-all "Other" Functional Area for this product — one
+// level up from _snagFindOrCreateManualFeature's own find-or-create, for
+// when a manually-reported snag/enhancement genuinely doesn't fit any of
+// the product's existing Functional Areas (the modal's "Other" option — see
+// SNAG_OTHER_EPIC). One "Other" epic per product, reused across every
+// report that picks it rather than creating a fresh one each time.
+function _snagFindOrCreateOtherEpic(productId){
+  const existing=ROADMAP_EPICS.find(e=>e.productId===productId && (e.name||'').trim().toLowerCase()==='other');
+  if(existing) return existing;
+  const e={id:'EP'+Date.now(), productId, name:'Other',
+    desc:'Auto-created catch-all for snags/enhancements that don\'t fit an existing Functional Area.',
+    colour:EPIC_COLOURS[EPIC_COLOURS.length-1]||EPIC_COLOURS[0],
+    order:ROADMAP_EPICS.filter(x=>x.productId===productId).length, jiraKey:'', testProductIds:[]};
+  ROADMAP_EPICS.push(e);
+  dbUpsertEpic(e);
+  return e;
 }
 // Find-or-create a "Manual Snag" (or, for kind==='Enhancement', a separate
 // "Enhancement") Function under the given Functional Area (same phase-scoped
@@ -13425,19 +13876,31 @@ async function saveAddSnagModal(){
   const kind=d.kind==='Enhancement'?'Enhancement':'Snag';
   const isEnhancement=kind==='Enhancement';
   const productId=d.productId;
-  const epicId=d.epicId;
+  let epicId=d.epicId;
+  const functionId=d.functionId;
   let storyId=eid('addSnagStorySelect')?.value||'';
   const title=(eid('addSnagTitleInput')?.value||'').trim();
+  // Only Product and Functional Area are required — Function, Related
+  // requirement, and Description are all optional; a snag/enhancement with
+  // nothing but those two still gets a placeholder requirement created for
+  // it below, same as before this field-level distinction existed.
   if(!productId){showToast('Select a product');return;}
   if(!epicId){showToast('Select a functional area');return;}
-  if(!storyId && !title){showToast('Add a description, or link an existing requirement');return;}
-  // No existing requirement picked — auto-create a placeholder one (under a
-  // "Manual Snag"/"Enhancement" Function) instead of leaving this unlinked,
-  // so it gets the same retest workflow as any other snag once resolved.
+  // "Other" resolves to a real, find-or-created Epic only now — see
+  // _snagFindOrCreateOtherEpic. Everything downstream then behaves exactly
+  // as it would for any other Functional Area.
+  if(epicId===SNAG_OTHER_EPIC){
+    epicId=_snagFindOrCreateOtherEpic(productId).id;
+  }
+  // No existing requirement picked — auto-create a placeholder one instead
+  // of leaving this unlinked, so it gets the same retest workflow as any
+  // other snag once resolved. Placed under whichever Function was
+  // explicitly chosen, or (if none was) the auto-created "Manual Snag"/
+  // "Enhancement" Function — same fallback as before Function was pickable.
   // See _snagFindOrCreateManualFeature/_snagCreatePlaceholderStory.
   if(!storyId){
-    const feature=_snagFindOrCreateManualFeature(epicId, curPhase, kind);
-    storyId=_snagCreatePlaceholderStory(feature.id, title, kind).id;
+    const targetFeature=functionId ? ROADMAP_FEATURES.find(f=>f.id===functionId) : _snagFindOrCreateManualFeature(epicId, curPhase, kind);
+    if(targetFeature) storyId=_snagCreatePlaceholderStory(targetFeature.id, title, kind).id;
   }
   const now=new Date().toISOString();
   const email=(gCurrentUser&&gCurrentUser.email||'').trim().toLowerCase();
@@ -13478,10 +13941,17 @@ function _tplReportBuildHtml(){
   // Per-product breakdown (same shared helper the Summary accordion and left
   // nav use — see its comment) — a Functional Area tested on more than one
   // product appears once per product here too, each with its own numbers.
-  const breakdown=_tplComputeProductBreakdown(stories);
-  const overallVerifiedCount=breakdown.reduce((sum,b)=>sum+b.verifiedCount,0);
-  const overallTotal=breakdown.reduce((sum,b)=>sum+b.total,0); // NOTE: can exceed `total` distinct requirements — a shared area is counted once per product it needs testing on
-  const overallOpenFailCount=breakdown.reduce((sum,b)=>sum+b.openFailCount,0);
+  // Products with zero requirements in the current phase scope are dropped
+  // entirely — no summary row, no detail tab — since there's nothing to say
+  // about them under this report's phase selection.
+  const breakdown=_tplComputeProductBreakdown(stories).filter(b=>b.total>0);
+  // Distinct-requirement stats for every "all products"/headline figure —
+  // see _tplDistinctReqStats's comment. Deliberately NOT a sum of the
+  // per-product breakdown above: a Functional Area tested on more than one
+  // product would otherwise get counted once per product, so the headline
+  // could show MORE verified/failing requirements than Total Requirements
+  // itself — exactly the "numbers don't add up" confusion this replaces.
+  const distinct=_tplDistinctReqStats(stories);
   const scenarioCoveredCount=stories.filter(s=>_tplScenarioHasCoverage(s.id)).length;
   const scenarioPct=total?Math.round(scenarioCoveredCount/total*100):0;
 
@@ -13497,107 +13967,135 @@ function _tplReportBuildHtml(){
   const phaseNames=[...selectedPhases].map(id=>(PHASES.find(p=>p.id===id)||{}).name).filter(Boolean).join(', ')||'All phases';
   const now=new Date().toLocaleString();
 
-  let breakdownRows='';
+  // Per-product summary table — Requirements/Not Started/1st Pass/Verified/
+  // Failing come straight from the shared breakdown helper (same mutually-
+  // exclusive per-requirement buckets — see _tplComputeProductBreakdown's
+  // comment). Snags/Squashed/Waiting Retest/Clarification/Repeat Failures
+  // come from the same helper's productId-only (not phase-scoped) counts.
+  let productSummaryRows='';
   breakdown.forEach(b=>{
-    b.epics.forEach(({epic,total:eTotal,notTestedCount,verifiedCount,firstPassCount,openFailCount,totalActivity})=>{
-      const pct=eTotal?Math.round(verifiedCount/eTotal*100):0;
-      const colour=epic.colour||EPIC_COLOURS[0];
-      breakdownRows+=`<tr>
-        <td>${escH(b.product.name)}</td>
-        <td><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${colour};margin-right:6px;vertical-align:middle"></span>${escH(epic.name)}</td>
-        <td style="text-align:center">${eTotal}</td>
-        <td style="text-align:center">${notTestedCount||'—'}</td>
-        <td style="text-align:center">${firstPassCount||'—'}</td>
-        <td style="text-align:center">${verifiedCount||'—'}</td>
-        <td style="text-align:center;font-weight:700;color:${pct>=100?'#2E7D58':pct<=0?'#C2503F':'#B5852C'}">${pct}%</td>
-        <td style="text-align:center">${openFailCount?`<span style="color:#C2503F;font-weight:700">${openFailCount}</span>`:'—'}</td>
-        <td style="text-align:center">${totalActivity||'—'}</td>
-      </tr>`;
-    });
+    const pct=b.total?Math.round(b.verifiedCount/b.total*100):0;
+    productSummaryRows+=`<tr>
+      <td>${escH(b.product.name)}</td>
+      <td style="text-align:center">${b.total}</td>
+      <td style="text-align:center">${b.notTestedCount||'—'}</td>
+      <td style="text-align:center">${b.firstPassCount||'—'}</td>
+      <td style="text-align:center">${b.verifiedCount||'—'}</td>
+      <td style="text-align:center;font-weight:700;color:${pct>=100?'#2E7D58':pct<=0?'#C2503F':'#B5852C'}">${pct}%</td>
+      <td style="text-align:center">${b.openFailCount?`<span style="color:#C2503F;font-weight:700">${b.openFailCount}</span>`:'—'}</td>
+      <td style="text-align:center">${b.snagCount||'—'}</td>
+      <td style="text-align:center">${b.snagsSquashedCount||'—'}</td>
+      <td style="text-align:center">${b.waitingRetestCount||'—'}</td>
+      <td style="text-align:center">${b.needsClarificationCount||'—'}</td>
+      <td style="text-align:center">${b.repeatFailureCount?`<span style="color:#C2503F;font-weight:700">${b.repeatFailureCount}</span>`:'—'}</td>
+    </tr>`;
   });
+  // "All Products" row uses `distinct` (the requirement-level stats above),
+  // NOT a sum of the rows above it — a shared Functional Area tested on 2
+  // products would double-count in a naive sum. Snags-related columns ARE
+  // still a plain sum: a snag is inherently tied to one specific product, so
+  // 2 separate open snags on 2 different products are genuinely 2 separate
+  // problems, not the same one counted twice.
+  const _psSum=k=>breakdown.reduce((sum,b)=>sum+b[k],0);
+  const distinctPct=distinct.total?Math.round(distinct.verifiedCount/distinct.total*100):0;
+  const productSummaryTotalRow=`<tr style="font-weight:700;background:#F7F8FB">
+    <td>All Products</td>
+    <td style="text-align:center">${distinct.total}</td>
+    <td style="text-align:center">${distinct.notTestedCount||'—'}</td>
+    <td style="text-align:center">${distinct.firstPassCount||'—'}</td>
+    <td style="text-align:center">${distinct.verifiedCount||'—'}</td>
+    <td style="text-align:center;color:${distinctPct>=100?'#2E7D58':distinctPct<=0?'#C2503F':'#B5852C'}">${distinctPct}%</td>
+    <td style="text-align:center">${distinct.openFailCount||'—'}</td>
+    <td style="text-align:center">${_psSum('snagCount')||'—'}</td>
+    <td style="text-align:center">${_psSum('snagsSquashedCount')||'—'}</td>
+    <td style="text-align:center">${_psSum('waitingRetestCount')||'—'}</td>
+    <td style="text-align:center">${_psSum('needsClarificationCount')||'—'}</td>
+    <td style="text-align:center">${_psSum('repeatFailureCount')||'—'}</td>
+  </tr>`;
 
-  // Failures listed per (story, product) pair — a shared Functional Area's
-  // requirement can be failing for one product and fine for another, so a
-  // flat story-only list would no longer be unambiguous.
-  let failureRows='';
-  breakdown.forEach(b=>{
-    const pStories=_tplStoriesInProduct(stories,b.product.id);
-    pStories.filter(s=>_tplStoryVerification(s.id,b.product.id).openFail).forEach(s=>{
+  // Per-product detail tabs — Coverage by Functional Area, Open Failures,
+  // Fixes Applied/Waiting Retest, and Needs Clarification each used to be one
+  // flat table interleaving every product; that got hard to scan with more
+  // than one product, so each product now gets its own tab with all four
+  // sections scoped to it. `breakdown` has already dropped any product with
+  // zero requirements in the current phase scope (see its own comment
+  // above), so those never get a tab either. Waiting Retest/Needs
+  // Clarification stay `inScopeIds`-gated (phase-scoped) here, unlike the
+  // productId-only counts in the summary table above — this is the detail
+  // list a tester/admin would actually act on, so it should only list items
+  // that are actually visible in the current phase's Test Plan.
+  const _tplReportSnagRow=sn=>{
+    const s=ROADMAP_STORIES.find(x=>x.id===sn.storyId);
+    const chain=s?_reqResolveChain(s):{};
+    const breadcrumb=[chain.epic?.name,chain.feature?.name].filter(Boolean).join(' › ');
+    return {s,breadcrumb};
+  };
+  let productTabButtons='';
+  let productTabPanels='';
+  breakdown.forEach((b,bi)=>{
+    const tabId='ptab-'+bi;
+    productTabButtons+=`<button type="button" class="ptab-btn${bi===0?' active':''}" data-ptab="${tabId}" onclick="_ptabShow('${tabId}')">${escH(b.product.name)}</button>`;
+
+    // Failures — this product only (a shared Functional Area can be failing
+    // on one product but fine on another).
+    let failRows='';
+    _tplStoriesInProduct(stories,b.product.id).filter(s=>_tplStoryVerification(s.id,b.product.id).openFail).forEach(s=>{
       const chain=_reqResolveChain(s);
       const v=_tplStoryVerification(s.id,b.product.id);
-      const breadcrumb=[b.product.name,chain.epic?.name,chain.feature?.name].filter(Boolean).join(' › ');
-      // Each failing tester gets its own block — name as a small chip, note
-      // on its own line below it — instead of "name: note<br>name: note"
-      // run together, which is what was crowding this column before.
+      const breadcrumb=[chain.epic?.name,chain.feature?.name].filter(Boolean).join(' › ');
       const failNotes=v.rows.filter(r=>r.result==='Fail').map(r=>{
         const note=r.notes?`<div style="color:#666;margin-top:3px;line-height:1.4">${escH(r.notes)}</div>`:'';
         return `<div style="margin-bottom:9px"><span style="display:inline-block;background:#FBEAE7;color:#A83B2B;font-weight:600;font-size:10px;padding:2px 8px;border-radius:10px;white-space:nowrap">${escH(r.testerEmail)}</span>${note}</div>`;
       }).join('');
-      failureRows+=`<tr>
+      failRows+=`<tr>
         <td>${escH(s.code||'—')}</td>
         <td>${escH(s.text)}</td>
         <td style="font-size:10px;color:#666">${escH(breadcrumb)}</td>
         <td>${failNotes}</td>
       </tr>`;
     });
-  });
 
-  // Not Started / 1st-Pass Success — per (story,product) pair, same scope as
-  // the breakdown/failure rows above.
-  // "1st-pass success" = individual Pass results on a pair that has NEVER
-  // had a Snag filed against it, by anyone. TEST_RESULTS is upserted in
-  // place per (story,tester,product) (see its declaration comment) — once a
-  // tester retests and passes, their own earlier Fail is overwritten, not
-  // kept, so a tester's personal retry history can't be reconstructed. A
-  // pair's SNAGS existence is the only surviving trace of "this was ever
-  // failed", and it's item-wide, not per-tester, so this can exclude a
-  // tester's clean pass on an item some OTHER tester once failed — but it
-  // never falsely counts a pair that truly needed rework, which is the
-  // safer direction to be wrong in for a report.
-  let notStartedCount=0, firstPassCount=0;
-  breakdown.forEach(b=>{
-    _tplStoriesInProduct(stories,b.product.id).forEach(s=>{
-      const v=_tplStoryVerification(s.id,b.product.id);
-      if(!v.rows.length){ notStartedCount++; return; }
-      const everFailed=SNAGS.some(sn=>sn.storyId===s.id && sn.productId===b.product.id);
-      if(!everFailed) firstPassCount+=v.rows.filter(r=>r.result==='Pass').length;
+    const waitingRetestSnags=SNAGS.filter(sn=>sn.status==='Resolved' && sn.productId===b.product.id && inScopeIds.has(sn.storyId) && !_tplStoryVerification(sn.storyId,sn.productId).verified);
+    let waitRows='';
+    waitingRetestSnags.forEach(sn=>{
+      const {s,breadcrumb}=_tplReportSnagRow(sn);
+      waitRows+=`<tr>
+        <td>${escH(s?.code||'—')}</td>
+        <td>${escH(s?.text||sn.title||'—')}</td>
+        <td style="font-size:10px;color:#666">${escH(breadcrumb)}</td>
+        <td style="font-size:10px">${escH(sn.resolvedBy||'')}${sn.cycleCount>1?` (cycle ${sn.cycleCount})`:''}</td>
+      </tr>`;
     });
-  });
 
-  // Fixes Applied, Waiting Retest — snag Resolved by a developer but the
-  // pair hasn't earned back Verified status yet (needs 2 fresh passes,
-  // exactly the "Verify Fix" case _tplStoryMarkHtml already special-cases).
-  const waitingRetestSnags=SNAGS.filter(sn=>sn.status==='Resolved' && inScopeIds.has(sn.storyId) && !_tplStoryVerification(sn.storyId,sn.productId).verified);
-  // Needs Clarification — snag sitting with the tester, not the developer;
-  // previously invisible anywhere in this report (only Open/unresolved
-  // failures and scenario fails were listed).
-  const needsClarificationSnags=SNAGS.filter(sn=>sn.status==='Needs Clarification' && inScopeIds.has(sn.storyId));
-  const _tplReportSnagRow=sn=>{
-    const s=ROADMAP_STORIES.find(x=>x.id===sn.storyId);
-    const product=ROADMAP_PRODUCTS.find(p=>p.id===sn.productId);
-    const chain=s?_reqResolveChain(s):{};
-    const breadcrumb=[product?.name,chain.epic?.name,chain.feature?.name].filter(Boolean).join(' › ');
-    return {s,breadcrumb};
-  };
-  let waitingRetestRows='';
-  waitingRetestSnags.forEach(sn=>{
-    const {s,breadcrumb}=_tplReportSnagRow(sn);
-    waitingRetestRows+=`<tr>
-      <td>${escH(s?.code||'—')}</td>
-      <td>${escH(s?.text||sn.title||'—')}</td>
-      <td style="font-size:10px;color:#666">${escH(breadcrumb)}</td>
-      <td style="font-size:10px">${escH(sn.resolvedBy||'')}${sn.cycleCount>1?` (cycle ${sn.cycleCount})`:''}</td>
-    </tr>`;
-  });
-  let needsClarificationRows='';
-  needsClarificationSnags.forEach(sn=>{
-    const {s,breadcrumb}=_tplReportSnagRow(sn);
-    needsClarificationRows+=`<tr>
-      <td>${escH(s?.code||'—')}</td>
-      <td>${escH(s?.text||sn.title||'—')}</td>
-      <td style="font-size:10px;color:#666">${escH(breadcrumb)}</td>
-      <td style="font-size:10px">${escH(sn.reporterEmail||'')}</td>
-    </tr>`;
+    const needsClarificationSnags=SNAGS.filter(sn=>sn.status==='Needs Clarification' && sn.productId===b.product.id && inScopeIds.has(sn.storyId));
+    let clarRows='';
+    needsClarificationSnags.forEach(sn=>{
+      const {s,breadcrumb}=_tplReportSnagRow(sn);
+      clarRows+=`<tr>
+        <td>${escH(s?.code||'—')}</td>
+        <td>${escH(s?.text||sn.title||'—')}</td>
+        <td style="font-size:10px;color:#666">${escH(breadcrumb)}</td>
+        <td style="font-size:10px">${escH(sn.reporterEmail||'')}</td>
+      </tr>`;
+    });
+
+    const bPct=b.total?Math.round(b.verifiedCount/b.total*100):0;
+    productTabPanels+=`<div class="ptab-panel" id="${tabId}"${bi===0?'':' style="display:none"'}>
+      <h3 class="ptab-h3">${escH(b.product.name)}</h3>
+      <div class="stats" style="margin-bottom:20px">
+        <div class="stat"><div class="num">${b.total}</div><div class="lbl">Requirements</div></div>
+        <div class="stat"><div class="num">${b.notTestedCount}</div><div class="lbl">Not Started</div></div>
+        <div class="stat"><div class="num">${b.firstPassCount}</div><div class="lbl">1st Pass</div></div>
+        <div class="stat"><div class="num">${b.verifiedCount}</div><div class="lbl">Verified — ${bPct}%</div></div>
+        <div class="stat"><div class="num">${b.openFailCount}</div><div class="lbl">Failing</div></div>
+      </div>
+      <h2>Open Failures — Functional Tests</h2>
+      ${failRows?`<table class="fail-table"><colgroup><col style="width:10%"><col style="width:33%"><col style="width:22%"><col style="width:35%"></colgroup><thead><tr><th>ID</th><th>Requirement</th><th>Location</th><th>Tester &amp; Notes</th></tr></thead><tbody>${failRows}</tbody></table>`:'<div class="empty">No open failures.</div>'}
+      <h2>Fixes Applied — Waiting Retest</h2>
+      ${waitRows?`<table><thead><tr><th>ID</th><th>Requirement</th><th>Location</th><th>Resolved by</th></tr></thead><tbody>${waitRows}</tbody></table>`:'<div class="empty">No fixes waiting on a retest.</div>'}
+      <h2>Needs Clarification</h2>
+      ${clarRows?`<table><thead><tr><th>ID</th><th>Requirement</th><th>Location</th><th>Reported by</th></tr></thead><tbody>${clarRows}</tbody></table>`:'<div class="empty">Nothing waiting on tester clarification.</div>'}
+    </div>`;
   });
 
   // Daily activity, last 30 days — tests passed/failed (TEST_RESULTS.testedAt)
@@ -13763,36 +14261,38 @@ function _tplReportBuildHtml(){
   .no-print{margin-bottom:20px}
   .no-print button{background:#15294F;color:#fff;border:none;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer}
   .no-print button:hover{background:#0E1C39}
-  @media print{ .no-print{display:none} body{padding:0} }
+  .ptab-bar{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 16px;border-bottom:1px solid #e0e0e0;padding-bottom:10px}
+  .ptab-btn{background:#ECEFF4;color:#15294F;border:none;padding:8px 16px;border-radius:16px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+  .ptab-btn.active{background:#15294F;color:#fff}
+  .ptab-h3{font-size:16px;color:#15294F;margin:0 0 4px}
+  @media print{
+    .no-print{display:none}
+    body{padding:0}
+    .ptab-bar{display:none}
+    .ptab-panel{display:block !important;break-inside:avoid-page}
+    .ptab-panel + .ptab-panel{break-before:page;page-break-before:always;margin-top:0}
+  }
 </style></head><body>
   <div class="no-print"><button onclick="window.print()">Print / Save as PDF</button></div>
   <h1>Test Plan Report</h1>
   <div class="meta">Generated ${escH(now)} · Phase scope: ${escH(phaseNames)}</div>
   <div class="stats">
-    <div class="stat"><div class="num">${overallVerifiedCount}/${overallTotal}</div><div class="lbl">Verified across all products${overallTotal?' — '+Math.round(overallVerifiedCount/overallTotal*100)+'%':''}</div></div>
+    <div class="stat"><div class="num">${total}</div><div class="lbl">Total Requirements</div></div>
+    <div class="stat"><div class="num">${distinct.verifiedCount}/${total}</div><div class="lbl">Verified${total?' — '+Math.round(distinct.verifiedCount/total*100)+'%':''}</div></div>
+    <div class="stat"><div class="num">${distinct.openFailCount}</div><div class="lbl">Failing</div></div>
     <div class="stat"><div class="num">${scenarioCoveredCount}/${total}</div><div class="lbl">Scenario Covered — ${scenarioPct}%</div></div>
-    <div class="stat"><div class="num">${overallOpenFailCount}</div><div class="lbl">Open Failures</div></div>
   </div>
-  <div class="stats">
-    <div class="stat"><div class="num">${notStartedCount}</div><div class="lbl">Not Started</div></div>
-    <div class="stat"><div class="num">${firstPassCount}</div><div class="lbl">Successful 1st-Pass Tests</div></div>
-    <div class="stat"><div class="num">${waitingRetestSnags.length}</div><div class="lbl">Fixes Applied — Waiting Retest</div></div>
-    <div class="stat"><div class="num">${needsClarificationSnags.length}</div><div class="lbl">Needs Clarification</div></div>
-  </div>
+  <h2>Testing Progress by Product</h2>
+  <div class="meta" style="margin-bottom:10px">Reqs/Not Started/1st Pass/Verified/Failing reflect the phase scope above. Snags/Squashed/Waiting Retest/Clarification/Repeat Fails are counted per product regardless of phase. "All Products" is the distinct requirement count, not a sum of the rows above — a requirement tested on more than one product is counted once here, not once per product.</div>
+  ${breakdown.length?`<table style="font-size:10.5px"><thead><tr><th>Product</th><th style="text-align:center">Reqs</th><th style="text-align:center">Not<br>Started</th><th style="text-align:center">1st<br>Pass</th><th style="text-align:center">Verified<br>(2nd Pass)</th><th style="text-align:center">Verified<br>%</th><th style="text-align:center">Failing</th><th style="text-align:center">Snags</th><th style="text-align:center">Squashed</th><th style="text-align:center">Waiting<br>Retest</th><th style="text-align:center">Clarif.<br>Qs</th><th style="text-align:center">Repeat<br>Fails</th></tr></thead><tbody>${productSummaryRows}${productSummaryTotalRow}</tbody></table>`:'<div class="empty">No products configured.</div>'}
   <h2>Daily Activity — Last 30 Days</h2>
   <div class="meta" style="margin-bottom:10px">Not scoped to the phase selection above — this is total activity across the whole app.</div>
   ${dailyActivityChartHtml}
   <h2>Progress by Day — % Verified per Product</h2>
   <div class="meta" style="margin-bottom:10px">Not scoped to the phase selection above. Tracked forward only from whenever the daily snapshot was first captured — no history from before then.</div>
   ${progressChartHtml}
-  <h2>Coverage by Product / Functional Area</h2>
-  ${breakdownRows?`<table><thead><tr><th>Product</th><th>Functional Area</th><th style="text-align:center">Reqs</th><th style="text-align:center">Not Tested</th><th style="text-align:center">1st Pass</th><th style="text-align:center">2nd Pass</th><th style="text-align:center">Verified %</th><th style="text-align:center">Failing</th><th style="text-align:center">Total Activity</th></tr></thead><tbody>${breakdownRows}</tbody></table>`:'<div class="empty">No requirements in the current phase scope.</div>'}
-  <h2>Open Failures — Functional Tests</h2>
-  ${failureRows?`<table class="fail-table"><colgroup><col style="width:8%"><col style="width:28%"><col style="width:19%"><col style="width:45%"></colgroup><thead><tr><th>ID</th><th>Requirement</th><th>Location</th><th>Tester &amp; Notes</th></tr></thead><tbody>${failureRows}</tbody></table>`:'<div class="empty">No open failures.</div>'}
-  <h2>Fixes Applied — Waiting Retest</h2>
-  ${waitingRetestRows?`<table><thead><tr><th>ID</th><th>Requirement</th><th>Location</th><th>Resolved by</th></tr></thead><tbody>${waitingRetestRows}</tbody></table>`:'<div class="empty">No fixes waiting on a retest.</div>'}
-  <h2>Needs Clarification</h2>
-  ${needsClarificationRows?`<table><thead><tr><th>ID</th><th>Requirement</th><th>Location</th><th>Reported by</th></tr></thead><tbody>${needsClarificationRows}</tbody></table>`:'<div class="empty">Nothing waiting on tester clarification.</div>'}
+  <h2>Testing Detail by Product</h2>
+  ${breakdown.length?`<div class="ptab-bar">${productTabButtons}</div>${productTabPanels}`:'<div class="empty">No products with requirements in the current phase scope.</div>'}
   <h2>Scenario Tests</h2>
   <div class="stats">
     <div class="stat"><div class="num">${scenarioPass}</div><div class="lbl">Pass</div></div>
@@ -13800,6 +14300,15 @@ function _tplReportBuildHtml(){
     <div class="stat"><div class="num">${scenarioNotTested}</div><div class="lbl">Not Tested</div></div>
   </div>
   ${scenarioFailRows?`<table><thead><tr><th>Scenario</th><th>Last tested by</th><th>Notes</th></tr></thead><tbody>${scenarioFailRows}</tbody></table>`:''}
+  <script>
+    // This report is a standalone document.write()'n page (see _tplOpenReport)
+    // with its own window/DOM, so it can't reach back into the main app's JS —
+    // the tab switcher has to be self-contained here.
+    function _ptabShow(id){
+      document.querySelectorAll('.ptab-panel').forEach(function(el){ el.style.display = (el.id===id) ? '' : 'none'; });
+      document.querySelectorAll('.ptab-btn').forEach(function(el){ el.classList.toggle('active', el.getAttribute('data-ptab')===id); });
+    }
+  <\/script>
 </body></html>`;
 }
 function _tplOpenReport(){

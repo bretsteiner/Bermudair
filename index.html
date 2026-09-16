@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- StrategicSitemapper  v124 -->
+<!-- StrategicSitemapper  v128 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -2429,6 +2429,13 @@ function canSquashSnags() { return isEditor()||isDeveloper(); }
 // Fail already; developers may also spot something outside the formal test
 // flow.
 function canReportSnags() { return isEditor()||isTester()||isDeveloper(); }
+// Snag assignment ("assign this bug to a developer") is deliberately NOT
+// folded into canSquashSnags() — per explicit request this must be invisible
+// to Editors (and everyone else), not just Developer/Admin plus Editor like
+// severity/estimate are. Both the assign control AND the read-only display
+// are gated on this everywhere — an Editor sees nothing about assignment at
+// all, not a disabled/read-only version of it.
+function canAssignSnags() { return isDeveloper()||isAdmin(); }
 
 // Apply role restrictions to the UI — called after sign-in
 function applyRoleUI(){
@@ -3147,11 +3154,11 @@ async function loadFromSheets() {
     ROADMAP_PRODUCTS = (data.products||[]).map(r=>({id:String(r.id||''),name:r.name||'',desc:r.desc||'',order:Number(r.order)||0,jiraKey:r.jiraKey||''})).sort((a,b)=>a.order-b.order);
     ROADMAP_EPICS    = (data.epics||[]).map(r=>({id:String(r.id||''),productId:String(r.productId||''),name:r.name||'',desc:r.desc||'',colour:r.colour||EPIC_COLOURS[0],order:Number(r.order)||0,jiraKey:r.jiraKey||'',testProductIds:String(r.testProductIds||'').split(',').map(s=>s.trim()).filter(Boolean)})).sort((a,b)=>a.order-b.order);
     ROADMAP_FEATURES = (data.features||[]).map(r=>({id:String(r.id||''),epicId:String(r.epicId||''),phaseId:String(r.phaseId||''),name:r.name||'',desc:r.desc||'',icon:r.icon||ROADMAP_ICONS[0],status:r.status||'Planned',stretch:r.stretch==='TRUE'||r.stretch===true,order:Number(r.order)||0,jiraKey:r.jiraKey||''})).sort((a,b)=>a.order-b.order);
-    ROADMAP_STORIES  = (data.stories||[]).map(r=>({id:String(r.id||''),code:r.code||'',featureId:String(r.featureId||''),text:r.text||'',stretch:r.stretch==='TRUE'||r.stretch===true,type:r.type||'',devStatus:r.devStatus||'Not Started',testStatus:r.testStatus||'Not Started',owner:r.owner||'',source:r.source||'',order:Number(r.order)||0,jiraKey:r.jiraKey||''})).sort((a,b)=>a.order-b.order);
+    ROADMAP_STORIES  = (data.stories||[]).map(r=>({id:String(r.id||''),code:r.code||'',featureId:String(r.featureId||''),text:r.text||'',stretch:r.stretch==='TRUE'||r.stretch===true,type:r.type||'',devStatus:r.devStatus||'Not Started',testStatus:r.testStatus||'Not Started',owner:r.owner||'',source:r.source||'',order:Number(r.order)||0,jiraKey:r.jiraKey||'',testProductIds:String(r.testProductIds||'').split(',').map(x=>x.trim()).filter(Boolean)})).sort((a,b)=>a.order-b.order);
     TEST_RESULTS = (data.testResults||[]).map(r=>({id:String(r.id||''),storyId:String(r.storyId||''),testerEmail:String(r.testerEmail||'').trim().toLowerCase(),result:r.result||'',notes:r.notes||'',testedAt:r.testedAt||null,productId:String(r.productId||'')}));
     TEST_SCENARIOS = (data.scenarios||[]).map(r=>({id:String(r.id||''),code:r.code||'',title:r.title||'',mode:r.mode||'freeform',type:r.type||'',priority:r.priority||'',phaseId:String(r.phaseId||''),objective:r.objective||'',preconditions:r.preconditions||'',testData:r.testData||'',stepsJson:r.stepsJson||'',overallExpected:r.overallExpected||'',reqCodes:r.reqCodes||'',text:r.text||'',status:r.status||'Not Tested',lastTestedBy:String(r.lastTestedBy||'').trim().toLowerCase(),lastTestedAt:r.lastTestedAt||null,notes:r.notes||'',createdBy:String(r.createdBy||'').trim().toLowerCase(),createdAt:r.createdAt||null}));
     TEST_SCENARIO_LINKS = (data.scenarioLinks||[]).map(r=>({id:String(r.id||''),scenarioId:String(r.scenarioId||''),storyId:String(r.storyId||'')}));
-    SNAGS = (data.snags||[]).map(r=>({id:String(r.id||''),storyId:String(r.storyId||''),productId:String(r.productId||''),epicId:String(r.epicId||''),title:r.title||'',status:r.status||'Open',kind:r.kind==='Enhancement'?'Enhancement':'Snag',source:r.source||'test',reporterEmail:String(r.reporterEmail||'').trim().toLowerCase(),cycleCount:Number(r.cycleCount)||1,severity:r.severity||'',estimatedHours:(r.estimatedHours!==undefined&&r.estimatedHours!==null&&r.estimatedHours!=='')?Number(r.estimatedHours):null,actualHours:(r.actualHours!==undefined&&r.actualHours!==null&&r.actualHours!=='')?Number(r.actualHours):null,createdAt:r.createdAt||null,resolvedBy:String(r.resolvedBy||'').trim().toLowerCase(),resolvedAt:r.resolvedAt||null,updatedAt:r.updatedAt||null}));
+    SNAGS = (data.snags||[]).map(r=>({id:String(r.id||''),storyId:String(r.storyId||''),productId:String(r.productId||''),epicId:String(r.epicId||''),title:r.title||'',status:r.status||'Open',kind:r.kind==='Enhancement'?'Enhancement':'Snag',source:r.source||'test',reporterEmail:String(r.reporterEmail||'').trim().toLowerCase(),cycleCount:Number(r.cycleCount)||1,severity:r.severity||'',estimatedHours:(r.estimatedHours!==undefined&&r.estimatedHours!==null&&r.estimatedHours!=='')?Number(r.estimatedHours):null,actualHours:(r.actualHours!==undefined&&r.actualHours!==null&&r.actualHours!=='')?Number(r.actualHours):null,assignedTo:String(r.assignedTo||'').trim().toLowerCase(),createdAt:r.createdAt||null,resolvedBy:String(r.resolvedBy||'').trim().toLowerCase(),resolvedAt:r.resolvedAt||null,updatedAt:r.updatedAt||null}));
     // Same shape as SNAGS, keyed on nodeId instead of storyId/productId/epicId
     // — see the Transformation Report's Page Snags panel.
     PAGE_SNAGS = (data.pageSnags||[]).map(r=>({id:String(r.id||''),nodeId:String(r.nodeId||''),componentId:String(r.componentId||''),title:r.title||'',status:r.status||'Open',source:r.source||'manual',reporterEmail:String(r.reporterEmail||'').trim().toLowerCase(),cycleCount:Number(r.cycleCount)||1,createdAt:r.createdAt||null,resolvedBy:String(r.resolvedBy||'').trim().toLowerCase(),resolvedAt:r.resolvedAt||null,updatedAt:r.updatedAt||null}));
@@ -3525,13 +3532,13 @@ function updNodeRoadmapProduct(id, productId){
   if(editingNodeId===id) renderNeTab(neTab);
   showToast(productId?'Added to roadmap':'Removed from roadmap');
 }
-async function dbUpsertStory(s){try{await sheetPost({action:'upsertStory',row:{id:s.id,code:s.code||'',featureId:s.featureId,text:s.text||'',stretch:s.stretch?'TRUE':'FALSE',type:s.type||'',devStatus:s.devStatus||'Not Started',testStatus:s.testStatus||'Not Started',owner:s.owner||'',source:s.source||'',order:s.order||0,jiraKey:s.jiraKey||''}});}catch(e){console.error('dbUpsertStory:',e);showToast('Sheet write error: '+e.message);}}
+async function dbUpsertStory(s){try{await sheetPost({action:'upsertStory',row:{id:s.id,code:s.code||'',featureId:s.featureId,text:s.text||'',stretch:s.stretch?'TRUE':'FALSE',type:s.type||'',devStatus:s.devStatus||'Not Started',testStatus:s.testStatus||'Not Started',owner:s.owner||'',source:s.source||'',order:s.order||0,jiraKey:s.jiraKey||'',testProductIds:(s.testProductIds||[]).join(',')}});}catch(e){console.error('dbUpsertStory:',e);showToast('Sheet write error: '+e.message);}}
 async function dbDeleteStory(id){try{await sheetPost({action:'deleteStory',id});}catch(e){console.error('dbDeleteStory:',e);showToast('Sheet write error: '+e.message);}}
 async function dbUpsertTestResult(r){try{await sheetPost({action:'upsertTestResult',row:{id:r.id,storyId:r.storyId,testerEmail:r.testerEmail,result:r.result,notes:r.notes||'',testedAt:r.testedAt,productId:r.productId||''}});}catch(e){console.error('dbUpsertTestResult:',e);showToast('Sheet write error: '+e.message);}}
 // Report or reopen a snag — the backend forces status:'Open' regardless of
 // what's sent here (see the doPost case), so this can never resolve one;
 // only dbSquashSnag can.
-async function dbUpsertSnag(sn){try{await sheetPost({action:'upsertSnag',row:{id:sn.id,storyId:sn.storyId||'',productId:sn.productId||'',epicId:sn.epicId||'',title:sn.title||'',status:sn.status||'Open',kind:sn.kind||'Snag',source:sn.source||'test',reporterEmail:sn.reporterEmail||'',cycleCount:sn.cycleCount||1,severity:sn.severity||'',estimatedHours:(sn.estimatedHours!=null)?sn.estimatedHours:'',actualHours:(sn.actualHours!=null)?sn.actualHours:'',createdAt:sn.createdAt||'',resolvedBy:sn.resolvedBy||'',resolvedAt:sn.resolvedAt||'',updatedAt:sn.updatedAt||''}});}catch(e){console.error('dbUpsertSnag:',e);showToast('Sheet write error: '+e.message);}}
+async function dbUpsertSnag(sn){try{await sheetPost({action:'upsertSnag',row:{id:sn.id,storyId:sn.storyId||'',productId:sn.productId||'',epicId:sn.epicId||'',title:sn.title||'',status:sn.status||'Open',kind:sn.kind||'Snag',source:sn.source||'test',reporterEmail:sn.reporterEmail||'',cycleCount:sn.cycleCount||1,severity:sn.severity||'',estimatedHours:(sn.estimatedHours!=null)?sn.estimatedHours:'',actualHours:(sn.actualHours!=null)?sn.actualHours:'',assignedTo:sn.assignedTo||'',createdAt:sn.createdAt||'',resolvedBy:sn.resolvedBy||'',resolvedAt:sn.resolvedAt||'',updatedAt:sn.updatedAt||''}});}catch(e){console.error('dbUpsertSnag:',e);showToast('Sheet write error: '+e.message);}}
 // Narrow counterpart to dbUpsertSnag — the one action a Developer actually
 // takes (mark resolved). Hits the backend's squashSnag action, which checks
 // the caller's role server-side (Developer/Editor/Admin only — Tester and
@@ -3542,14 +3549,14 @@ async function dbUpsertSnag(sn){try{await sheetPost({action:'upsertSnag',row:{id
 // is optional (undefined is fine — the backend just won't write that column).
 async function dbSquashSnag(id,actualHours){try{await sheetPost({action:'squashSnag',id,actualHours});}catch(e){console.error('dbSquashSnag:',e);showToast('Sheet write error: '+e.message);}}
 async function dbRequestSnagClarification(id){try{await sheetPost({action:'requestSnagClarification',id});}catch(e){console.error('dbRequestSnagClarification:',e);showToast('Sheet write error: '+e.message);}}
-// Narrow field-only update for severity/estimatedHours — deliberately NOT
-// routed through dbUpsertSnag, which forces status:'Open' server-side on
-// every call (see its own comment); editing severity/estimate on a snag
-// currently sitting at 'Needs Clarification' would otherwise silently kick
-// it back to Open. Pass undefined for whichever field isn't changing —
-// JSON.stringify drops undefined keys, so the backend leaves that column
-// untouched (see updateSnagMeta's own comment).
-async function dbUpdateSnagMeta(id,severity,estimatedHours){try{await sheetPost({action:'updateSnagMeta',id,severity,estimatedHours});}catch(e){console.error('dbUpdateSnagMeta:',e);showToast('Sheet write error: '+e.message);}}
+// Narrow field-only update for severity/estimatedHours/assignedTo — deliberately
+// NOT routed through dbUpsertSnag, which forces status:'Open' server-side on
+// every call (see its own comment); editing any of these on a snag currently
+// sitting at 'Needs Clarification' would otherwise silently kick it back to
+// Open. Pass undefined for whichever field isn't changing — JSON.stringify
+// drops undefined keys, so the backend leaves that column untouched (see
+// updateSnagMeta's own comment).
+async function dbUpdateSnagMeta(id,severity,estimatedHours,assignedTo){try{await sheetPost({action:'updateSnagMeta',id,severity,estimatedHours,assignedTo});}catch(e){console.error('dbUpdateSnagMeta:',e);showToast('Sheet write error: '+e.message);}}
 async function dbUpsertPageSnag(sn){try{await sheetPost({action:'upsertPageSnag',row:{id:sn.id,nodeId:sn.nodeId||'',componentId:sn.componentId||'',title:sn.title||'',status:sn.status||'Open',source:sn.source||'manual',reporterEmail:sn.reporterEmail||'',cycleCount:sn.cycleCount||1,createdAt:sn.createdAt||'',resolvedBy:sn.resolvedBy||'',resolvedAt:sn.resolvedAt||'',updatedAt:sn.updatedAt||''}});}catch(e){console.error('dbUpsertPageSnag:',e);showToast('Sheet write error: '+e.message);}}
 async function dbSquashPageSnag(id){try{await sheetPost({action:'squashPageSnag',id});}catch(e){console.error('dbSquashPageSnag:',e);showToast('Sheet write error: '+e.message);}}
 async function dbRequestPageSnagClarification(id){try{await sheetPost({action:'requestPageSnagClarification',id});}catch(e){console.error('dbRequestPageSnagClarification:',e);showToast('Sheet write error: '+e.message);}}
@@ -3868,10 +3875,14 @@ let TEST_RESULTS=[];        // [{id,storyId,testerEmail,result,notes,testedAt,pr
 let TEST_SCENARIOS=[];      // [{id,text,status,lastTestedBy,lastTestedAt,notes,createdBy,createdAt}]
 let TEST_SCENARIO_LINKS=[]; // [{id,scenarioId,storyId}] — many-to-many, mirrors NODE_COMPS
 // [{id,storyId,productId,epicId,title,status,source,reporterEmail,cycleCount,
-//   createdAt,resolvedBy,resolvedAt,updatedAt}] — storyId/title are mutually
-// meaningful: a 'test' snag (auto-created from a failed functional test) has
-// storyId set and blank title (shows the requirement's own text instead); a
-// 'manual' snag has no storyId and relies on title. See the Snags tab.
+//   createdAt,resolvedBy,resolvedAt,updatedAt,severity,estimatedHours,
+//   actualHours,assignedTo}] — storyId/title are mutually meaningful: a
+// 'test' snag (auto-created from a failed functional test) has storyId set
+// and blank title (shows the requirement's own text instead); a 'manual'
+// snag has no storyId and relies on title. See the Snags tab.
+// assignedTo (an email, or '' for unassigned) is Snag-only (kind='Snag',
+// never Enhancement) and visible/editable only to Developer/Admin — see
+// canAssignSnags().
 let SNAGS=[];
 // [{id,nodeId,title,status,source,reporterEmail,cycleCount,createdAt,
 //   resolvedBy,resolvedAt,updatedAt}] — page-level counterpart to SNAGS, see
@@ -11462,13 +11473,30 @@ function _renderReqDetail(){
     body+=`<div class="rd-move-panel">
       <div class="rd-section-label" style="margin-bottom:10px">Location</div>
       <div class="ne-grid2" style="gap:10px">
-        <div><label style="display:block;font-size:10px;color:var(--text3);margin-bottom:5px">Function</label><select class="mselect" id="rd-feature">${_reqFeatureOptionsHtml(s.featureId)}</select></div>
+        <div><label style="display:block;font-size:10px;color:var(--text3);margin-bottom:5px">Function</label><select class="mselect" id="rd-feature" onchange="_reqDetailFeatureFieldChanged()">${_reqFeatureOptionsHtml(s.featureId)}</select></div>
         <div><label style="display:block;font-size:10px;color:var(--text3);margin-bottom:5px">Phase</label><select class="mselect" id="rd-phase" onchange="_reqDetailPhaseFieldChanged()">${PHASES.map(ph=>`<option value="${ph.id}"${ph.id===curPhaseId?' selected':''}>${escH(ph.name)}</option>`).join('')}</select></div>
       </div>
       <div class="rd-move-warn" id="rd-phase-warning" style="display:none"></div>
     </div>`;
+    body+=`<div class="rd-move-panel">
+      <div class="rd-section-label" style="margin-bottom:6px">Test coverage</div>
+      <div style="font-size:10px;color:var(--text3);margin-bottom:8px;line-height:1.5">Which products this requirement needs to be tested against. Defaults to its Functional Area's own "Also test on" list — tick/untick to set an explicit override just for this requirement, independent of any other requirement in the same Functional Area.</div>
+      <div id="rd-testproducts-row" style="display:flex;flex-direction:column;gap:4px"></div>
+      <div id="rd-testproducts-note" style="font-size:10px;margin-top:8px"></div>
+    </div>`;
   } else {
     body+=`<div class="mfield"><div style="padding-top:2px">${_reqChainPillsHtml(s)}</div></div>`;
+    // Only worth a dedicated row when this requirement actually spans more
+    // than one product — the common single-product case would just be noise
+    // repeating what the chain pills above already say.
+    const resolvedProds=_tplStoryTestProductIds(s).map(pid=>ROADMAP_PRODUCTS.find(p=>p.id===pid)).filter(Boolean);
+    if(resolvedProds.length>1){
+      const hasOverride=!!(s.testProductIds&&s.testProductIds.length);
+      body+=`<div class="mfield"><div class="rd-section-label" style="margin-bottom:6px">Tested on</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px">${resolvedProds.map(p=>`<span class="rd-view-pill">${escH(p.name)}</span>`).join('')}</div>
+        ${hasOverride?`<div style="font-size:10px;color:var(--text3);margin-top:5px">Custom for this requirement — overrides the Functional Area's default.</div>`:''}
+      </div>`;
+    }
   }
 
   body+=`<div class="rd-divider"></div>`;
@@ -11515,6 +11543,7 @@ function _renderReqDetail(){
   }
 
   eid('reqDetailBody').innerHTML=body;
+  if(edit) _reqRenderStoryTestProductsRow(s);
 
   eid('reqDetailFoot').innerHTML=edit
     ? `<button class="mbtn mbtn-danger" data-requires-edit style="margin-right:auto" onclick="_reqDetailDelete()">Remove requirement</button>
@@ -11523,6 +11552,56 @@ function _renderReqDetail(){
     : `<button class="mbtn mbtn-cancel" onclick="closeReqDetail()">Close</button>
        <button class="mbtn mbtn-save" data-requires-edit onclick="_reqDetailEnterEdit()">Edit</button>`;
   if(typeof applyRoleUI==='function') applyRoleUI();
+}
+// Mirrors _rmRenderEpicTestProductsRow's own checkbox list (see its comment)
+// — the Functional Area's home product is implied/always-on and not itself
+// a checkbox. Pre-checks whatever's currently IN EFFECT: the requirement's
+// own override if it has one, else the Functional Area's own "Also test on"
+// list — so the box always shows the truth, not just what happens to be
+// stored in this one field.
+function _reqRenderStoryTestProductsRow(story){
+  const wrap=eid('rd-testproducts-row');
+  if(!wrap) return;
+  const epic=_reqResolveChain(story).epic;
+  if(!epic){ wrap.innerHTML='<div style="font-size:11px;color:var(--text3)">Assign a Function first.</div>'; return; }
+  const others=ROADMAP_PRODUCTS.filter(p=>p.id!==epic.productId);
+  if(!others.length){ wrap.innerHTML='<div style="font-size:11px;color:var(--text3)">No other products yet.</div>'; return; }
+  const hasOverride=!!(story.testProductIds && story.testProductIds.length);
+  const sel=new Set(hasOverride?story.testProductIds:(epic.testProductIds||[]));
+  wrap.innerHTML=others.map(p=>`<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:pointer">
+    <input type="checkbox" class="rd-test-product-cb" value="${p.id}" ${sel.has(p.id)?'checked':''} onchange="_reqUpdateTestProductsNote()">
+    ${escH(p.name)}
+  </label>`).join('');
+  _reqUpdateTestProductsNote();
+}
+// Live note under the checkboxes — tells the admin whether what's currently
+// ticked matches the Functional Area's own default (so this requirement will
+// keep following it automatically, including future changes to it) or is a
+// custom override that will only ever apply to this one requirement.
+function _reqUpdateTestProductsNote(){
+  const s=ROADMAP_STORIES.find(x=>x.id===_reqDetailStoryId);
+  const noteEl=eid('rd-testproducts-note');
+  if(!s||!noteEl) return;
+  const epic=_reqResolveChain(s).epic;
+  const checked=[...document.querySelectorAll('.rd-test-product-cb:checked')].map(cb=>cb.value).sort();
+  const inherited=(epic?.testProductIds||[]).slice().sort();
+  const matches=checked.length===inherited.length && checked.every((v,i)=>v===inherited[i]);
+  noteEl.textContent=matches
+    ? 'Following the Functional Area\'s own "Also test on" list.'
+    : 'Custom for this requirement only — overrides the Functional Area\'s default.';
+  noteEl.style.color=matches?'var(--text3)':'var(--brand-primary)';
+}
+// Reassigning the Function can move a requirement to a different Functional
+// Area (and therefore a different home product) — refresh the Test coverage
+// checkboxes against a virtual story carrying the NOT-YET-SAVED pick, so they
+// immediately reflect whichever Functional Area this would end up under
+// rather than the one it was in when the modal opened. Nothing is persisted
+// here; _reqDetailSave() re-reads the real dropdown value itself.
+function _reqDetailFeatureFieldChanged(){
+  const s=ROADMAP_STORIES.find(x=>x.id===_reqDetailStoryId);
+  if(!s) return;
+  const pickedFeatureId=eid('rd-feature')?.value||s.featureId;
+  _reqRenderStoryTestProductsRow({...s, featureId:pickedFeatureId});
 }
 // Finds an existing same-named Function under the same Functional Area
 // already living in the target phase — shared by the live warning below and
@@ -11633,6 +11712,20 @@ function _reqDetailSave(){
   s.testStatus=eid('rd-teststatus')?.value||'Not Started';
   s.source=(eid('rd-source')?.value||'').trim();
   s.stretch=!!eid('rd-stretch')?.checked;
+  // Test coverage override — compare what's checked against the (possibly
+  // just-reassigned) Functional Area's OWN "Also test on" list: an exact
+  // match means "no override, just keep following the Functional Area"
+  // (stored as [] so it keeps tracking that list even if it changes later);
+  // anything else is saved as this requirement's own explicit list. Read
+  // after the Function/Phase reassignment above so this always resolves
+  // against whichever Functional Area the requirement actually ends up under.
+  const finalEpic=_reqResolveChain(s).epic;
+  if(finalEpic){
+    const checkedProducts=[...document.querySelectorAll('.rd-test-product-cb:checked')].map(cb=>cb.value).sort();
+    const inheritedProducts=(finalEpic.testProductIds||[]).slice().sort();
+    const matchesInherited=checkedProducts.length===inheritedProducts.length && checkedProducts.every((v,i)=>v===inheritedProducts[i]);
+    s.testProductIds=matchesInherited?[]:checkedProducts;
+  }
   dbUpsertStory(s);
   _reqDetailEditMode=false;
   _renderReqDetail();
@@ -11646,7 +11739,11 @@ function _reqDetailSave(){
    testing regardless of type, so _tplScopedStories() doesn't filter on it.
    Functional Tests: a Functional Area (Epic) can need testing across MORE
    THAN ONE product (its home productId plus any extra ones picked in the
-   Epic modal's "Also test on" list — see _tplEpicTestProductIds). Every
+   Epic modal's "Also test on" list — see _tplEpicTestProductIds). Any ONE
+   requirement in that area can also override this for itself — see
+   _tplStoryTestProductIds and the Requirement Detail modal's "Test coverage"
+   section — since not every requirement in a shared Functional Area
+   necessarily applies to every product that area is configured for. Every
    requirement under that area is therefore verified SEPARATELY per product:
    TEST_RESULTS rows are keyed storyId+'::'+testerEmail+'::'+productId, so
    the same tester can record independent Pass/Fail for the same requirement
@@ -11668,12 +11765,31 @@ function _tplEpicTestProductIds(epic){
   if(!epic) return [];
   return [...new Set([epic.productId, ...(epic.testProductIds||[])])].filter(Boolean);
 }
+// Per-requirement override of the above — most requirements just follow
+// whatever their Functional Area is configured for (a shared Functional
+// Area can legitimately need testing across several products, e.g. a common
+// "Login" area used by two products), but not every requirement inside a
+// multi-product Functional Area necessarily applies to ALL of those products
+// — story.testProductIds (set via the Requirement Detail modal's "Test
+// coverage" section) lets ONE requirement be scoped down to a narrower — or
+// widened to a different — set without affecting any other requirement in
+// the same Functional Area. Same shape as Epic.testProductIds (extras beyond
+// the home product); empty/unset means "no override, inherit the Epic's
+// list" exactly as before this existed.
+function _tplStoryTestProductIds(story){
+  const epic=story?_reqResolveChain(story).epic:null;
+  if(!epic) return [];
+  if(story.testProductIds && story.testProductIds.length)
+    return [...new Set([epic.productId, ...story.testProductIds])].filter(Boolean);
+  return _tplEpicTestProductIds(epic);
+}
 // Narrows an already phase/feature/search-scoped story list down to the ones
-// whose Functional Area needs testing on `productId` (home or extra).
+// whose Functional Area (or per-requirement override, see
+// _tplStoryTestProductIds) needs testing on `productId` (home or extra).
 function _tplStoriesInProduct(stories, productId){
   return stories.filter(s=>{
     const epic=_reqResolveChain(s).epic;
-    if(!epic || !_tplEpicTestProductIds(epic).includes(productId)) return false;
+    if(!epic || !_tplStoryTestProductIds(s).includes(productId)) return false;
     // A pair marked "Invalid Test Case" for THIS product (see
     // _tplMarkInvalid) is excluded from every normal per-product
     // computation that goes through this function — tree building, the
@@ -11866,8 +11982,7 @@ function _tplComputeProductBreakdown(baseStories){
 function _tplDistinctReqStats(stories){
   let notTestedCount=0, verifiedCount=0, openFailCount=0, firstPassCount=0;
   stories.forEach(s=>{
-    const epic=_reqResolveChain(s).epic;
-    const allProds=epic?_tplEpicTestProductIds(epic):[];
+    const allProds=_tplStoryTestProductIds(s);
     // A product this requirement is marked "Invalid Test Case" against (see
     // _tplMarkInvalid) doesn't count toward its status — if EVERY product
     // is invalid, it falls through to Not Started rather than vanishing
@@ -12179,22 +12294,36 @@ function renderTestPlanNav(breakdown, scenarios){
 
   if(_tplSubTab==='snags'){
     html+=`<div class="tpl-nav-body">`;
-    const shown=breakdown.filter(b=>b.openSnagCount>0);
+    // Computed directly from SNAGS with the same phase filter
+    // _tplRenderSnagsTab() applies, NOT from `breakdown` (whose openSnagCount
+    // is deliberately unscoped for other uses — see its own comment) so these
+    // nav counts always match what the list actually shows.
+    const phaseScopedOpenSnags=SNAGS.filter(sn=>sn.status!=='Resolved' && selectedPhases.has(_tplSnagPhaseId(sn)));
+    const shown=ROADMAP_PRODUCTS.map(product=>{
+      const pSnags=phaseScopedOpenSnags.filter(sn=>sn.productId===product.id);
+      const epicCounts={};
+      pSnags.forEach(sn=>{ epicCounts[sn.epicId]=(epicCounts[sn.epicId]||0)+1; });
+      const epicRows=Object.entries(epicCounts)
+        .map(([epicId,count])=>({epic:ROADMAP_EPICS.find(e=>e.id===epicId),count}))
+        .filter(r=>r.epic)
+        .sort((a,b)=>(a.epic.order||0)-(b.epic.order||0));
+      return {product, count:pSnags.length, epicRows};
+    }).filter(x=>x.count>0);
     if(!shown.length){
-      html+='<div style="padding:16px;font-size:11px;color:var(--text3)">No open snags.</div>';
+      html+='<div style="padding:16px;font-size:11px;color:var(--text3)">No open snags in the current phase scope.</div>';
     }
-    shown.forEach(b=>{
-      const isActive=_tplActiveProductId===b.product.id;
-      html+=`<button class="ar-nav-item tpl-nav-product${isActive?' active':''}" onclick="_tplNavSelectSnagsProduct('${b.product.id}')" title="${escH(b.product.name)}">
-        <span class="tpl-dot tpl-dot-red">${b.openSnagCount}</span>
-        <span class="tpl-nav-label">${escH(b.product.name)}</span>
-        <span class="tpl-nav-count">${b.openSnagCount} open</span>
+    shown.forEach(({product,count,epicRows})=>{
+      const isActive=_tplActiveProductId===product.id;
+      html+=`<button class="ar-nav-item tpl-nav-product${isActive?' active':''}" onclick="_tplNavSelectSnagsProduct('${product.id}')" title="${escH(product.name)}">
+        <span class="tpl-dot tpl-dot-red">${count}</span>
+        <span class="tpl-nav-label">${escH(product.name)}</span>
+        <span class="tpl-nav-count">${count} open</span>
       </button>`;
-      html+=b.epics.filter(e=>e.openSnagCount>0).map(({epic,openSnagCount})=>`
-        <button class="ar-nav-item tpl-nav-epic" onclick="_tplNavGoToSnagEpic('${b.product.id}','${epic.id}')" title="${escH(epic.name)}">
-          <span class="tpl-dot tpl-dot-red">${openSnagCount}</span>
+      html+=epicRows.map(({epic,count:epicCount})=>`
+        <button class="ar-nav-item tpl-nav-epic" onclick="_tplNavGoToSnagEpic('${product.id}','${epic.id}')" title="${escH(epic.name)}">
+          <span class="tpl-dot tpl-dot-red">${epicCount}</span>
           <span class="tpl-nav-label">${escH(epic.name)}</span>
-          <span class="tpl-nav-count">${openSnagCount} open</span>
+          <span class="tpl-nav-count">${epicCount} open</span>
         </button>`).join('');
     });
     html+='</div>';
@@ -12704,8 +12833,7 @@ function _tplRenderFunctionalTab(stories){
     // section — a non-admin viewer never even learns the count exists, not
     // just the Restore action inside it.
     const invalidStories=isAdmin()?stories.filter(s=>{
-      const epic=_reqResolveChain(s).epic;
-      return epic && _tplEpicTestProductIds(epic).includes(prod.id) && _tplStoryVerification(s.id,prod.id).invalid;
+      return _tplStoryTestProductIds(s).includes(prod.id) && _tplStoryVerification(s.id,prod.id).invalid;
     }):[];
     const tree=_tplBuildEpicTree(productStories);
     if(!tree.length && !invalidStories.length) return;
@@ -13388,6 +13516,11 @@ function deleteScenarioEntry(id){
 let _tplSquashingSnagId=null;   // snag id whose inline squash-note form is expanded
 let _tplClosedSnagEpics=new Set(); // separate from _tplClosedEpics — collapsing an area in Functional Tests shouldn't affect Snags
 let _tplSnagDraft=null;         // working copy for the "+ Add Snag" modal, or null when closed
+// "Show only my snags (or unassigned)" toggle — Developer/Admin only (see
+// canAssignSnags()), since the field it filters on is invisible to every
+// other role in the first place. Default off (shows everyone's snags).
+let _tplSnagMineFilter=false;
+function _tplToggleSnagMineFilter(){ _tplSnagMineFilter=!_tplSnagMineFilter; renderTestPlan(); }
 
 // Severity scale for Snags (kind='Snag' only — an Enhancement is an idea, not
 // a defect, so severity doesn't apply to it). fg/bg feed the same pill look
@@ -13716,6 +13849,16 @@ async function _tplUpdSnagEstimate(id,val){
   renderTestPlan();
   await dbUpdateSnagMeta(id, undefined, sn.estimatedHours);
 }
+// Assignment is gated on canAssignSnags() (Developer/Admin only), deliberately
+// narrower than canSquashSnags() used above for severity/estimate — see that
+// function's own comment for why.
+async function _tplUpdSnagAssignee(id,val){
+  if(!canAssignSnags()){showToast('View-only access — editing is disabled');return;}
+  const sn=SNAGS.find(s=>s.id===id); if(!sn)return;
+  sn.assignedTo=(val||'').trim().toLowerCase(); sn.updatedAt=new Date().toISOString();
+  renderTestPlan();
+  await dbUpdateSnagMeta(id, undefined, undefined, sn.assignedTo);
+}
 // Severity only applies to Snags (kind='Snag') — an Enhancement is an idea,
 // not a defect, so the S1-S5 defect scale doesn't fit it (see SNAG_SEVERITIES).
 function _tplSnagSeverityControlHtml(sn){
@@ -13740,6 +13883,29 @@ function _tplSnagEstimateControlHtml(sn){
     <label style="font-size:9px;color:var(--text3)">Est.</label>
     <input type="number" min="0" step="0.25" class="req-select" style="height:24px;font-size:10px;width:56px;padding:0 4px" value="${sn.estimatedHours!=null?sn.estimatedHours:''}" placeholder="h" onchange="_tplUpdSnagEstimate('${sn.id}',this.value)">
     <span style="font-size:9px;color:var(--text3)">h</span>
+  </div>`;
+}
+// Every developer currently in ROLE_TABLE — the full role table is already
+// loaded for any signed-in user (it's how the frontend learns its OWN role
+// at sign-in), so building this list needs no extra request.
+function _tplDeveloperOptionsHtml(selectedEmail){
+  const devs=Object.keys(ROLE_TABLE).filter(e=>ROLE_TABLE[e]==='developer').sort();
+  return devs.map(email=>`<option value="${escH(email)}"${selectedEmail===email?' selected':''}>${escH(_tplTesterDisplayName(email))}</option>`).join('');
+}
+// Assignment — Snag-only (an Enhancement has no assignee concept, same as it
+// has no severity) and, per explicit request, invisible to everyone except
+// Developer/Admin (canAssignSnags()): unlike severity/estimate above there is
+// no read-only fallback for other roles — they see nothing here at all, not
+// a disabled or read-only version of it.
+function _tplSnagAssigneeControlHtml(sn){
+  if(!canAssignSnags()) return '';
+  const label=sn.assignedTo?_tplTesterDisplayName(sn.assignedTo):'Unassigned';
+  return `<div style="display:inline-flex;align-items:center;gap:3px" onclick="event.stopPropagation()">
+    <label style="font-size:9px;color:var(--text3)">Assigned</label>
+    <select class="req-select" style="height:24px;font-size:10px;padding:0 4px;width:auto;max-width:120px" title="${escH(label)}" onchange="_tplUpdSnagAssignee('${sn.id}',this.value)">
+      <option value=""${!sn.assignedTo?' selected':''}>Unassigned</option>
+      ${_tplDeveloperOptionsHtml(sn.assignedTo)}
+    </select>
   </div>`;
 }
 
@@ -13779,6 +13945,7 @@ function _tplSnagCardHtml(sn){
       <span class="tpl-verify-pill" style="color:${statusPill.fg};background:${statusPill.bg}">${statusPill.label}</span>
       ${isEnhancement?'':_tplSnagSeverityControlHtml(sn)}
       ${_tplSnagEstimateControlHtml(sn)}
+      ${isEnhancement?'':_tplSnagAssigneeControlHtml(sn)}
       ${sn.cycleCount>1?`<span class="tpl-hier-fail-badge" title="Sent back to development ${sn.cycleCount-1} time(s) before this">↻ Cycle ${sn.cycleCount}</span>`:''}
       <span style="font-size:10px;color:var(--text3)">Reported by ${escH(sn.reporterEmail||'—')}</span>
       ${commentBadgeHtml(entityType,entityId,{label:text.slice(0,60)})}
@@ -13796,12 +13963,25 @@ function _tplSnagCardHtml(sn){
 // share this one list/tab (not split into separate tabs) — each card's own
 // colour (red vs violet, see _tplSnagCardHtml's isEnhancement branch) is
 // what tells them apart, per the user's explicit "just use colour" request.
+// A snag's phase comes from the requirement it's attached to (every snag has
+// a storyId — a manually-reported one with nothing picked gets a lightweight
+// placeholder story created for it, see _snagCreatePlaceholderStory — so this
+// always resolves for a well-formed snag). Returns null only for orphaned
+// data (a deleted story/feature), which then simply never matches any
+// selected phase and drops out of the phase-scoped views below.
+function _tplSnagPhaseId(sn){
+  const story=sn.storyId?ROADMAP_STORIES.find(s=>s.id===sn.storyId):null;
+  const feature=story?ROADMAP_FEATURES.find(f=>f.id===story.featureId):null;
+  return feature?feature.phaseId:null;
+}
 function _tplRenderSnagsTab(){
   const productsToRender=_tplActiveProductId==='ALL'
     ? ROADMAP_PRODUCTS
     : ROADMAP_PRODUCTS.filter(p=>p.id===_tplActiveProductId);
   const showSeparator=_tplActiveProductId==='ALL';
-  let bodyHtml='';
+  const myEmail=(gCurrentUser&&gCurrentUser.email||'').trim().toLowerCase();
+  const applyMineFilter=canAssignSnags() && _tplSnagMineFilter;
+  let contentHtml='';
   productsToRender.forEach(prod=>{
     // Resolved (fix applied, sent back to testing) drops off this list
     // entirely — it's Development's queue, and a Resolved snag is no longer
@@ -13809,7 +13989,16 @@ function _tplRenderSnagsTab(){
     // button on the Functional tab's own row (_tplReqRowHtml's isVerifyFix)
     // is how a tester actually retests it, and the Test Report's "Fixes
     // Applied — Waiting Retest" section lists these explicitly.
-    const snags=SNAGS.filter(sn=>sn.productId===prod.id && sn.status!=='Resolved');
+    // Phase-scoped to the shared top-nav phase-pill selection, same as the
+    // Functional/Scenario tabs — unlike the printable Test Report and the
+    // Summary accordion's rollup badge, which deliberately stay unscoped as
+    // a whole-backlog view (see their own comments), the interactive Snags
+    // tab's actual list should only ever show what's relevant right now.
+    let snags=SNAGS.filter(sn=>sn.productId===prod.id && sn.status!=='Resolved' && selectedPhases.has(_tplSnagPhaseId(sn)));
+    // "Show only my snags (or unassigned)" — Enhancements have no assignee
+    // concept (see SNAGS' own comment) so they're left alone by this filter
+    // and always stay visible; only actual Snags get narrowed down.
+    if(applyMineFilter) snags=snags.filter(sn=>sn.kind==='Enhancement' || !sn.assignedTo || sn.assignedTo===myEmail);
     if(!snags.length) return;
     const epicMap={};
     snags.forEach(sn=>{
@@ -13820,12 +14009,20 @@ function _tplRenderSnagsTab(){
     });
     const epics=Object.values(epicMap).sort((a,b)=>(a.epic.order||0)-(b.epic.order||0));
     if(!epics.length) return;
-    if(showSeparator) bodyHtml+=`<div class="rm-product-sep">${escH(prod.name)}</div>`;
-    bodyHtml+=`<div class="tpl-hier-tree">`;
-    bodyHtml+=epics.map(({epic,snags})=>_tplSnagEpicAccordionHtml(epic,snags,prod.id)).join('');
-    bodyHtml+=`</div>`;
+    if(showSeparator) contentHtml+=`<div class="rm-product-sep">${escH(prod.name)}</div>`;
+    contentHtml+=`<div class="tpl-hier-tree">`;
+    contentHtml+=epics.map(({epic,snags})=>_tplSnagEpicAccordionHtml(epic,snags,prod.id)).join('');
+    contentHtml+=`</div>`;
   });
-  return bodyHtml||_tplEmptyStateHtml();
+  const filterBarHtml=canAssignSnags()
+    ? `<div style="display:flex;align-items:center;gap:8px;padding:0 20px 10px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:pointer">
+          <input type="checkbox" ${_tplSnagMineFilter?'checked':''} onchange="_tplToggleSnagMineFilter()">
+          Show only my snags (or unassigned)
+        </label>
+      </div>`
+    : '';
+  return filterBarHtml+(contentHtml||_tplEmptyStateHtml());
 }
 function _tplToggleSnagEpic(compositeId){
   if(_tplClosedSnagEpics.has(compositeId)) _tplClosedSnagEpics.delete(compositeId);
@@ -13958,6 +14155,12 @@ function _renderAddSnagModal(){
     <div class="mfield"><label>Estimated hours <span style="font-weight:400;color:var(--text3)">(optional)</span></label>
       <input type="number" class="minput" id="addSnagEstimateInput" min="0" step="0.25" placeholder="e.g. 2.5">
     </div>
+    ${(!isEnhancement && canAssignSnags())?`<div class="mfield"><label>Assign to <span style="font-weight:400;color:var(--text3)">(optional — only you and other Developers/Admins can see this)</span></label>
+      <select class="mselect" id="addSnagAssigneeSelect">
+        <option value="" selected>— Unassigned —</option>
+        ${_tplDeveloperOptionsHtml('')}
+      </select>
+    </div>`:''}
   `;
 }
 // Find-or-create a catch-all "Other" Functional Area for this product — one
@@ -14030,6 +14233,7 @@ async function saveAddSnagModal(){
   const severity=isEnhancement?'':(eid('addSnagSeveritySelect')?.value||'');
   const estimateRaw=(eid('addSnagEstimateInput')?.value||'').trim();
   const estimatedHours=estimateRaw?Number(estimateRaw):null;
+  const assignedTo=(!isEnhancement && canAssignSnags())?(eid('addSnagAssigneeSelect')?.value||''):'';
   // Only Product and Functional Area are required — Function, Related
   // requirement, and Description are all optional; a snag/enhancement with
   // nothing but those two still gets a placeholder requirement created for
@@ -14057,7 +14261,7 @@ async function saveAddSnagModal(){
   const snag={id:'SNAG'+Date.now()+'_'+Math.floor(Math.random()*1e6),
     storyId, productId, epicId, title:'', kind,
     status:'Open', source:'manual', reporterEmail:email, cycleCount:1,
-    severity, estimatedHours,
+    severity, estimatedHours, assignedTo,
     createdAt:now, resolvedBy:'', resolvedAt:'', updatedAt:now};
   SNAGS.push(snag);
   await dbUpsertSnag(snag);
@@ -14088,7 +14292,6 @@ function _tplReportScopedStories(){
 function _tplReportBuildHtml(){
   _tplVerifyCache=new Map(); // this can run without a preceding renderTestPlan() this session — see _tplStoryVerification
   const stories=_tplReportScopedStories();
-  const total=stories.length;
   // Per-product breakdown (same shared helper the Summary accordion and left
   // nav use — see its comment) — a Functional Area tested on more than one
   // product appears once per product here too, each with its own numbers.
@@ -14103,8 +14306,6 @@ function _tplReportBuildHtml(){
   // could show MORE verified/failing requirements than Total Requirements
   // itself — exactly the "numbers don't add up" confusion this replaces.
   const distinct=_tplDistinctReqStats(stories);
-  const scenarioCoveredCount=stories.filter(s=>_tplScenarioHasCoverage(s.id)).length;
-  const scenarioPct=total?Math.round(scenarioCoveredCount/total*100):0;
 
   const inScopeIds=new Set(stories.map(s=>s.id));
   const scenarios=TEST_SCENARIOS.filter(sc=>
@@ -14223,11 +14424,18 @@ function _tplReportBuildHtml(){
     // Failures — this product only (a shared Functional Area can be failing
     // on one product but fine on another).
     let failRows='';
-    _tplStoriesInProduct(stories,b.product.id).filter(s=>_tplStoryVerification(s.id,b.product.id).openFail).forEach(s=>{
+    // Sorted S1→S5 (most severe first); a snag with no severity set sorts
+    // last, after S5 — same "worst first" ordering the Snags by Severity
+    // table already uses via SNAG_SEVERITIES' own most-to-least-severe order.
+    const _failSeverityRank=code=>{ const i=SNAG_SEVERITIES.findIndex(x=>x.code===code); return i===-1?SNAG_SEVERITIES.length:i; };
+    _tplStoriesInProduct(stories,b.product.id)
+      .filter(s=>_tplStoryVerification(s.id,b.product.id).openFail)
+      .map(s=>({s, snag:SNAGS.find(sn=>sn.storyId===s.id&&sn.productId===b.product.id)}))
+      .sort((ra,rb)=>_failSeverityRank(ra.snag?.severity)-_failSeverityRank(rb.snag?.severity))
+      .forEach(({s,snag})=>{
       const chain=_reqResolveChain(s);
       const v=_tplStoryVerification(s.id,b.product.id);
       const breadcrumb=[chain.epic?.name,chain.feature?.name].filter(Boolean).join(' › ');
-      const snag=SNAGS.find(sn=>sn.storyId===s.id&&sn.productId===b.product.id);
       const failNotes=v.rows.filter(r=>r.result==='Fail').map(r=>{
         const note=r.notes?`<div style="color:#666;margin-top:3px;line-height:1.4">${escH(r.notes)}</div>`:'';
         return `<div style="margin-bottom:9px"><span style="display:inline-block;background:#FBEAE7;color:#A83B2B;font-weight:600;font-size:10px;padding:2px 8px;border-radius:10px;white-space:nowrap">${escH(r.testerEmail)}</span>${note}</div>`;
@@ -14468,12 +14676,6 @@ function _tplReportBuildHtml(){
   <div class="no-print"><button onclick="window.print()">Print / Save as PDF</button></div>
   <h1>Test Plan Report</h1>
   <div class="meta">Generated ${escH(now)} · Phase scope: ${escH(phaseNames)}</div>
-  <div class="stats">
-    <div class="stat"><div class="num">${total}</div><div class="lbl">Total Requirements</div></div>
-    <div class="stat"><div class="num">${distinct.verifiedCount}/${total}</div><div class="lbl">Verified${total?' — '+Math.round(distinct.verifiedCount/total*100)+'%':''}</div></div>
-    <div class="stat"><div class="num">${distinct.openFailCount}</div><div class="lbl">Failing</div></div>
-    <div class="stat"><div class="num">${scenarioCoveredCount}/${total}</div><div class="lbl">Scenario Covered — ${scenarioPct}%</div></div>
-  </div>
   <h2>Testing Progress by Product</h2>
   <div class="meta" style="margin-bottom:10px">Reqs/Not Started/1st Pass/Verified/Failing reflect the phase scope above. Snags/Squashed/Waiting Retest/Clarification/Repeat Fails are counted per product regardless of phase. "All Products" is the distinct requirement count, not a sum of the rows above — a requirement tested on more than one product is counted once here, not once per product.</div>
   ${breakdown.length?`<table style="font-size:10.5px"><thead><tr><th>Product</th><th style="text-align:center">Reqs</th><th style="text-align:center">Not<br>Started</th><th style="text-align:center">1st<br>Pass</th><th style="text-align:center">Verified<br>(2nd Pass)</th><th style="text-align:center">Verified<br>%</th><th style="text-align:center">Failing</th><th style="text-align:center">Snags</th><th style="text-align:center">Squashed</th><th style="text-align:center">Waiting<br>Retest</th><th style="text-align:center">Clarif.<br>Qs</th><th style="text-align:center">Repeat<br>Fails</th></tr></thead><tbody>${productSummaryRows}${productSummaryTotalRow}</tbody></table>`:'<div class="empty">No products configured.</div>'}

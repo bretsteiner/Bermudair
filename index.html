@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- StrategicSitemapper  v122 -->
+<!-- StrategicSitemapper  v124 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -1898,6 +1898,16 @@ a.pt-url-val:hover{text-decoration:underline}
 </div>
 </div>
 
+<!-- Snag Severity Definitions — reference popup, opened via the ⓘ icon next
+     to any Severity control (Add Snag modal + inline on each snag card). -->
+<div class="modal-bg" id="severityInfoModal">
+<div class="modal" style="max-width:560px">
+  <div class="mhead"><h3>Snag Severity Definitions</h3><button class="mclose" onclick="closeModal('severityInfoModal')">✕</button></div>
+  <div class="mbody" id="severityInfoModalBody"></div>
+  <div class="mfoot"><button class="mbtn mbtn-save" onclick="closeModal('severityInfoModal')">Got it</button></div>
+</div>
+</div>
+
 <!-- Transformation Report: Add Page Snag Modal — Page Snags' counterpart to
      addSnagModal above, keyed on a page (Node) instead of a Product/Area/
      requirement chain, since most pages don't have one. -->
@@ -3141,7 +3151,7 @@ async function loadFromSheets() {
     TEST_RESULTS = (data.testResults||[]).map(r=>({id:String(r.id||''),storyId:String(r.storyId||''),testerEmail:String(r.testerEmail||'').trim().toLowerCase(),result:r.result||'',notes:r.notes||'',testedAt:r.testedAt||null,productId:String(r.productId||'')}));
     TEST_SCENARIOS = (data.scenarios||[]).map(r=>({id:String(r.id||''),code:r.code||'',title:r.title||'',mode:r.mode||'freeform',type:r.type||'',priority:r.priority||'',phaseId:String(r.phaseId||''),objective:r.objective||'',preconditions:r.preconditions||'',testData:r.testData||'',stepsJson:r.stepsJson||'',overallExpected:r.overallExpected||'',reqCodes:r.reqCodes||'',text:r.text||'',status:r.status||'Not Tested',lastTestedBy:String(r.lastTestedBy||'').trim().toLowerCase(),lastTestedAt:r.lastTestedAt||null,notes:r.notes||'',createdBy:String(r.createdBy||'').trim().toLowerCase(),createdAt:r.createdAt||null}));
     TEST_SCENARIO_LINKS = (data.scenarioLinks||[]).map(r=>({id:String(r.id||''),scenarioId:String(r.scenarioId||''),storyId:String(r.storyId||'')}));
-    SNAGS = (data.snags||[]).map(r=>({id:String(r.id||''),storyId:String(r.storyId||''),productId:String(r.productId||''),epicId:String(r.epicId||''),title:r.title||'',status:r.status||'Open',kind:r.kind==='Enhancement'?'Enhancement':'Snag',source:r.source||'test',reporterEmail:String(r.reporterEmail||'').trim().toLowerCase(),cycleCount:Number(r.cycleCount)||1,createdAt:r.createdAt||null,resolvedBy:String(r.resolvedBy||'').trim().toLowerCase(),resolvedAt:r.resolvedAt||null,updatedAt:r.updatedAt||null}));
+    SNAGS = (data.snags||[]).map(r=>({id:String(r.id||''),storyId:String(r.storyId||''),productId:String(r.productId||''),epicId:String(r.epicId||''),title:r.title||'',status:r.status||'Open',kind:r.kind==='Enhancement'?'Enhancement':'Snag',source:r.source||'test',reporterEmail:String(r.reporterEmail||'').trim().toLowerCase(),cycleCount:Number(r.cycleCount)||1,severity:r.severity||'',estimatedHours:(r.estimatedHours!==undefined&&r.estimatedHours!==null&&r.estimatedHours!=='')?Number(r.estimatedHours):null,actualHours:(r.actualHours!==undefined&&r.actualHours!==null&&r.actualHours!=='')?Number(r.actualHours):null,createdAt:r.createdAt||null,resolvedBy:String(r.resolvedBy||'').trim().toLowerCase(),resolvedAt:r.resolvedAt||null,updatedAt:r.updatedAt||null}));
     // Same shape as SNAGS, keyed on nodeId instead of storyId/productId/epicId
     // — see the Transformation Report's Page Snags panel.
     PAGE_SNAGS = (data.pageSnags||[]).map(r=>({id:String(r.id||''),nodeId:String(r.nodeId||''),componentId:String(r.componentId||''),title:r.title||'',status:r.status||'Open',source:r.source||'manual',reporterEmail:String(r.reporterEmail||'').trim().toLowerCase(),cycleCount:Number(r.cycleCount)||1,createdAt:r.createdAt||null,resolvedBy:String(r.resolvedBy||'').trim().toLowerCase(),resolvedAt:r.resolvedAt||null,updatedAt:r.updatedAt||null}));
@@ -3521,16 +3531,25 @@ async function dbUpsertTestResult(r){try{await sheetPost({action:'upsertTestResu
 // Report or reopen a snag — the backend forces status:'Open' regardless of
 // what's sent here (see the doPost case), so this can never resolve one;
 // only dbSquashSnag can.
-async function dbUpsertSnag(sn){try{await sheetPost({action:'upsertSnag',row:{id:sn.id,storyId:sn.storyId||'',productId:sn.productId||'',epicId:sn.epicId||'',title:sn.title||'',status:sn.status||'Open',kind:sn.kind||'Snag',source:sn.source||'test',reporterEmail:sn.reporterEmail||'',cycleCount:sn.cycleCount||1,createdAt:sn.createdAt||'',resolvedBy:sn.resolvedBy||'',resolvedAt:sn.resolvedAt||'',updatedAt:sn.updatedAt||''}});}catch(e){console.error('dbUpsertSnag:',e);showToast('Sheet write error: '+e.message);}}
+async function dbUpsertSnag(sn){try{await sheetPost({action:'upsertSnag',row:{id:sn.id,storyId:sn.storyId||'',productId:sn.productId||'',epicId:sn.epicId||'',title:sn.title||'',status:sn.status||'Open',kind:sn.kind||'Snag',source:sn.source||'test',reporterEmail:sn.reporterEmail||'',cycleCount:sn.cycleCount||1,severity:sn.severity||'',estimatedHours:(sn.estimatedHours!=null)?sn.estimatedHours:'',actualHours:(sn.actualHours!=null)?sn.actualHours:'',createdAt:sn.createdAt||'',resolvedBy:sn.resolvedBy||'',resolvedAt:sn.resolvedAt||'',updatedAt:sn.updatedAt||''}});}catch(e){console.error('dbUpsertSnag:',e);showToast('Sheet write error: '+e.message);}}
 // Narrow counterpart to dbUpsertSnag — the one action a Developer actually
 // takes (mark resolved). Hits the backend's squashSnag action, which checks
 // the caller's role server-side (Developer/Editor/Admin only — Tester and
 // Developer share a backend rank, so this can't be a pure rank check),
 // stamps resolvedBy from the server-verified email, and resets this
 // requirement's prior test results for this product in the same call —
-// there's no separate delete action to call afterward any more.
-async function dbSquashSnag(id){try{await sheetPost({action:'squashSnag',id});}catch(e){console.error('dbSquashSnag:',e);showToast('Sheet write error: '+e.message);}}
+// there's no separate delete action to call afterward any more. actualHours
+// is optional (undefined is fine — the backend just won't write that column).
+async function dbSquashSnag(id,actualHours){try{await sheetPost({action:'squashSnag',id,actualHours});}catch(e){console.error('dbSquashSnag:',e);showToast('Sheet write error: '+e.message);}}
 async function dbRequestSnagClarification(id){try{await sheetPost({action:'requestSnagClarification',id});}catch(e){console.error('dbRequestSnagClarification:',e);showToast('Sheet write error: '+e.message);}}
+// Narrow field-only update for severity/estimatedHours — deliberately NOT
+// routed through dbUpsertSnag, which forces status:'Open' server-side on
+// every call (see its own comment); editing severity/estimate on a snag
+// currently sitting at 'Needs Clarification' would otherwise silently kick
+// it back to Open. Pass undefined for whichever field isn't changing —
+// JSON.stringify drops undefined keys, so the backend leaves that column
+// untouched (see updateSnagMeta's own comment).
+async function dbUpdateSnagMeta(id,severity,estimatedHours){try{await sheetPost({action:'updateSnagMeta',id,severity,estimatedHours});}catch(e){console.error('dbUpdateSnagMeta:',e);showToast('Sheet write error: '+e.message);}}
 async function dbUpsertPageSnag(sn){try{await sheetPost({action:'upsertPageSnag',row:{id:sn.id,nodeId:sn.nodeId||'',componentId:sn.componentId||'',title:sn.title||'',status:sn.status||'Open',source:sn.source||'manual',reporterEmail:sn.reporterEmail||'',cycleCount:sn.cycleCount||1,createdAt:sn.createdAt||'',resolvedBy:sn.resolvedBy||'',resolvedAt:sn.resolvedAt||'',updatedAt:sn.updatedAt||''}});}catch(e){console.error('dbUpsertPageSnag:',e);showToast('Sheet write error: '+e.message);}}
 async function dbSquashPageSnag(id){try{await sheetPost({action:'squashPageSnag',id});}catch(e){console.error('dbSquashPageSnag:',e);showToast('Sheet write error: '+e.message);}}
 async function dbRequestPageSnagClarification(id){try{await sheetPost({action:'requestPageSnagClarification',id});}catch(e){console.error('dbRequestPageSnagClarification:',e);showToast('Sheet write error: '+e.message);}}
@@ -13370,6 +13389,59 @@ let _tplSquashingSnagId=null;   // snag id whose inline squash-note form is expa
 let _tplClosedSnagEpics=new Set(); // separate from _tplClosedEpics — collapsing an area in Functional Tests shouldn't affect Snags
 let _tplSnagDraft=null;         // working copy for the "+ Add Snag" modal, or null when closed
 
+// Severity scale for Snags (kind='Snag' only — an Enhancement is an idea, not
+// a defect, so severity doesn't apply to it). fg/bg feed the same pill look
+// every other status badge in this app uses (.tpl-verify-pill). desc/examples
+// are shown verbatim in the "What do these mean?" popup — see
+// openSeverityInfoModal(). Ordered most-to-least severe; that order also
+// drives the <select> option order everywhere severity is picked.
+const SNAG_SEVERITIES=[
+  {code:'S1',label:'Critical',fg:'#C2503F',bg:'#F8E7E3',
+    desc:'Complete loss of a core business function, data loss or corruption, or a security breach. No workaround exists. Affects all or most users.',
+    examples:"Application won't start, authentication down, orders written to the database incorrectly, customer data exposed."},
+  {code:'S2',label:'Major',fg:'#B5590F',bg:'#FBEBDA',
+    desc:'A major function produces incorrect results or fails, but a workaround exists or the blast radius is limited to a subset of users. Business can continue with manual effort.',
+    examples:'VAT calculated wrongly on one product type, bulk upload fails over 500 rows, feature broken on one supported browser.'},
+  {code:'S3',label:'Moderate',fg:'#B5852C',bg:'#F7F1DF',
+    desc:'A function behaves incorrectly or inconsistently with the spec, but the correct outcome is still achievable. Efficiency or clarity is reduced; data stays intact.',
+    examples:'Sort order wrong, validation error points at the wrong field, session times out sooner than specified.'},
+  {code:'S4',label:'Minor',fg:'#3E6094',bg:'#E8EEF7',
+    desc:"Small deviation from expected behaviour with negligible operational impact. Users notice but aren't hindered.",
+    examples:'Tooltip missing, date shown as US format in one screen, pagination shows the wrong total count.'},
+  {code:'S5',label:'Cosmetic',fg:'#5B6477',bg:'#EEF0F3',
+    desc:'Purely presentational. Nothing functional or data-related is affected.',
+    examples:'Typos, misalignment, inconsistent padding, wrong hover colour.'},
+];
+function _snagSeverityDef(code){ return SNAG_SEVERITIES.find(s=>s.code===code)||null; }
+// Trims a decimal hours value to at most 2 places with no trailing zeros —
+// shared by every hours display in the Snags workflow (inline card chips,
+// the Test Report's snag tables and severity rollup).
+function _fmtHrs(n){ return (n===null||n===undefined)?'—':(Math.round(n*100)/100)+'h'; }
+// Small coloured severity badge, reused everywhere a snag's severity is
+// shown read-only (the Test Report's tables) — mirrors the inline pill on
+// the Snags tab card itself (_tplSnagSeverityControlHtml's read-only branch).
+function _snagSeverityBadgeHtml(code){
+  const def=_snagSeverityDef(code);
+  return def
+    ? `<span style="display:inline-block;padding:2px 7px;border-radius:9px;font-weight:700;font-size:9px;color:${def.fg};background:${def.bg};white-space:nowrap">${escH(def.code)}</span>`
+    : '<span style="color:#bbb">—</span>';
+}
+function openSeverityInfoModal(){
+  const body=eid('severityInfoModalBody');
+  if(body){
+    body.innerHTML=SNAG_SEVERITIES.map(s=>`
+      <div style="display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--md-outline-variant)">
+        <span style="flex-shrink:0;width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:${s.fg};background:${s.bg}">${s.code}</span>
+        <div style="min-width:0">
+          <div style="font-weight:700;font-size:12.5px;color:var(--md-on-surface);margin-bottom:3px">${escH(s.label)}</div>
+          <div style="font-size:11.5px;color:var(--text2);line-height:1.55;margin-bottom:5px">${escH(s.desc)}</div>
+          <div style="font-size:10.5px;color:var(--text3);font-style:italic;line-height:1.5">Examples: ${escH(s.examples)}</div>
+        </div>
+      </div>`).join('');
+  }
+  openModal('severityInfoModal');
+}
+
 // Creates or reopens the Snag for this requirement+product PURELY in local
 // state (no network call) — split out from _tplReportOrReopenSnag below so
 // the snag exists in SNAGS (and shows up in the Snags tab/nav badges)
@@ -13454,9 +13526,13 @@ async function _tplSubmitSquash(id){
   if(!gCurrentUser){showToast('Sign in to squash a snag');return;}
   const sn=SNAGS.find(s=>s.id===id); if(!sn)return;
   const notes=(eid('tpl-squash-notes-'+id)?.value||'').trim();
+  const actualHoursRaw=(eid('tpl-squash-actualhours-'+id)?.value||'').trim();
+  if(!actualHoursRaw){showToast('Enter the actual time spent before marking resolved','error');return;}
+  const actualHours=Number(actualHoursRaw);
+  if(isNaN(actualHours)||actualHours<0){showToast('Enter a valid number of hours','error');return;}
   const email=gCurrentUser.email.trim().toLowerCase();
   const now=new Date().toISOString();
-  sn.status='Resolved'; sn.resolvedBy=email; sn.resolvedAt=now; sn.updatedAt=now;
+  sn.status='Resolved'; sn.resolvedBy=email; sn.resolvedAt=now; sn.updatedAt=now; sn.actualHours=actualHours;
   // Full reset — every prior tester's result for this requirement+product is
   // cleared, not just the failing one, so retesting needs 2 completely fresh
   // passes ("just like an initial test"). The backend's squashSnag() does
@@ -13473,8 +13549,9 @@ async function _tplSubmitSquash(id){
   renderTestPlan();
   showToast('Snag marked resolved — ready for retesting');
   // Sequenced, not concurrent — same reasoning as _tplSubmitStoryResult.
-  await dbSquashSnag(id);
-  await _tplPostAutoComment(entityType, entityId, `🔧 Snag squashed on ${product?product.name:'product'}${notes?': '+notes:' (no notes provided)'}`);
+  await dbSquashSnag(id, actualHours);
+  const estTxt=sn.estimatedHours!=null?` (est. ${sn.estimatedHours}h)`:'';
+  await _tplPostAutoComment(entityType, entityId, `🔧 Snag squashed on ${product?product.name:'product'} — ${actualHours}h actual${estTxt}${notes?': '+notes:' (no notes provided)'}`);
 }
 
 // Sibling outcome to _tplSubmitSquash, reachable from the SAME inline form
@@ -13501,6 +13578,11 @@ async function _tplSubmitClarification(id){
 
 function _tplSquashFormHtml(sn){
   return `<div class="tpl-mark-form" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <label style="font-size:10px;color:var(--text3);white-space:nowrap">Actual hours spent <span style="color:var(--rag-red-fg,#C2503F)">*</span></label>
+      <input type="number" min="0" step="0.25" class="req-select" id="tpl-squash-actualhours-${sn.id}" placeholder="e.g. 2.5" style="width:90px;height:30px" value="${sn.estimatedHours!=null?sn.estimatedHours:''}">
+      <span style="font-size:10px;color:var(--text3)">required to Mark Resolved${sn.estimatedHours!=null?` — estimated ${sn.estimatedHours}h`:''}</span>
+    </div>
     <textarea class="tpl-mark-notes" id="tpl-squash-notes-${sn.id}" placeholder="What did you change to resolve this… (or, if requesting clarification, what you need to know)" autofocus></textarea>
     <div class="tpl-mark-form-btns">
       <button class="tpl-mark-btn tpl-pass-btn" onclick="_tplSubmitSquash('${sn.id}')"><span class="material-icons-round" style="font-size:13px">check_circle</span>Mark Resolved</button>
@@ -13609,6 +13691,58 @@ function _tplClarificationBannerHtml(sn){
   </div>`;
 }
 
+// Inline severity + estimated-hours controls on the Snag card. Most snags
+// are auto-created from a failed test (see _tplUpsertSnagLocal) and never
+// touch the Add Snag modal at all, so triage has to be doable as an in-place
+// edit here — not just at manual-report time. Gated the same as Squash/
+// Request Clarification (Developer role or above); a Tester/Editor without
+// that role sees a read-only pill/chip instead. Writes go through
+// dbUpdateSnagMeta (narrow field-only update), never dbUpsertSnag, so editing
+// either field can never accidentally reopen a snag sitting at 'Needs
+// Clarification' — see dbUpdateSnagMeta's own comment.
+async function _tplUpdSnagSeverity(id,val){
+  if(!canSquashSnags()){showToast('View-only access — editing is disabled');return;}
+  const sn=SNAGS.find(s=>s.id===id); if(!sn)return;
+  sn.severity=val||''; sn.updatedAt=new Date().toISOString();
+  renderTestPlan();
+  await dbUpdateSnagMeta(id, sn.severity, undefined);
+}
+async function _tplUpdSnagEstimate(id,val){
+  if(!canSquashSnags()){showToast('View-only access — editing is disabled');return;}
+  const sn=SNAGS.find(s=>s.id===id); if(!sn)return;
+  const raw=(val||'').trim();
+  if(raw && (isNaN(Number(raw))||Number(raw)<0)){showToast('Enter a valid number of hours','error');renderTestPlan();return;}
+  sn.estimatedHours=raw?Number(raw):null; sn.updatedAt=new Date().toISOString();
+  renderTestPlan();
+  await dbUpdateSnagMeta(id, undefined, sn.estimatedHours);
+}
+// Severity only applies to Snags (kind='Snag') — an Enhancement is an idea,
+// not a defect, so the S1-S5 defect scale doesn't fit it (see SNAG_SEVERITIES).
+function _tplSnagSeverityControlHtml(sn){
+  const def=_snagSeverityDef(sn.severity);
+  if(!canSquashSnags()){
+    return def?`<span class="tpl-verify-pill" style="color:${def.fg};background:${def.bg}" title="${escH(def.label)}">${def.code} ${escH(def.label)}</span>`:'';
+  }
+  const opts=SNAG_SEVERITIES.map(s=>`<option value="${s.code}"${sn.severity===s.code?' selected':''}>${s.code} — ${s.label}</option>`).join('');
+  return `<div data-requires-squash style="display:inline-flex;align-items:center;gap:2px" onclick="event.stopPropagation()">
+    <select class="req-select" style="height:24px;font-size:10px;padding:0 4px;width:auto${def?`;color:${def.fg};border-color:${def.fg}66`:''}" onchange="_tplUpdSnagSeverity('${sn.id}',this.value)">
+      <option value=""${!sn.severity?' selected':''}>Severity —</option>
+      ${opts}
+    </select>
+    <button type="button" class="tpl-copy-btn" style="padding:3px 5px" onclick="openSeverityInfoModal()" title="What do these mean?"><span class="material-icons-round" style="font-size:12px">help_outline</span></button>
+  </div>`;
+}
+function _tplSnagEstimateControlHtml(sn){
+  if(!canSquashSnags()){
+    return sn.estimatedHours!=null?`<span class="tpl-req-chip" title="Estimated effort">Est. ${sn.estimatedHours}h</span>`:'';
+  }
+  return `<div data-requires-squash style="display:inline-flex;align-items:center;gap:3px" onclick="event.stopPropagation()">
+    <label style="font-size:9px;color:var(--text3)">Est.</label>
+    <input type="number" min="0" step="0.25" class="req-select" style="height:24px;font-size:10px;width:56px;padding:0 4px" value="${sn.estimatedHours!=null?sn.estimatedHours:''}" placeholder="h" onchange="_tplUpdSnagEstimate('${sn.id}',this.value)">
+    <span style="font-size:9px;color:var(--text3)">h</span>
+  </div>`;
+}
+
 // Resolved snags never reach this function — _tplRenderSnagsTab filters
 // them out before grouping (see its own comment) — so every card here is
 // either Open or Needs Clarification, never Resolved. sn.resolvedBy is
@@ -13643,6 +13777,8 @@ function _tplSnagCardHtml(sn){
     ${story?`<div>${_reqChainPillsHtml(story)}</div>`:''}
     <div class="tpl-req-row-meta">
       <span class="tpl-verify-pill" style="color:${statusPill.fg};background:${statusPill.bg}">${statusPill.label}</span>
+      ${isEnhancement?'':_tplSnagSeverityControlHtml(sn)}
+      ${_tplSnagEstimateControlHtml(sn)}
       ${sn.cycleCount>1?`<span class="tpl-hier-fail-badge" title="Sent back to development ${sn.cycleCount-1} time(s) before this">↻ Cycle ${sn.cycleCount}</span>`:''}
       <span style="font-size:10px;color:var(--text3)">Reported by ${escH(sn.reporterEmail||'—')}</span>
       ${commentBadgeHtml(entityType,entityId,{label:text.slice(0,60)})}
@@ -13811,6 +13947,17 @@ function _renderAddSnagModal(){
     <div class="mfield"><label>Description <span style="font-weight:400;color:var(--text3)">(optional)</span></label>
       <textarea class="minput" id="addSnagTitleInput" rows="3" placeholder="${isEnhancement?'What’s the idea…':'What’s wrong…'}">${escH(d.title)}</textarea>
     </div>
+    ${isEnhancement?'':`<div class="mfield"><label>Severity <span style="font-weight:400;color:var(--text3)">(optional)</span>
+        <button type="button" onclick="openSeverityInfoModal()" title="What do these mean?" style="background:none;border:none;cursor:pointer;color:var(--brand-primary);vertical-align:-3px;padding:0"><span class="material-icons-round" style="font-size:14px">help_outline</span></button>
+      </label>
+      <select class="mselect" id="addSnagSeveritySelect">
+        <option value="" selected>— Not set —</option>
+        ${SNAG_SEVERITIES.map(s=>`<option value="${s.code}">${s.code} — ${s.label}</option>`).join('')}
+      </select>
+    </div>`}
+    <div class="mfield"><label>Estimated hours <span style="font-weight:400;color:var(--text3)">(optional)</span></label>
+      <input type="number" class="minput" id="addSnagEstimateInput" min="0" step="0.25" placeholder="e.g. 2.5">
+    </div>
   `;
 }
 // Find-or-create a catch-all "Other" Functional Area for this product — one
@@ -13880,6 +14027,9 @@ async function saveAddSnagModal(){
   const functionId=d.functionId;
   let storyId=eid('addSnagStorySelect')?.value||'';
   const title=(eid('addSnagTitleInput')?.value||'').trim();
+  const severity=isEnhancement?'':(eid('addSnagSeveritySelect')?.value||'');
+  const estimateRaw=(eid('addSnagEstimateInput')?.value||'').trim();
+  const estimatedHours=estimateRaw?Number(estimateRaw):null;
   // Only Product and Functional Area are required — Function, Related
   // requirement, and Description are all optional; a snag/enhancement with
   // nothing but those two still gets a placeholder requirement created for
@@ -13907,6 +14057,7 @@ async function saveAddSnagModal(){
   const snag={id:'SNAG'+Date.now()+'_'+Math.floor(Math.random()*1e6),
     storyId, productId, epicId, title:'', kind,
     status:'Open', source:'manual', reporterEmail:email, cycleCount:1,
+    severity, estimatedHours,
     createdAt:now, resolvedBy:'', resolvedAt:'', updatedAt:now};
   SNAGS.push(snag);
   await dbUpsertSnag(snag);
@@ -14013,6 +14164,39 @@ function _tplReportBuildHtml(){
     <td style="text-align:center">${_psSum('repeatFailureCount')||'—'}</td>
   </tr>`;
 
+  // Snags by Severity — every OUTSTANDING snag (Open + Needs Clarification)
+  // across all products, deliberately NOT scoped to the phase-bar selection —
+  // same convention as the product summary table's own Snags/Squashed/etc.
+  // columns above (see that block's comment): this is "how much backlog is
+  // there right now", not a phase-filtered slice of it. Enhancements are
+  // excluded — severity is a Snag-only concept (SNAG_SEVERITIES), an
+  // Enhancement idea has nothing to grade for severity. Rows with no severity
+  // set yet are still counted, in their own "Not set" row, so this table's
+  // total always reconciles with the outstanding-snag count above it.
+  const openSnagsForSeverity=SNAGS.filter(sn=>sn.kind!=='Enhancement' && sn.status!=='Resolved');
+  const severityRows=SNAG_SEVERITIES.map(sev=>{
+    const snags=openSnagsForSeverity.filter(sn=>sn.severity===sev.code);
+    return {sev, count:snags.length,
+      totalEst:snags.reduce((sum,sn)=>sum+(sn.estimatedHours||0),0),
+      estCount:snags.filter(sn=>sn.estimatedHours!=null).length};
+  }).filter(r=>r.count>0);
+  const noSeveritySnags=openSnagsForSeverity.filter(sn=>!sn.severity);
+  if(noSeveritySnags.length){
+    severityRows.push({sev:{code:'—',label:'Not set',fg:'#8B93A3',bg:'#EEF0F3'},
+      count:noSeveritySnags.length,
+      totalEst:noSeveritySnags.reduce((sum,sn)=>sum+(sn.estimatedHours||0),0),
+      estCount:noSeveritySnags.filter(sn=>sn.estimatedHours!=null).length});
+  }
+  const severityTotalCount=openSnagsForSeverity.length;
+  const severityTotalEstCount=openSnagsForSeverity.filter(sn=>sn.estimatedHours!=null).length;
+  const severityTotalEst=openSnagsForSeverity.reduce((sum,sn)=>sum+(sn.estimatedHours||0),0);
+  const severityRowsHtml=severityRows.map(r=>`<tr>
+    <td><span style="display:inline-block;padding:3px 11px;border-radius:10px;font-weight:700;font-size:11px;color:${r.sev.fg};background:${r.sev.bg}">${escH(r.sev.code)}${r.sev.label?' — '+escH(r.sev.label):''}</span></td>
+    <td style="text-align:center">${r.count}</td>
+    <td style="text-align:center">${r.estCount}</td>
+    <td style="text-align:right;font-weight:700">${r.totalEst?_fmtHrs(r.totalEst):'—'}</td>
+  </tr>`).join('');
+
   // Per-product detail tabs — Coverage by Functional Area, Open Failures,
   // Fixes Applied/Waiting Retest, and Needs Clarification each used to be one
   // flat table interleaving every product; that got hard to scan with more
@@ -14043,14 +14227,17 @@ function _tplReportBuildHtml(){
       const chain=_reqResolveChain(s);
       const v=_tplStoryVerification(s.id,b.product.id);
       const breadcrumb=[chain.epic?.name,chain.feature?.name].filter(Boolean).join(' › ');
+      const snag=SNAGS.find(sn=>sn.storyId===s.id&&sn.productId===b.product.id);
       const failNotes=v.rows.filter(r=>r.result==='Fail').map(r=>{
         const note=r.notes?`<div style="color:#666;margin-top:3px;line-height:1.4">${escH(r.notes)}</div>`:'';
         return `<div style="margin-bottom:9px"><span style="display:inline-block;background:#FBEAE7;color:#A83B2B;font-weight:600;font-size:10px;padding:2px 8px;border-radius:10px;white-space:nowrap">${escH(r.testerEmail)}</span>${note}</div>`;
       }).join('');
       failRows+=`<tr>
         <td>${escH(s.code||'—')}</td>
+        <td>${_snagSeverityBadgeHtml(snag?snag.severity:'')}</td>
         <td>${escH(s.text)}</td>
         <td style="font-size:10px;color:#666">${escH(breadcrumb)}</td>
+        <td style="text-align:center;font-weight:600">${snag&&snag.estimatedHours!=null?_fmtHrs(snag.estimatedHours):'—'}</td>
         <td>${failNotes}</td>
       </tr>`;
     });
@@ -14061,8 +14248,11 @@ function _tplReportBuildHtml(){
       const {s,breadcrumb}=_tplReportSnagRow(sn);
       waitRows+=`<tr>
         <td>${escH(s?.code||'—')}</td>
+        <td>${_snagSeverityBadgeHtml(sn.severity)}</td>
         <td>${escH(s?.text||sn.title||'—')}</td>
         <td style="font-size:10px;color:#666">${escH(breadcrumb)}</td>
+        <td style="text-align:center">${sn.estimatedHours!=null?_fmtHrs(sn.estimatedHours):'—'}</td>
+        <td style="text-align:center;font-weight:600">${sn.actualHours!=null?_fmtHrs(sn.actualHours):'—'}</td>
         <td style="font-size:10px">${escH(sn.resolvedBy||'')}${sn.cycleCount>1?` (cycle ${sn.cycleCount})`:''}</td>
       </tr>`;
     });
@@ -14073,8 +14263,10 @@ function _tplReportBuildHtml(){
       const {s,breadcrumb}=_tplReportSnagRow(sn);
       clarRows+=`<tr>
         <td>${escH(s?.code||'—')}</td>
+        <td>${_snagSeverityBadgeHtml(sn.severity)}</td>
         <td>${escH(s?.text||sn.title||'—')}</td>
         <td style="font-size:10px;color:#666">${escH(breadcrumb)}</td>
+        <td style="text-align:center">${sn.estimatedHours!=null?_fmtHrs(sn.estimatedHours):'—'}</td>
         <td style="font-size:10px">${escH(sn.reporterEmail||'')}</td>
       </tr>`;
     });
@@ -14090,11 +14282,11 @@ function _tplReportBuildHtml(){
         <div class="stat"><div class="num">${b.openFailCount}</div><div class="lbl">Failing</div></div>
       </div>
       <h2>Open Failures — Functional Tests</h2>
-      ${failRows?`<table class="fail-table"><colgroup><col style="width:10%"><col style="width:33%"><col style="width:22%"><col style="width:35%"></colgroup><thead><tr><th>ID</th><th>Requirement</th><th>Location</th><th>Tester &amp; Notes</th></tr></thead><tbody>${failRows}</tbody></table>`:'<div class="empty">No open failures.</div>'}
+      ${failRows?`<table class="fail-table"><colgroup><col style="width:8%"><col style="width:7%"><col style="width:26%"><col style="width:17%"><col style="width:8%"><col style="width:34%"></colgroup><thead><tr><th>ID</th><th>Sev.</th><th>Requirement</th><th>Location</th><th style="text-align:center">Est.</th><th>Tester &amp; Notes</th></tr></thead><tbody>${failRows}</tbody></table>`:'<div class="empty">No open failures.</div>'}
       <h2>Fixes Applied — Waiting Retest</h2>
-      ${waitRows?`<table><thead><tr><th>ID</th><th>Requirement</th><th>Location</th><th>Resolved by</th></tr></thead><tbody>${waitRows}</tbody></table>`:'<div class="empty">No fixes waiting on a retest.</div>'}
+      ${waitRows?`<table><thead><tr><th>ID</th><th>Sev.</th><th>Requirement</th><th>Location</th><th style="text-align:center">Est.</th><th style="text-align:center">Actual</th><th>Resolved by</th></tr></thead><tbody>${waitRows}</tbody></table>`:'<div class="empty">No fixes waiting on a retest.</div>'}
       <h2>Needs Clarification</h2>
-      ${clarRows?`<table><thead><tr><th>ID</th><th>Requirement</th><th>Location</th><th>Reported by</th></tr></thead><tbody>${clarRows}</tbody></table>`:'<div class="empty">Nothing waiting on tester clarification.</div>'}
+      ${clarRows?`<table><thead><tr><th>ID</th><th>Sev.</th><th>Requirement</th><th>Location</th><th style="text-align:center">Est.</th><th>Reported by</th></tr></thead><tbody>${clarRows}</tbody></table>`:'<div class="empty">Nothing waiting on tester clarification.</div>'}
     </div>`;
   });
 
@@ -14285,6 +14477,9 @@ function _tplReportBuildHtml(){
   <h2>Testing Progress by Product</h2>
   <div class="meta" style="margin-bottom:10px">Reqs/Not Started/1st Pass/Verified/Failing reflect the phase scope above. Snags/Squashed/Waiting Retest/Clarification/Repeat Fails are counted per product regardless of phase. "All Products" is the distinct requirement count, not a sum of the rows above — a requirement tested on more than one product is counted once here, not once per product.</div>
   ${breakdown.length?`<table style="font-size:10.5px"><thead><tr><th>Product</th><th style="text-align:center">Reqs</th><th style="text-align:center">Not<br>Started</th><th style="text-align:center">1st<br>Pass</th><th style="text-align:center">Verified<br>(2nd Pass)</th><th style="text-align:center">Verified<br>%</th><th style="text-align:center">Failing</th><th style="text-align:center">Snags</th><th style="text-align:center">Squashed</th><th style="text-align:center">Waiting<br>Retest</th><th style="text-align:center">Clarif.<br>Qs</th><th style="text-align:center">Repeat<br>Fails</th></tr></thead><tbody>${productSummaryRows}${productSummaryTotalRow}</tbody></table>`:'<div class="empty">No products configured.</div>'}
+  <h2>Snags by Severity</h2>
+  <div class="meta" style="margin-bottom:10px">Every outstanding snag (Open + Needs Clarification) across all products, not scoped to the phase selection above. Enhancements aren't included — severity doesn't apply to them.</div>
+  ${severityRows.length?`<table style="max-width:520px"><thead><tr><th>Severity</th><th style="text-align:center">Snags</th><th style="text-align:center">With an estimate</th><th style="text-align:right">Total estimated hours</th></tr></thead><tbody>${severityRowsHtml}<tr style="font-weight:700;background:#F7F8FB"><td>Total</td><td style="text-align:center">${severityTotalCount}</td><td style="text-align:center">${severityTotalEstCount}</td><td style="text-align:right">${severityTotalEst?_fmtHrs(severityTotalEst):'—'}</td></tr></tbody></table>`:'<div class="empty">No open snags right now.</div>'}
   <h2>Daily Activity — Last 30 Days</h2>
   <div class="meta" style="margin-bottom:10px">Not scoped to the phase selection above — this is total activity across the whole app.</div>
   ${dailyActivityChartHtml}

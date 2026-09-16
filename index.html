@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- StrategicSitemapper  v128 -->
+<!-- StrategicSitemapper  v129 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -2417,8 +2417,10 @@ function canEdit()  { return isEditor(); }
 function isTester()    { return currentRole()==='tester'; }
 function canMarkTests(){ return isEditor()||isTester(); }
 // Developer: a narrow role like Tester, but for the Snags tab specifically —
-// can only Squash a snag (enter a resolution note, send it back for
-// retesting), nothing else. Deliberately excluded from canMarkTests() —
+// can only Squash a snag (enter a resolution note, mark the fix done) and
+// then separately Send it to Testing (which is what actually puts it back in
+// front of testers to verify), nothing else. Deliberately excluded from
+// canMarkTests() —
 // per the user's explicit choice, Developers don't also mark Pass/Fail on
 // functional tests, keeping the tester/developer split clean.
 function isDeveloper()    { return currentRole()==='developer'; }
@@ -3539,15 +3541,22 @@ async function dbUpsertTestResult(r){try{await sheetPost({action:'upsertTestResu
 // what's sent here (see the doPost case), so this can never resolve one;
 // only dbSquashSnag can.
 async function dbUpsertSnag(sn){try{await sheetPost({action:'upsertSnag',row:{id:sn.id,storyId:sn.storyId||'',productId:sn.productId||'',epicId:sn.epicId||'',title:sn.title||'',status:sn.status||'Open',kind:sn.kind||'Snag',source:sn.source||'test',reporterEmail:sn.reporterEmail||'',cycleCount:sn.cycleCount||1,severity:sn.severity||'',estimatedHours:(sn.estimatedHours!=null)?sn.estimatedHours:'',actualHours:(sn.actualHours!=null)?sn.actualHours:'',assignedTo:sn.assignedTo||'',createdAt:sn.createdAt||'',resolvedBy:sn.resolvedBy||'',resolvedAt:sn.resolvedAt||'',updatedAt:sn.updatedAt||''}});}catch(e){console.error('dbUpsertSnag:',e);showToast('Sheet write error: '+e.message);}}
-// Narrow counterpart to dbUpsertSnag — the one action a Developer actually
-// takes (mark resolved). Hits the backend's squashSnag action, which checks
-// the caller's role server-side (Developer/Editor/Admin only — Tester and
-// Developer share a backend rank, so this can't be a pure rank check),
-// stamps resolvedBy from the server-verified email, and resets this
-// requirement's prior test results for this product in the same call —
-// there's no separate delete action to call afterward any more. actualHours
-// is optional (undefined is fine — the backend just won't write that column).
+// First of the two actions a Developer takes on a snag — marks a fix done in
+// code. Hits the backend's squashSnag action, which checks the caller's role
+// server-side (Developer/Editor/Admin only — Tester and Developer share a
+// backend rank, so this can't be a pure rank check) and stamps resolvedBy
+// from the server-verified email. Sets status to 'Squashed', NOT 'Resolved'
+// — the requirement stays blocked for testers until dbSendSnagToTesting is
+// called separately (see that function). actualHours is optional (undefined
+// is fine — the backend just won't write that column).
 async function dbSquashSnag(id,actualHours){try{await sheetPost({action:'squashSnag',id,actualHours});}catch(e){console.error('dbSquashSnag:',e);showToast('Sheet write error: '+e.message);}}
+// Second of the two actions — sends an already-squashed fix back to testing.
+// Hits the backend's sendSnagToTesting action, which flips status to
+// 'Resolved' (the only status that unblocks the requirement's row for
+// testers — see _tplStoryVerification) and resets this requirement's prior
+// test results for this product in the same call, so retesting needs 2
+// completely fresh passes, same as an initial test.
+async function dbSendSnagToTesting(id){try{await sheetPost({action:'sendSnagToTesting',id});}catch(e){console.error('dbSendSnagToTesting:',e);showToast('Sheet write error: '+e.message);}}
 async function dbRequestSnagClarification(id){try{await sheetPost({action:'requestSnagClarification',id});}catch(e){console.error('dbRequestSnagClarification:',e);showToast('Sheet write error: '+e.message);}}
 // Narrow field-only update for severity/estimatedHours/assignedTo — deliberately
 // NOT routed through dbUpsertSnag, which forces status:'Open' server-side on
@@ -3883,6 +3892,15 @@ let TEST_SCENARIO_LINKS=[]; // [{id,scenarioId,storyId}] — many-to-many, mirro
 // assignedTo (an email, or '' for unassigned) is Snag-only (kind='Snag',
 // never Enhancement) and visible/editable only to Developer/Admin — see
 // canAssignSnags().
+// status: 'Open' | 'Needs Clarification' | 'Squashed' | 'Resolved'. Squash
+// is a deliberate two-step handoff: a Developer first marks a fix done in
+// code (_tplSubmitSquash → status:'Squashed', TEST_RESULTS left untouched,
+// so the row still blocks for testers) then, separately, sends it back for
+// retest (_tplSendSnagToTesting → status:'Resolved', TEST_RESULTS reset) —
+// only THAT second step is what makes the requirement show up in a tester's
+// Functional Tests view as ready to verify. This lets a fix be marked done
+// without immediately surfacing it to testers, e.g. while a deploy is
+// pending.
 let SNAGS=[];
 // [{id,nodeId,title,status,source,reporterEmail,cycleCount,createdAt,
 //   resolvedBy,resolvedAt,updatedAt}] — page-level counterpart to SNAGS, see
@@ -11867,9 +11885,19 @@ function _tplStoryVerification(storyId, productId){
   // separate from openSnag so the row can still block the Test button
   // (nothing for a tester to do while it's with Development) while getting
   // its own, calmer styling instead of the red Fail treatment.
-  const openSnag=!!priorSnag && priorSnag.status==='Open' && priorSnag.kind!=='Enhancement';
-  const openEnhancement=!!priorSnag && priorSnag.status==='Open' && priorSnag.kind==='Enhancement';
-  const result={rows, passers, failCount:failers.length, verified:passers.length>=2 && failers.length===0, openFail, openSnag, openEnhancement, blocked:openFail||openSnag||openEnhancement, invalid};
+  // Blocks on 'Open' AND 'Squashed' — a squashed fix isn't visible to
+  // testers until the developer explicitly clicks "Send to Testing" (see
+  // _tplSendSnagToTesting), which is the one thing that resets TEST_RESULTS
+  // and flips status to 'Resolved'. Only 'Resolved' unblocks the row.
+  const openSnag=!!priorSnag && (priorSnag.status==='Open'||priorSnag.status==='Squashed') && priorSnag.kind!=='Enhancement';
+  const openEnhancement=!!priorSnag && (priorSnag.status==='Open'||priorSnag.status==='Squashed') && priorSnag.kind==='Enhancement';
+  // Exposed so row labels (_tplReqRowHtml/_tplReqRowCompactHtml) can tell a
+  // plain "reported, with Development" snag apart from one that's already
+  // been squashed and is just waiting on the developer's "Send to Testing"
+  // click — a manually-reported snag has no TEST_RESULTS row of its own to
+  // read that distinction from otherwise.
+  const snagStatus=priorSnag?priorSnag.status:null;
+  const result={rows, passers, failCount:failers.length, verified:passers.length>=2 && failers.length===0, openFail, openSnag, openEnhancement, snagStatus, blocked:openFail||openSnag||openEnhancement, invalid};
   if(_tplVerifyCache) _tplVerifyCache.set(key, result);
   return result;
 }
@@ -11957,7 +11985,10 @@ function _tplComputeProductBreakdown(baseStories){
     // same convention openSnagCount already established.
     const productSnags=SNAGS.filter(sn=>sn.productId===p.id);
     const snagCount=productSnags.length;
-    const snagsSquashedCount=productSnags.filter(sn=>sn.status==='Resolved').length;
+    // 'Squashed' (fixed, not yet sent back) counts as squashed here too —
+    // this column tracks "did a developer fix it", not "has it been sent
+    // back for retest" (that's waitingRetestCount below, 'Resolved' only).
+    const snagsSquashedCount=productSnags.filter(sn=>sn.status==='Squashed'||sn.status==='Resolved').length;
     const waitingRetestCount=productSnags.filter(sn=>sn.status==='Resolved' && !_tplStoryVerification(sn.storyId,sn.productId).verified).length;
     const needsClarificationCount=productSnags.filter(sn=>sn.status==='Needs Clarification').length;
     // "2nd failed tests" — a snag that bounced back to Development more than
@@ -12723,7 +12754,7 @@ function _tplReqRowCompactHtml(s, productId, v, covered){
   // same neutral "not started" pill colour the full row already uses for it
   // (see _tplReqRowHtml's pillC), not the red Fail one.
   const pillC=v.verified?TPL_RESULT_COLOURS.Pass:(v.openEnhancement?{fg:'var(--rag-idea-fg)',bg:'var(--rag-idea-bg)'}:(v.blocked?TPL_RESULT_COLOURS.Fail:{fg:'var(--wf-ns-fg)',bg:'var(--wf-ns-bg)'}));
-  const pillLabel=v.verified?'✓ Verified':(v.openFail?`${v.failCount} failing`:(v.openSnag?'Snag reported — with Development':(v.openEnhancement?'Enhancement — with Development':`${v.passers.length}/2 passed — awaiting 2nd tester`)));
+  const pillLabel=v.verified?'✓ Verified':(v.openFail?`${v.failCount} failing`:(v.openSnag?(v.snagStatus==='Squashed'?'Fix squashed — awaiting retest':'Snag reported — with Development'):(v.openEnhancement?(v.snagStatus==='Squashed'?'Enhancement done — awaiting retest':'Enhancement — with Development'):`${v.passers.length}/2 passed — awaiting 2nd tester`)));
   const blockedClass=v.openEnhancement?' tpl-req-row-enhancement':(v.blocked?' tpl-req-row-fail':'');
   return `<div class="tpl-req-row tpl-req-row-compact${blockedClass}" data-tpl-row="${s.id}::${productId}">
     <div class="req-code-badge req-code-badge-clickable" title="View full details" onclick="openReqDetail('${s.id}')">${escH(s.code||'—')}</div>
@@ -12777,7 +12808,7 @@ function _tplReqRowHtml(s, productId){
     return _tplReqRowCompactHtml(s, productId, v, covered);
   }
   const pillC=v.verified?TPL_RESULT_COLOURS.Pass:(v.openEnhancement?{fg:'var(--rag-idea-fg)',bg:'var(--rag-idea-bg)'}:(v.blocked?TPL_RESULT_COLOURS.Fail:{fg:'var(--wf-ns-fg)',bg:'var(--wf-ns-bg)'}));
-  const pillLabel=v.verified?'✓ Verified':(v.openFail?`${v.passers.length}/2 — Fail open`:(v.openSnag?'Snag reported — with Development':(v.openEnhancement?'Enhancement — with Development':`${v.passers.length}/2 passed`)));
+  const pillLabel=v.verified?'✓ Verified':(v.openFail?`${v.passers.length}/2 — Fail open`:(v.openSnag?(v.snagStatus==='Squashed'?'Fix squashed — awaiting retest':'Snag reported — with Development'):(v.openEnhancement?(v.snagStatus==='Squashed'?'Enhancement done — awaiting retest':'Enhancement — with Development'):`${v.passers.length}/2 passed`)));
   const rowBlockedClass=v.openEnhancement?' tpl-req-row-enhancement':(v.blocked?' tpl-req-row-fail':'');
   const typeC=REQTYPE_C[s.type]||null;
   const typeLabel=s.type||'Untyped';
@@ -13660,31 +13691,54 @@ async function _tplSubmitSquash(id){
   const sn=SNAGS.find(s=>s.id===id); if(!sn)return;
   const notes=(eid('tpl-squash-notes-'+id)?.value||'').trim();
   const actualHoursRaw=(eid('tpl-squash-actualhours-'+id)?.value||'').trim();
-  if(!actualHoursRaw){showToast('Enter the actual time spent before marking resolved','error');return;}
+  if(!actualHoursRaw){showToast('Enter the actual time spent before squashing','error');return;}
   const actualHours=Number(actualHoursRaw);
   if(isNaN(actualHours)||actualHours<0){showToast('Enter a valid number of hours','error');return;}
   const email=gCurrentUser.email.trim().toLowerCase();
   const now=new Date().toISOString();
-  sn.status='Resolved'; sn.resolvedBy=email; sn.resolvedAt=now; sn.updatedAt=now; sn.actualHours=actualHours;
+  // Status goes to 'Squashed', NOT 'Resolved' — this only records that the
+  // fix is done in code. The requirement stays blocked in the tester's view
+  // (TEST_RESULTS untouched here) until _tplSendSnagToTesting is called
+  // separately, e.g. once a deploy has actually gone out.
+  sn.status='Squashed'; sn.resolvedBy=email; sn.resolvedAt=now; sn.updatedAt=now; sn.actualHours=actualHours;
+  const entityType=sn.storyId?'story':'snag', entityId=sn.storyId||sn.id;
+  const product=ROADMAP_PRODUCTS.find(p=>p.id===sn.productId);
+  _tplSquashingSnagId=null;
+  renderTestPlan();
+  showToast('Snag squashed — click "Send to Testing" when it\'s ready for retest');
+  // Sequenced, not concurrent — same reasoning as _tplSubmitStoryResult.
+  await dbSquashSnag(id, actualHours);
+  const estTxt=sn.estimatedHours!=null?` (est. ${sn.estimatedHours}h)`:'';
+  await _tplPostAutoComment(entityType, entityId, `🔧 Snag squashed on ${product?product.name:'product'} — ${actualHours}h actual${estTxt}${notes?': '+notes:' (no notes provided)'}. Not yet sent back to testing.`);
+}
+
+// Second of the two squash actions — sends an already-squashed fix back to
+// testing. This is the ONLY action that resets TEST_RESULTS and flips status
+// to 'Resolved', which is what actually makes the requirement's row show
+// "Verify Fix" in the tester's Functional Tests view (see
+// _tplStoryVerification's openSnag/openEnhancement). Split from
+// _tplSubmitSquash so a developer can mark a fix done without immediately
+// surfacing it to testers — e.g. while a deploy is still pending.
+async function _tplSendSnagToTesting(id){
+  if(!canSquashSnags()){showToast('View-only access — editing is disabled');return;}
+  if(!gCurrentUser){showToast('Sign in to send this snag back to testing');return;}
+  const sn=SNAGS.find(s=>s.id===id); if(!sn)return;
+  const now=new Date().toISOString();
+  sn.status='Resolved'; sn.updatedAt=now;
   // Full reset — every prior tester's result for this requirement+product is
   // cleared, not just the failing one, so retesting needs 2 completely fresh
-  // passes ("just like an initial test"). The backend's squashSnag() does
-  // this same reset server-side as part of the one authorized call (it also
-  // checks the caller is actually a Developer/Editor/Admin, not just any
-  // signed-in user) — this is just the optimistic local mirror of that, not
-  // a separate write.
+  // passes ("just like an initial test"). The backend's sendSnagToTesting()
+  // does this same reset server-side as part of the one authorized call —
+  // this is just the optimistic local mirror of that, not a separate write.
   if(sn.storyId){
     TEST_RESULTS=TEST_RESULTS.filter(r=>!(r.storyId===sn.storyId && r.productId===sn.productId));
   }
   const entityType=sn.storyId?'story':'snag', entityId=sn.storyId||sn.id;
   const product=ROADMAP_PRODUCTS.find(p=>p.id===sn.productId);
-  _tplSquashingSnagId=null;
   renderTestPlan();
-  showToast('Snag marked resolved — ready for retesting');
-  // Sequenced, not concurrent — same reasoning as _tplSubmitStoryResult.
-  await dbSquashSnag(id, actualHours);
-  const estTxt=sn.estimatedHours!=null?` (est. ${sn.estimatedHours}h)`:'';
-  await _tplPostAutoComment(entityType, entityId, `🔧 Snag squashed on ${product?product.name:'product'} — ${actualHours}h actual${estTxt}${notes?': '+notes:' (no notes provided)'}`);
+  showToast('Sent back to testing — ready for retesting');
+  await dbSendSnagToTesting(id);
+  await _tplPostAutoComment(entityType, entityId, `📮 Sent back to testing on ${product?product.name:'product'} for verification`);
 }
 
 // Sibling outcome to _tplSubmitSquash, reachable from the SAME inline form
@@ -13714,11 +13768,12 @@ function _tplSquashFormHtml(sn){
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <label style="font-size:10px;color:var(--text3);white-space:nowrap">Actual hours spent <span style="color:var(--rag-red-fg,#C2503F)">*</span></label>
       <input type="number" min="0" step="0.25" class="req-select" id="tpl-squash-actualhours-${sn.id}" placeholder="e.g. 2.5" style="width:90px;height:30px" value="${sn.estimatedHours!=null?sn.estimatedHours:''}">
-      <span style="font-size:10px;color:var(--text3)">required to Mark Resolved${sn.estimatedHours!=null?` — estimated ${sn.estimatedHours}h`:''}</span>
+      <span style="font-size:10px;color:var(--text3)">required to squash${sn.estimatedHours!=null?` — estimated ${sn.estimatedHours}h`:''}</span>
     </div>
     <textarea class="tpl-mark-notes" id="tpl-squash-notes-${sn.id}" placeholder="What did you change to resolve this… (or, if requesting clarification, what you need to know)" autofocus></textarea>
+    <div style="font-size:10px;color:var(--text3)">Squashing marks the fix done in code — you'll get a separate "Send to Testing" button once it's ready to be retested.</div>
     <div class="tpl-mark-form-btns">
-      <button class="tpl-mark-btn tpl-pass-btn" onclick="_tplSubmitSquash('${sn.id}')"><span class="material-icons-round" style="font-size:13px">check_circle</span>Mark Resolved</button>
+      <button class="tpl-mark-btn tpl-pass-btn" onclick="_tplSubmitSquash('${sn.id}')"><span class="material-icons-round" style="font-size:13px">check_circle</span>${sn.kind==='Enhancement'?'Resolve':'Squash'}</button>
       <button class="tpl-mark-btn" onclick="_tplSubmitClarification('${sn.id}')"><span class="material-icons-round" style="font-size:13px">help_outline</span>Request Clarification</button>
       <button class="tpl-mark-btn" onclick="_tplCancelSquash()">Cancel</button>
     </div>
@@ -13920,11 +13975,17 @@ function _tplSnagCardHtml(sn){
   const isEnhancement = sn.kind==='Enhancement';
   const needsClarification = sn.status==='Needs Clarification';
   const isPlainOpen = sn.status==='Open';
+  // 'Squashed' = the developer has fixed it in code but hasn't sent it back
+  // for retest yet (see _tplSubmitSquash / _tplSendSnagToTesting) — still
+  // blocks the requirement's row for testers until the second action fires.
+  const isSquashed = sn.status==='Squashed';
   const entityType = sn.storyId ? 'story' : 'snag';
   const entityId = sn.storyId || sn.id;
   const isSquashing = isPlainOpen && _tplSquashingSnagId===sn.id;
   const statusPill = needsClarification
     ? {label:'Needs Clarification',fg:'var(--rag-amber-fg)',bg:'var(--rag-amber-bg)'}
+    : isSquashed
+      ? {label:'Squashed — awaiting retest',fg:'var(--brand-primary)',bg:'var(--brand-primary-light)'}
     // An open Enhancement isn't a defect — same "Open" label, calmer violet
     // instead of red, matching the Functional Requirements view's treatment.
     : isEnhancement
@@ -13933,7 +13994,7 @@ function _tplSnagCardHtml(sn){
   // Every card on this list is already an open issue by definition — painting
   // the whole row red on top of that was redundant with the status pill
   // below and just made the list noisy. Normal card styling now; the pill
-  // still carries the red/amber/violet status signal on its own.
+  // still carries the red/amber/violet/blue status signal on its own.
   return `<div class="tpl-req-row">
     <div class="tpl-req-row-main">
       ${code?`<div class="req-code-badge req-code-badge-clickable" title="View full details" onclick="openReqDetail('${story.id}')">${escH(code)}</div>`:''}
@@ -13947,9 +14008,10 @@ function _tplSnagCardHtml(sn){
       ${_tplSnagEstimateControlHtml(sn)}
       ${isEnhancement?'':_tplSnagAssigneeControlHtml(sn)}
       ${sn.cycleCount>1?`<span class="tpl-hier-fail-badge" title="Sent back to development ${sn.cycleCount-1} time(s) before this">↻ Cycle ${sn.cycleCount}</span>`:''}
-      <span style="font-size:10px;color:var(--text3)">Reported by ${escH(sn.reporterEmail||'—')}</span>
+      <span style="font-size:10px;color:var(--text3)">Reported by ${escH(sn.reporterEmail||'—')}${isSquashed?` · Squashed by ${escH(sn.resolvedBy||'—')}`:''}</span>
       ${commentBadgeHtml(entityType,entityId,{label:text.slice(0,60)})}
       ${isPlainOpen&&!isSquashing?`<div data-requires-squash><button class="tpl-mark-btn tpl-mark-btn-primary" onclick="_tplStartSquash('${sn.id}')">${isEnhancement?'Resolve':'Squash'}</button></div>`:''}
+      ${isSquashed?`<div data-requires-squash><button class="tpl-mark-btn tpl-mark-btn-primary" onclick="_tplSendSnagToTesting('${sn.id}')" title="Make this visible to testers so they can verify the fix"><span class="material-icons-round" style="font-size:13px;vertical-align:-2px">send</span>Send to Testing</button></div>`:''}
     </div>
     ${isSquashing?`<div data-requires-squash>${_tplSquashFormHtml(sn)}</div>`:''}
     ${needsClarification ? _tplClarificationBannerHtml(sn) : _tplClarifyHistorySnippetHtml(entityType, entityId)}
@@ -13983,12 +14045,15 @@ function _tplRenderSnagsTab(){
   const applyMineFilter=canAssignSnags() && _tplSnagMineFilter;
   let contentHtml='';
   productsToRender.forEach(prod=>{
-    // Resolved (fix applied, sent back to testing) drops off this list
+    // Resolved (fix squashed AND sent back to testing) drops off this list
     // entirely — it's Development's queue, and a Resolved snag is no longer
-    // theirs to act on. Still fully tracked elsewhere: the "Verify Fix"
-    // button on the Functional tab's own row (_tplReqRowHtml's isVerifyFix)
-    // is how a tester actually retests it, and the Test Report's "Fixes
-    // Applied — Waiting Retest" section lists these explicitly.
+    // theirs to act on. 'Squashed' (fixed but not yet sent back — see
+    // _tplSubmitSquash/_tplSendSnagToTesting) still shows here, since the
+    // developer still owes the "Send to Testing" click. Once Resolved, it's
+    // still fully tracked elsewhere: the "Verify Fix" button on the
+    // Functional tab's own row (_tplReqRowHtml's isVerifyFix) is how a
+    // tester actually retests it, and the Test Report's "Fixes Applied —
+    // Waiting Retest" section lists these explicitly.
     // Phase-scoped to the shared top-nav phase-pill selection, same as the
     // Functional/Scenario tabs — unlike the printable Test Report and the
     // Summary accordion's rollup badge, which deliberately stay unscoped as

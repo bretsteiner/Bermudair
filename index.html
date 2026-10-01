@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- StrategicSitemapper  v169.1 -->
+<!-- StrategicSitemapper  v173 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -2018,6 +2018,27 @@ a.pt-url-val:hover{text-decoration:underline}
 .tpl3-pm-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .tpl3-snag-trail{font-size:11.5px;color:var(--text-faint)}
 .tpl3-snag-actions{display:flex;align-items:center;gap:10px;flex-shrink:0}
+/* Snags — scannable List view (see _tplSnagListHtml): breadcrumb + action on the first
+   line, code/title/assignee/severity/status on the second, full card in an accordion. */
+.tpl4-list{display:flex;flex-direction:column;gap:6px;padding:4px 20px 8px}
+.tpl4-ctl{display:flex;flex-direction:column;gap:3px}
+.tpl4-ctl-lbl{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted)}
+.tpl4-sel{height:32px;padding:0 10px;border-radius:8px;border:1px solid var(--md-outline-variant,#cbd5e1);background:var(--md-surface,#fff);color:var(--text);font:inherit;font-size:13px;cursor:pointer}
+.tpl4-grp-hd{display:flex;align-items:center;gap:8px;padding:18px 20px 2px;font-size:14px;font-weight:800;color:var(--navy)}
+.tpl4-sub-hd{padding:10px 20px 2px;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--brand-accent-dark,#F2543E)}
+.tpl4-sub2-hd{padding:8px 20px 0 34px;font-size:11.5px;font-weight:700;color:var(--text-secondary)}
+.tpl4-cnt{display:inline-flex;align-items:center;justify-content:center;min-width:20px;padding:1px 7px;border-radius:999px;background:var(--md-surface-container);color:var(--text-secondary);font-size:10.5px;font-weight:700;letter-spacing:0;text-transform:none}
+.tpl4-row{background:var(--white);border:1px solid var(--border-default);border-left:3px solid var(--snag-accent,var(--rag-red-fg));border-radius:10px}
+.tpl4-row.open{box-shadow:var(--el-1)}
+.tpl4-top{display:flex;align-items:center;gap:10px;padding:8px 12px 0 12px;min-height:34px}
+.tpl4-crumb{flex:1;min-width:0;font-size:11px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tpl4-main{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:4px 10px 10px 12px;cursor:pointer}
+.tpl4-title{flex:1;min-width:220px;font-size:13.5px;font-weight:600;color:var(--ink);line-height:1.4}
+.tpl4-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:600;color:var(--text-body);background:var(--md-surface-container);white-space:nowrap}
+.tpl4-chip-muted{color:var(--text-muted);font-weight:500;font-style:italic}
+.tpl4-chev{font-size:20px;color:var(--text-faint)}
+.tpl4-detail{border-top:1px solid var(--border-subtle);padding:10px 12px 12px;background:var(--paper);border-radius:0 0 10px 10px}
+.tpl4-detail .tpl3-snag{border-left-width:3px;margin:0}
 .tpl3-snag-full{width:100%}
 .tpl3-lanes{display:flex;gap:8px;flex-wrap:wrap}
 
@@ -2133,6 +2154,45 @@ a.pt-url-val:hover{text-decoration:underline}
 /* Brief highlight after _stmGoToCrossProductPage() lands on a card in the
    newly-switched-to product's tree, so the jump is visually obvious. */
 .stm-card-flash{box-shadow:0 0 0 3px var(--brand-primary),0 10px 26px rgba(0,0,0,.28)!important;transition:box-shadow .25s}
+/* Sitemap v2 (2026-10-01): compact tree cards, ghost parents, collapse badge, warning bar, page outline. */
+.stm-card-tree{width:200px;box-sizing:border-box;padding:8px 10px 6px;display:flex;flex-direction:column;justify-content:space-between;border-left:5px solid var(--brand-primary)}
+.stm-card-tree .stm-t-title,.stm-card-ghost .stm-t-title{font-size:13px;font-weight:700;line-height:1.25;color:var(--md-on-surface);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
+.stm-t-sub{font-size:13px;line-height:1.25;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stm-t-sub-wrap{white-space:normal;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
+.stm-t-foot{display:flex;align-items:center;justify-content:flex-end;gap:6px;height:20px;flex-shrink:0}
+.stm-foot-abs{position:absolute;top:4px;left:4px;z-index:3;background:var(--md-surface);border-radius:12px;padding:1px 3px;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.stm-info,.stm-kids{display:inline-flex;align-items:center;border:none;cursor:pointer;font-family:var(--font-mono);font-size:13px;font-weight:700;line-height:1}
+.stm-info{background:none;color:var(--text3);padding:0}
+.stm-info:hover{color:var(--brand-primary)}
+.stm-via{display:inline-flex;align-items:center;gap:1px;margin-right:auto;font-size:13px;color:var(--text3);cursor:help}
+.stm-via .material-icons-round{font-size:15px}
+.stm-info .material-icons-round{font-size:16px}
+.stm-kids{gap:1px;background:var(--brand-primary-light);color:var(--brand-primary);border-radius:10px;padding:2px 7px 2px 3px;height:20px}
+.stm-kids .material-icons-round{font-size:16px}
+.stm-kids.collapsed{background:var(--brand-primary);color:#fff}
+.stm-card-ghost{width:200px;box-sizing:border-box;padding:8px 10px 6px;display:flex;flex-direction:column;justify-content:space-between;opacity:.55;border:1.5px dashed var(--md-outline);border-left:5px dashed var(--md-outline);background:transparent;box-shadow:none}
+.stm-card-ghost:hover{opacity:.85}
+.stm-card-sel{box-shadow:0 0 0 3px var(--brand-primary),0 6px 18px rgba(0,0,0,.22)}
+.stm-warn-wrap{position:sticky;top:0;left:0;height:0;z-index:30;overflow:visible}
+.stm-warn-bar{margin:10px;width:max-content;max-width:min(680px,calc(100% - 20px));background:var(--md-surface);border:1px solid var(--rag-amber-fg);border-radius:10px;box-shadow:var(--el-2);padding:6px 12px;font-size:13px;color:var(--md-on-surface)}
+.stm-warn-bar summary{cursor:pointer;display:flex;align-items:center;gap:6px;font-weight:700;color:var(--rag-amber-fg);padding:3px 0;list-style:none}
+.stm-warn-bar summary::-webkit-details-marker{display:none}
+.stm-warn-bar .material-icons-round{font-size:16px}
+.stm-warn-hint{font-size:12px;color:var(--text2);margin:4px 0}
+.stm-warn-bar ul{margin:4px 0 6px;padding-left:18px;max-height:240px;overflow:auto}
+.stm-warn-bar li{font-size:12px;line-height:1.5;color:var(--text2)}
+.stm-warn-bar li button{border:none;background:none;padding:0;color:var(--brand-primary);font-weight:700;cursor:pointer;font-family:inherit;font-size:12px}
+.stm-warn-id{font-family:var(--font-mono);font-size:11px;color:var(--text3)}
+.stm-warn-note{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);padding:3px 0}
+.stm-nav-pages-hd{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);padding:12px 14px 4px;border-top:1px solid var(--md-outline-variant);margin-top:8px}
+.stm-nav-row{display:flex;align-items:center;gap:2px}
+.stm-nav-chev{width:22px;height:22px;flex-shrink:0;border:none;background:none;cursor:pointer;color:var(--text3);display:flex;align-items:center;justify-content:center;padding:0}
+.stm-nav-chev .material-icons-round{font-size:16px}
+.stm-nav-tree{border-left:1px solid var(--md-outline-variant);margin:0 0 6px 18px}
+.stm-nav-page{display:block;flex:1;min-width:0;text-align:left;border:none;background:none;cursor:pointer;font-family:var(--font-body);font-size:12px;color:var(--md-on-surface);padding:4px 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stm-nav-page:hover{background:var(--md-surface-variant)}
+.stm-nav-page.sel{background:rgba(66,133,244,.12);color:var(--brand-primary);font-weight:700}
+.stm-nav-page.ghost{opacity:.55;font-style:italic}
 </style>
 </head>
 <body>
@@ -2658,8 +2718,13 @@ a.pt-url-val:hover{text-decoration:underline}
     <button class="ds-btn ds-btn-outline ds-btn-sm js-check-urls" onclick="headerCheckAllUrls()" title="Check every page URL via the Google Sheets backend"><span class="material-icons-round" style="font-size:1.2em">link</span>Check all URLs</button>
   </div>
   <div class="vb-group" id="vbSitemap" style="display:none">
+    <button class="ds-btn ds-btn-outline ds-btn-sm" id="stmModeTreeBtn" onclick="_stmSetMode('tree')" title="Compact page cards: title, type, status and child count"><span class="material-icons-outlined" style="font-size:1.2em">account_tree</span>Tree view</button>
     <button class="ds-btn ds-btn-outline ds-btn-sm" id="stmModeComponentBtn" onclick="_stmSetMode('component')" title="Show each page's components, colour-linked to the page they lead to"><span class="material-icons-outlined" style="font-size:1.2em">widgets</span>Component view</button>
     <button class="ds-btn ds-btn-outline ds-btn-sm" id="stmModeWebsiteBtn" onclick="_stmSetMode('website')" title="Show a live preview of each page's actual URL"><span class="material-icons-outlined" style="font-size:1.2em">language</span>Website view</button>
+    <div class="vb-sep"></div>
+    <button class="ds-btn ds-btn-outline ds-btn-sm" onclick="_stmExpandAll()" title="Expand every branch"><span class="material-icons-outlined" style="font-size:1.2em">unfold_more</span>Expand all</button>
+    <button class="ds-btn ds-btn-outline ds-btn-sm" onclick="_stmCollapseAll()" title="Collapse every branch below the top level"><span class="material-icons-outlined" style="font-size:1.2em">unfold_less</span>Collapse all</button>
+    <button class="ds-btn ds-btn-outline ds-btn-sm" onclick="VIEWPORT.fitToScreen()" title="Fit the tree to the screen (never below 50% — otherwise centres on the root and first level)"><span class="material-icons-outlined" style="font-size:1.2em">fit_screen</span>Fit</button>
   </div>
 </div>
 <div class="app-body">
@@ -3806,7 +3871,8 @@ async function loadFromSheets() {
 
     if (data.nodes && data.nodes.length) {
       NODES = data.nodes.map(r => ({
-        id: String(r.id||''), parentId: r.parentId||null, nodeType: r.nodeType||'page',
+        // id/parentId are trimmed strings so "N12 " / 12 / "12" can't silently fail to match a parent.
+        id: String(r.id==null?'':r.id).trim(), parentId: String(r.parentId==null?'':r.parentId).trim()||null, nodeType: r.nodeType||'page',
         title: r.title||'', slug: r.slug||null, newSlug: r.newSlug||null,
         slugStatus: r.slugStatus||'', slugChecked: r.slugChecked||null,
         newSlugStatus: r.newSlugStatus||'', newSlugChecked: r.newSlugChecked||null,
@@ -3927,10 +3993,12 @@ async function loadFromSheets() {
     TEST_RESULTS = (data.testResults||[]).map(r=>({id:String(r.id||''),storyId:String(r.storyId||''),testerEmail:String(r.testerEmail||'').trim().toLowerCase(),result:r.result||'',notes:r.notes||'',testedAt:r.testedAt||null,productId:String(r.productId||'')}));
     TEST_SCENARIOS = (data.scenarios||[]).map(r=>({id:String(r.id||''),code:r.code||'',title:r.title||'',mode:r.mode||'freeform',type:r.type||'',priority:r.priority||'',phaseId:String(r.phaseId||''),objective:r.objective||'',preconditions:r.preconditions||'',testData:r.testData||'',stepsJson:r.stepsJson||'',overallExpected:r.overallExpected||'',reqCodes:r.reqCodes||'',text:r.text||'',status:r.status||'Not Tested',lastTestedBy:String(r.lastTestedBy||'').trim().toLowerCase(),lastTestedAt:r.lastTestedAt||null,notes:r.notes||'',createdBy:String(r.createdBy||'').trim().toLowerCase(),createdAt:r.createdAt||null}));
     TEST_SCENARIO_LINKS = (data.scenarioLinks||[]).map(r=>({id:String(r.id||''),scenarioId:String(r.scenarioId||''),storyId:String(r.storyId||'')}));
-    SNAGS = (data.snags||[]).map(r=>({id:String(r.id||''),storyId:String(r.storyId||''),productId:String(r.productId||''),epicId:String(r.epicId||''),title:r.title||'',status:r.status||'Open',kind:r.kind==='Enhancement'?'Enhancement':'Snag',source:r.source||'test',reporterEmail:String(r.reporterEmail||'').trim().toLowerCase(),cycleCount:Number(r.cycleCount)||1,severity:r.severity||'',estimatedHours:(r.estimatedHours!==undefined&&r.estimatedHours!==null&&r.estimatedHours!=='')?Number(r.estimatedHours):null,actualHours:(r.actualHours!==undefined&&r.actualHours!==null&&r.actualHours!=='')?Number(r.actualHours):null,assignedTo:String(r.assignedTo||'').trim().toLowerCase(),pickedUp:r.pickedUp==='TRUE'||r.pickedUp===true,createdAt:r.createdAt||null,resolvedBy:String(r.resolvedBy||'').trim().toLowerCase(),resolvedAt:r.resolvedAt||null,updatedAt:r.updatedAt||null}));
+    SNAGS = (data.snags||[]).map(r=>({id:String(r.id||''),code:String(r.code||''),storyId:String(r.storyId||''),productId:String(r.productId||''),epicId:String(r.epicId||''),title:r.title||'',status:r.status||'Open',kind:r.kind==='Enhancement'?'Enhancement':'Snag',source:r.source||'test',reporterEmail:String(r.reporterEmail||'').trim().toLowerCase(),cycleCount:Number(r.cycleCount)||1,severity:r.severity||'',estimatedHours:(r.estimatedHours!==undefined&&r.estimatedHours!==null&&r.estimatedHours!=='')?Number(r.estimatedHours):null,actualHours:(r.actualHours!==undefined&&r.actualHours!==null&&r.actualHours!=='')?Number(r.actualHours):null,assignedTo:String(r.assignedTo||'').trim().toLowerCase(),pickedUp:r.pickedUp==='TRUE'||r.pickedUp===true,createdAt:r.createdAt||null,resolvedBy:String(r.resolvedBy||'').trim().toLowerCase(),resolvedAt:r.resolvedAt||null,updatedAt:r.updatedAt||null}));
     // Same shape as SNAGS, keyed on nodeId instead of storyId/productId/epicId
     // — see the Transformation Report's Page Snags panel.
-    PAGE_SNAGS = (data.pageSnags||[]).map(r=>({id:String(r.id||''),nodeId:String(r.nodeId||''),componentId:String(r.componentId||''),title:r.title||'',status:r.status||'Open',source:r.source||'manual',reporterEmail:String(r.reporterEmail||'').trim().toLowerCase(),cycleCount:Number(r.cycleCount)||1,createdAt:r.createdAt||null,resolvedBy:String(r.resolvedBy||'').trim().toLowerCase(),resolvedAt:r.resolvedAt||null,updatedAt:r.updatedAt||null}));
+    RELEASES = (data.releases||[]).map(r=>({id:String(r.id||''),code:String(r.code||''),notes:r.notes||'',createdBy:String(r.createdBy||'').trim().toLowerCase(),createdAt:r.createdAt||null,snagCount:Number(r.snagCount)||0}));
+    RELEASE_SNAGS = (data.releaseSnags||[]).map(r=>({id:String(r.id||''),releaseId:String(r.releaseId||''),snagId:String(r.snagId||''),snagCode:String(r.snagCode||''),storyId:String(r.storyId||''),productId:String(r.productId||'')}));
+    PAGE_SNAGS = (data.pageSnags||[]).map(r=>({id:String(r.id||''),code:String(r.code||''),nodeId:String(r.nodeId||''),componentId:String(r.componentId||''),title:r.title||'',status:r.status||'Open',source:r.source||'manual',reporterEmail:String(r.reporterEmail||'').trim().toLowerCase(),cycleCount:Number(r.cycleCount)||1,createdAt:r.createdAt||null,resolvedBy:String(r.resolvedBy||'').trim().toLowerCase(),resolvedAt:r.resolvedAt||null,updatedAt:r.updatedAt||null}));
     // One row per (day,product), written by the backend's captureProductProgressSnapshot()
     // — see its comment. Only ever tracks forward from whenever that's first
     // run; there is no historical data before then.
@@ -4536,7 +4604,7 @@ function _iaEffectiveProductId(node){
     if(seen.has(cur.id)) break; // cycle guard — should never happen, but never loop forever on bad data
     seen.add(cur.id);
     if(!cur.parentId) break;
-    cur=gn(cur.parentId);
+    cur=gn(resolveParentId(cur.parentId));
     depth++;
   }
   return '';
@@ -4590,7 +4658,18 @@ async function dbUpsertTestResult(r){try{await sheetPost({action:'upsertTestResu
 // Report or reopen a snag — the backend forces status:'Open' regardless of
 // what's sent here (see the doPost case), so this can never resolve one;
 // only dbSquashSnag can.
-async function dbUpsertSnag(sn){try{await sheetPost({action:'upsertSnag',row:{id:sn.id,storyId:sn.storyId||'',productId:sn.productId||'',epicId:sn.epicId||'',title:sn.title||'',status:sn.status||'Open',kind:sn.kind||'Snag',source:sn.source||'test',reporterEmail:sn.reporterEmail||'',cycleCount:sn.cycleCount||1,severity:sn.severity||'',estimatedHours:(sn.estimatedHours!=null)?sn.estimatedHours:'',actualHours:(sn.actualHours!=null)?sn.actualHours:'',assignedTo:sn.assignedTo||'',pickedUp:sn.pickedUp?'TRUE':'FALSE',createdAt:sn.createdAt||'',resolvedBy:sn.resolvedBy||'',resolvedAt:sn.resolvedAt||'',updatedAt:sn.updatedAt||''}});}catch(e){console.error('dbUpsertSnag:',e);showToast('Sheet write error: '+e.message);}}
+async function dbUpsertSnag(sn){try{const _r=await sheetPost({action:'upsertSnag',row:{id:sn.id,storyId:sn.storyId||'',productId:sn.productId||'',epicId:sn.epicId||'',title:sn.title||'',status:sn.status||'Open',kind:sn.kind||'Snag',source:sn.source||'test',reporterEmail:sn.reporterEmail||'',cycleCount:sn.cycleCount||1,severity:sn.severity||'',estimatedHours:(sn.estimatedHours!=null)?sn.estimatedHours:'',actualHours:(sn.actualHours!=null)?sn.actualHours:'',assignedTo:sn.assignedTo||'',pickedUp:sn.pickedUp?'TRUE':'FALSE',createdAt:sn.createdAt||'',resolvedBy:sn.resolvedBy||'',resolvedAt:sn.resolvedAt||'',updatedAt:sn.updatedAt||''}});if(_r&&_r.code)sn.code=_r.code;return true;}catch(e){console.error('dbUpsertSnag:',e);showToast('Sheet write error: '+e.message,6000);return false;}}
+// Persists the rows the Add Snag flow auto-creates (an "Other" functional area, a
+// "Manual Snag"/"Enhancement" function, a placeholder requirement) through the
+// narrow insert-only backend action, so Testers/Developers — who can't call the
+// editor-only upsertEpic/upsertFeature/upsertStory — can still report a snag that
+// isn't tied to an existing requirement. Returns true/false.
+async function dbUpsertSnagScaffold(pending){try{await sheetPost({action:'upsertSnagScaffold',epic:pending.epic,feature:pending.feature,story:pending.story});return true;}catch(e){console.error('dbUpsertSnagScaffold:',e);showToast('Sheet write error: '+e.message,6000);return false;}}
+function _snagScaffoldRollback(pending){
+  if(pending.story) ROADMAP_STORIES=ROADMAP_STORIES.filter(s=>s.id!==pending.story.id);
+  if(pending.feature) ROADMAP_FEATURES=ROADMAP_FEATURES.filter(f=>f.id!==pending.feature.id);
+  if(pending.epic) ROADMAP_EPICS=ROADMAP_EPICS.filter(e=>e.id!==pending.epic.id);
+}
 // First of the two actions a Developer takes on a snag — marks a fix done in
 // code. Hits the backend's squashSnag action, which checks the caller's role
 // server-side (Developer/Editor/Admin only — Tester and Developer share a
@@ -4622,8 +4701,15 @@ async function dbRequestSnagClarification(id){try{await sheetPost({action:'reque
 // kick it back to Open. Pass undefined for whichever field isn't changing —
 // JSON.stringify drops undefined keys, so the backend leaves that column
 // untouched (see updateSnagMeta's own comment).
-async function dbUpdateSnagMeta(id,severity,estimatedHours,assignedTo,pickedUp){try{await sheetPost({action:'updateSnagMeta',id,severity,estimatedHours,assignedTo,pickedUp});}catch(e){console.error('dbUpdateSnagMeta:',e);showToast('Sheet write error: '+e.message);}}
-async function dbUpsertPageSnag(sn){try{await sheetPost({action:'upsertPageSnag',row:{id:sn.id,nodeId:sn.nodeId||'',componentId:sn.componentId||'',title:sn.title||'',status:sn.status||'Open',source:sn.source||'manual',reporterEmail:sn.reporterEmail||'',cycleCount:sn.cycleCount||1,createdAt:sn.createdAt||'',resolvedBy:sn.resolvedBy||'',resolvedAt:sn.resolvedAt||'',updatedAt:sn.updatedAt||''}});}catch(e){console.error('dbUpsertPageSnag:',e);showToast('Sheet write error: '+e.message);}}
+async function dbUpdateSnagMeta(id,severity,estimatedHours,assignedTo,pickedUp){try{await sheetPost({action:'updateSnagMeta',id,severity,estimatedHours,assignedTo,pickedUp});return true;}catch(e){console.error('dbUpdateSnagMeta:',e);showToast('Sheet write error: '+e.message,6000);return false;}}
+// Runs the meta write and, if the server rejected it, restores the snag's local
+// fields and re-renders — so the screen never keeps showing a severity/estimate/
+// assignee/pick-up the sheet doesn't actually hold.
+async function _snagMetaSave(sn,prev,severity,estimatedHours,assignedTo,pickedUp){
+  const ok=await dbUpdateSnagMeta(sn.id,severity,estimatedHours,assignedTo,pickedUp);
+  if(!ok){ Object.assign(sn,prev); renderTestPlan(); }
+}
+async function dbUpsertPageSnag(sn){try{const _r=await sheetPost({action:'upsertPageSnag',row:{id:sn.id,nodeId:sn.nodeId||'',componentId:sn.componentId||'',title:sn.title||'',status:sn.status||'Open',source:sn.source||'manual',reporterEmail:sn.reporterEmail||'',cycleCount:sn.cycleCount||1,createdAt:sn.createdAt||'',resolvedBy:sn.resolvedBy||'',resolvedAt:sn.resolvedAt||'',updatedAt:sn.updatedAt||''}});if(_r&&_r.code)sn.code=_r.code;}catch(e){console.error('dbUpsertPageSnag:',e);showToast('Sheet write error: '+e.message);}}
 async function dbSquashPageSnag(id){try{await sheetPost({action:'squashPageSnag',id});return true;}catch(e){console.error('dbSquashPageSnag:',e);showToast('Sheet write error: '+e.message);return false;}}
 async function dbRequestPageSnagClarification(id){try{await sheetPost({action:'requestPageSnagClarification',id});return true;}catch(e){console.error('dbRequestPageSnagClarification:',e);showToast('Sheet write error: '+e.message);return false;}}
 // Manual on-demand trigger for the daily Product Progress snapshot (see
@@ -4973,6 +5059,11 @@ let SNAGS=[];
 // the Transformation Report's Page Snags panel. Always source:'manual';
 // there's no auto-fail-triggered path for pages the way a Test Plan snag has.
 let PAGE_SNAGS=[];
+// Releases (Snags > Release): [{id,code,notes,createdBy,createdAt,snagCount}] and the join
+// [{id,releaseId,snagId,snagCode,storyId,productId}] — which squashed snags were sent back
+// to testing together. Stored in the Releases / ReleaseSnags sheets.
+let RELEASES=[];
+let RELEASE_SNAGS=[];
 // [{id,date,productId,productName,total,verifiedCount,pct,capturedAt}] — one
 // row per (day,product), captured by the backend's daily snapshot trigger.
 // Feeds the Test Report's Progress by Day chart. See its own comment for why
@@ -5303,6 +5394,29 @@ function _debounce(fn, ms){
 const _deferredRender = _debounce(()=>{ renderCanvas(); renderMetrics(); }, 250);
 const gn = id => _nodeMap.get(id);
 
+// Display-time parent resolution. A node's stored parentId may name a VARIANT
+// (a node with variantOf = a phase version of a page); variants never get a box
+// in any tree, so the hierarchy must hang that child under the ORIGINAL page.
+// Normalises (string + trim), follows the variantOf chain with a visited-set
+// loop guard, and returns the original node's id. An id that isn't a variant is
+// returned normalised and unchanged; an id that isn't found at all is returned
+// as-is (so callers can still report a real orphan). NEVER written back — the
+// Sheet's parentId stays exactly as stored. Every hierarchy walk goes through
+// this: IA app roots/BFS/orphans, ancestor/level lookups, the Sitemap tree,
+// ecosystem hierarchy edges, effective-product inheritance and the tray.
+function resolveParentId(id){
+  let cur=id==null?'':String(id).trim();
+  const seen=new Set();
+  while(cur && !seen.has(cur)){
+    seen.add(cur);
+    const n=_nodeMap.get(cur);
+    const next=(n&&n.variantOf)?String(n.variantOf).trim():'';
+    if(!next) return cur;
+    cur=next;
+  }
+  return cur;
+}
+
 // ── Debounced per-node write coalescer ──────────────────────────────────────
 // upd() used to call dbUpsertNode() synchronously on every single field blur —
 // editing 8 fields in one tray/modal session fired 8 separate full round
@@ -5469,7 +5583,7 @@ function seedMigrationActionsFromNodes(){
     }
   });
 }
-function lvl(node){let l=1,c=node;while(c.parentId){l++;c=gn(c.parentId);if(!c)break}return l}
+function lvl(node){let l=1,c=node,g=0;while(c.parentId&&g++<100){l++;c=gn(resolveParentId(c.parentId));if(!c)break}return l}
 function ini(s){return String(s||'').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}
 function tU(u,n=22){if(!u)return'—';return u.length>n?u.slice(0,n)+'…':u}
 
@@ -5521,7 +5635,7 @@ function visNodes(){
 }
 function isNewN(n){return n.phase===curPhase&&curPhase!=='PH0'}
 function isChgN(n){return curPhase!=='PH0'&&Object.keys(n.diff||{}).length>0&&n.phase===curPhase}
-function isAnc(node,ancId){let c=node;while(c.parentId){if(c.parentId===ancId)return true;c=gn(c.parentId);if(!c)break}return false}
+function isAnc(node,ancId){let c=node,g=0;while(c.parentId&&g++<100){const pid=resolveParentId(c.parentId);if(pid===ancId)return true;c=gn(pid);if(!c)break}return false}
 function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function eid(id){return document.getElementById(id)}
 let _toastTimer=null;
@@ -6327,7 +6441,7 @@ function renderCanvasIA(){
   // ── Nodes that belong to each application (parentId traces up to root) ──
   function getAppMembers(rootId){
     const members=[];
-    const queue=[...vn.filter(n=>n.parentId===rootId&&!n.variantOf)];
+    const queue=[...vn.filter(n=>resolveParentId(n.parentId)===rootId&&!n.variantOf)];
     // BFS
     const visited=new Set([rootId]);
     while(queue.length){
@@ -6335,7 +6449,7 @@ function renderCanvasIA(){
       if(visited.has(cur.id))continue;
       visited.add(cur.id);
       members.push(cur);
-      vn.filter(n=>n.parentId===cur.id&&!n.variantOf).forEach(c=>queue.push(c));
+      vn.filter(n=>resolveParentId(n.parentId)===cur.id&&!n.variantOf).forEach(c=>queue.push(c));
     }
     return members;
   }
@@ -7281,7 +7395,7 @@ function _ecoBranchOf(nodeId){
   let cur=gn(nodeId), depth=0;
   if(!cur) return null;
   while(cur.parentId && depth<60){
-    const parent=gn(cur.parentId);
+    const parent=gn(resolveParentId(cur.parentId));
     if(!parent) break;
     cur=parent; depth++;
   }
@@ -10306,7 +10420,7 @@ function renderEcosystem(){
       const nav=isNavSource(n.id)||isNavTarget(l.targetId);
       addEdge(n.id, l.targetId, nav?NAV_MULT:1, nav?'nav':'real');
     });
-    if(_ecoIncludeHierarchy && n.parentId) addEdge(n.parentId, n.id, HIERARCHY_WEIGHT, 'hierarchy');
+    if(_ecoIncludeHierarchy && n.parentId) addEdge(resolveParentId(n.parentId), n.id, HIERARCHY_WEIGHT, 'hierarchy');
   });
 
   // Jaccard similarity of NON-nav neighbour sets — "pages linked from the
@@ -15273,7 +15387,8 @@ function _tpl2ContextBarHtml(baseStories){
   const stat=(v,l,c)=>`<div class="tpl2-stat"><span class="tpl2-stat-dot" style="background:${c}"></span><b>${v}</b>${l}</div>`;
   // Progress/filter only belong to the Requirements tab — Snags and
   // Scenarios have their own counts and would read as contradicting these.
-  const lanesRow=_tplSubTab==='snags'?_tpl2SnagLanesHtml():'';
+  // Swim lane is now a labelled dropdown inside the Snags toolbar (works while searching too).
+  const lanesRow='';
   const statsRow=_tplSubTab!=='functional'?lanesRow:`<div class="tpl2-statrow">
       ${_tpl2RingHtml(st.pct)}
       ${stat(st.todo,'to test','var(--wf-ns-fg)')}
@@ -15457,7 +15572,7 @@ function renderTestPlan(){
     <div class="req-header-title">Test plan</div>
     <div class="req-search-wrap">
       <span class="material-icons-round req-search-icon">search</span>
-      <input class="req-search-input" type="text" placeholder="Search ${ROADMAP_STORIES.length.toLocaleString()} requirements by text or code" value="${escH(_tplSearchQuery)}" oninput="_tplSetSearch(this.value)">
+      <input class="req-search-input" type="text" placeholder="${_tplSubTab==='snags'?'Search snags by code, title, product, area or reporter':'Search '+ROADMAP_STORIES.length.toLocaleString()+' requirements by text or code'}" value="${escH(_tplSearchQuery)}" oninput="_tplSetSearch(this.value)">
       ${_tplSearchQuery?`<button class="req-search-clear" onclick="_tplClearSearch()" title="Clear search">✕</button>`:''}
     </div>
     <button class="ds-btn ds-btn-outline ds-btn-sm" style="flex-shrink:0" onclick="event.stopPropagation();_tplToggleReportMenu()" title="Overview summary, full report, or the snags &amp; estimation report">
@@ -17094,7 +17209,14 @@ function _tplUpsertSnagLocal(storyId, productId, reporterEmail){
 // actually failed in the posted comment — defaults to a plain functional-
 // test failure message.
 async function _tplReportOrReopenSnag(snag, storyId, notes, originLabel){
-  await dbUpsertSnag(snag);
+  const snagOk=await dbUpsertSnag(snag);
+  if(!snagOk){
+    // The test result is already saved, but the snag itself wasn't — say so
+    // plainly (dbUpsertSnag also toasted the server's reason) instead of
+    // leaving a snag on screen that exists nowhere else.
+    showToast('The failure was recorded, but the snag could not be saved — please tell an admin.',8000);
+    return;
+  }
   const product=ROADMAP_PRODUCTS.find(p=>p.id===snag.productId);
   const cycleTxt=snag.cycleCount>1?` (cycle ${snag.cycleCount})`:'';
   const label=originLabel||'Failed testing';
@@ -17318,13 +17440,21 @@ async function _tplSubmitClarifyReply(id){
   const text=(eid('tpl-clarify-reply-'+id)?.value||'').trim();
   if(!text){showToast('Enter a reply before sending','error');return;}
   const now=new Date().toISOString();
+  const prevReply={status:sn.status,updatedAt:sn.updatedAt};
   sn.status='Open'; sn.updatedAt=now;
   const entityType=sn.storyId?'story':'snag', entityId=sn.storyId||sn.id;
   _tplClarifyReplyingId=null;
   _tplClarifyRerender();
   showToast('Reply sent');
   // Sequenced, not concurrent — same reasoning as _tplSubmitSquash.
-  await dbUpsertSnag(sn);
+  const replyOk=await dbUpsertSnag(sn);
+  if(!replyOk){
+    // The snag never went back to Open on the sheet — restore it (the developer's
+    // question is still outstanding) and don't post a reply that implies otherwise.
+    Object.assign(sn,prevReply);
+    _tplClarifyRerender();
+    return;
+  }
   await _tplPostAutoComment(entityType, entityId, `💬 ${text}`);
 }
 // Inline comment history for a clarification banner — shared by both the
@@ -17404,18 +17534,20 @@ function _tplClarificationBannerHtml(sn){
 async function _tplUpdSnagSeverity(id,val){
   if(!canSquashSnags()){showToast('View-only access — editing is disabled');return;}
   const sn=SNAGS.find(s=>s.id===id); if(!sn)return;
+  const prev={severity:sn.severity,updatedAt:sn.updatedAt};
   sn.severity=val||''; sn.updatedAt=new Date().toISOString();
   renderTestPlan();
-  await dbUpdateSnagMeta(id, sn.severity, undefined);
+  await _snagMetaSave(sn, prev, sn.severity, undefined);
 }
 async function _tplUpdSnagEstimate(id,val){
   if(!canSquashSnags()){showToast('View-only access — editing is disabled');return;}
   const sn=SNAGS.find(s=>s.id===id); if(!sn)return;
   const raw=(val||'').trim();
   if(raw && (isNaN(Number(raw))||Number(raw)<0)){showToast('Enter a valid number of hours','error');renderTestPlan();return;}
+  const prev={estimatedHours:sn.estimatedHours,updatedAt:sn.updatedAt};
   sn.estimatedHours=raw?Number(raw):null; sn.updatedAt=new Date().toISOString();
   renderTestPlan();
-  await dbUpdateSnagMeta(id, undefined, sn.estimatedHours);
+  await _snagMetaSave(sn, prev, undefined, sn.estimatedHours);
 }
 // Assignment is gated on canAssignSnags() (Developer/Admin only), deliberately
 // narrower than canSquashSnags() used above for severity/estimate — see that
@@ -17430,9 +17562,10 @@ async function _tplUpdSnagAssignee(id,val){
   // already having picked it up. Only clear it when the assignee actually
   // changes, so re-selecting the same person from the dropdown is a no-op.
   const clearingPickup = sn.pickedUp && newAssignee!==sn.assignedTo;
+  const prev={assignedTo:sn.assignedTo,pickedUp:sn.pickedUp,updatedAt:sn.updatedAt};
   sn.assignedTo=newAssignee; if(clearingPickup) sn.pickedUp=false; sn.updatedAt=new Date().toISOString();
   renderTestPlan();
-  await dbUpdateSnagMeta(id, undefined, undefined, sn.assignedTo, clearingPickup?false:undefined);
+  await _snagMetaSave(sn, prev, undefined, undefined, sn.assignedTo, clearingPickup?false:undefined);
 }
 // Toggle for the "Pick up next" checkbox — see _tplSnagPickupControlHtml for
 // who's allowed to see/click it (the assigned developer themselves, or an
@@ -17444,9 +17577,10 @@ async function _tplTogglePickup(id,checked){
   if(!canAssignSnags() || !sn.assignedTo || (sn.assignedTo!==myEmail && !isAdmin())){
     showToast('Only the assigned developer (or an admin) can pick this up');renderTestPlan();return;
   }
+  const prev={pickedUp:sn.pickedUp,updatedAt:sn.updatedAt};
   sn.pickedUp=!!checked; sn.updatedAt=new Date().toISOString();
   renderTestPlan();
-  await dbUpdateSnagMeta(id, undefined, undefined, undefined, sn.pickedUp);
+  await _snagMetaSave(sn, prev, undefined, undefined, undefined, sn.pickedUp);
 }
 // Severity only applies to Snags (kind='Snag') — an Enhancement is an idea,
 // not a defect, so the S1-S5 defect scale doesn't fit it (see SNAG_SEVERITIES).
@@ -17541,9 +17675,10 @@ async function _tplClaimSnag(id){
   const sn=SNAGS.find(s=>s.id===id); if(!sn)return;
   const myEmail=(gCurrentUser&&gCurrentUser.email||'').trim().toLowerCase();
   if(!myEmail){showToast('Sign-in required');return;}
+  const prev={assignedTo:sn.assignedTo,pickedUp:sn.pickedUp,updatedAt:sn.updatedAt};
   sn.assignedTo=myEmail; sn.pickedUp=true; sn.updatedAt=new Date().toISOString();
   renderTestPlan();
-  await dbUpdateSnagMeta(id, undefined, undefined, sn.assignedTo, true);
+  await _snagMetaSave(sn, prev, undefined, undefined, sn.assignedTo, true);
 }
 
 // Resolved snags never reach this function — _tplRenderSnagsTab filters
@@ -17568,6 +17703,10 @@ function _tplSnagCardHtml(sn){
     ? {label:'Needs Clarification',fg:'var(--rag-amber-fg)',bg:'var(--rag-amber-bg)'}
     : isSquashed
       ? {label:'Squashed — awaiting retest',fg:'var(--brand-primary)',bg:'var(--brand-primary-light)'}
+    // Only reachable via Snags-tab search (the normal list hides Resolved snags) —
+    // it used to fall through to the red "Open" pill, which was wrong.
+    : sn.status==='Resolved'
+      ? {label:'Resolved — sent to testing',fg:'var(--rag-green-fg)',bg:'var(--rag-green-bg)'}
     // An open Enhancement isn't a defect — same "Open" label, calmer violet
     // instead of red, matching the Functional Requirements view's treatment.
     : isEnhancement
@@ -17591,6 +17730,7 @@ function _tplSnagCardHtml(sn){
   return `<div class="tpl3-snag" style="--snag-accent:${statusPill.fg}" data-tpl-snag-anchor="${sn.epicId}::${sn.productId}">
     <div class="tpl3-snag-body">
       <div class="tpl3-snag-top">
+        ${sn.code?`<span class="tpl3-code" title="Snag number">${escH(sn.code)}</span>`:''}
         ${code?`<span class="tpl3-code" style="cursor:pointer" title="View full details" onclick="openReqDetail('${story.id}')">${escH(code)}</span>`:''}
         <span class="tpl3-badge" style="color:${statusPill.fg};background:${statusPill.bg}">${statusPill.label}</span>
         <span class="tpl3-snag-where">${where}</span>
@@ -17724,76 +17864,380 @@ function _tpl2SnagScopeCount(matchFn){
   const m=matchFn||(()=>true);
   return _tpl2SnagScope().filter(m).length + _tpl2MirroredSnagScope().filter(m).length;
 }
-function _tplRenderSnagsTab(){
-  const productsToRender=_tplActiveProductId==='ALL'
-    ? ROADMAP_PRODUCTS
-    : ROADMAP_PRODUCTS.filter(p=>p.id===_tplActiveProductId);
-  const showSeparator=_tplActiveProductId==='ALL';
+/* ─── SNAGS TAB ───────────────────────────────────────────────────────────
+   One item model feeds both views, so search, filters and counts can never
+   disagree between them:
+     - items = requirement snags (SNAGS) + page/component issues mirrored in from
+       the Transformation Report (PAGE_SNAGS), each flattened to
+       {type, sn, productName, areaName, featureName, code, text, assignee, sev, status}.
+     - NORMAL mode  : the Test Plan tree/phase scope + lane chip + "mine" filter
+       (open snags only — Resolved ones are no longer Development's queue).
+     - SEARCH mode  : when the search box has text, the tree selection, phase,
+       lane and open-only limits are all IGNORED so a code or title is always
+       found — including a snag already Resolved/sent to testing, or one in
+       another product/area/phase. (Previously the Snags tab ignored the search
+       box completely, and the requirement list was the only thing it fed.)
+   Views: "List" (scannable rows, details in an accordion) and "Cards" (the
+   original full cards). Assignee is deliberately only shown/grouped for
+   Developer/Admin (canAssignSnags) — Editors and others never see it. */
+let _tplSnagView='list';          // 'list' | 'cards'
+let _tplSnagGroup='assignee';     // 'assignee' = Assigned › Product · 'area' = Product › Area › Assigned
+const _tplSnagOpenIds=new Set();  // List rows whose details accordion is open
+function _tplSetSnagView(v){ _tplSnagView=v; renderTestPlan(); }
+function _tplSetSnagGroup(g){ _tplSnagGroup=g; renderTestPlan(); }
+function _tplToggleSnagRow(id){ if(_tplSnagOpenIds.has(id)) _tplSnagOpenIds.delete(id); else _tplSnagOpenIds.add(id); renderTestPlan(); }
+// Squash from a List row opens its details first, because the squash form (hours +
+// notes) lives in the accordion.
+function _tplListSquash(id){ _tplSnagOpenIds.add(id); _tplStartSquash(id); }
+function _tplListPageSquash(id){ _tplSnagOpenIds.add(id); _trStartSquashPageSnag(id); }
+
+function _tplSnagItemOfReq(sn){
+  const story=sn.storyId?ROADMAP_STORIES.find(s=>s.id===sn.storyId):null;
+  const chain=story?_reqResolveChain(story):{};
+  const product=ROADMAP_PRODUCTS.find(p=>p.id===sn.productId)||null;
+  const epic=ROADMAP_EPICS.find(e=>e.id===sn.epicId)||chain.epic||null;
+  const isEnh=sn.kind==='Enhancement';
+  return {type:'req', sn, id:sn.id, productId:sn.productId||'',
+    productName:product?product.name:'(no product)', productOrder:product?(product.order||0):9999,
+    areaName:epic?epic.name:'(no area)', areaOrder:epic?(epic.order||0):9999,
+    featureName:chain.feature?chain.feature.name:'',
+    snagCode:sn.code||'',
+    code:story?(story.code||''):'', text:story?story.text:(sn.title||'(no description)'),
+    assignee:isEnh?'':(sn.assignedTo||''), sev:isEnh?'':(sn.severity||''), isEnh, status:sn.status,
+    component:story?_snagComponentOf(story):''};
+}
+function _tplSnagItemOfPage(sn, productId){
+  const node=sn.nodeId?gn(sn.nodeId):null;
+  const comp=sn.componentId?COMP_LIBRARY.find(c=>c.id===sn.componentId):null;
+  const product=ROADMAP_PRODUCTS.find(p=>p.id===productId)||null;
+  return {type:'page', sn, id:sn.id, productId:productId||'',
+    productName:product?product.name:'(no product)', productOrder:product?(product.order||0):9999,
+    areaName:'Page & component issues', areaOrder:9998,
+    featureName:comp?comp.name:(node?(node.title||node.id):''),
+    snagCode:sn.code||'',
+    code:'', text:sn.title||'(no description)', assignee:'', sev:'', isEnh:false, status:sn.status,
+    component:comp?comp.name:''};
+}
+function _tplSnagItems(searching){
+  const items=[], seen=new Set();
+  const add=it=>{ if(!seen.has(it.id)){ seen.add(it.id); items.push(it); } };
+  if(searching){
+    SNAGS.forEach(sn=>add(_tplSnagItemOfReq(sn)));
+    PAGE_SNAGS.forEach(sn=>{
+      let pid='';
+      if(sn.componentId) pid=(_compUsingProductIds(sn.componentId)[0])||'';
+      else { const node=sn.nodeId?gn(sn.nodeId):null; pid=node?(_iaEffectiveProductId(node)||''):''; }
+      add(_tplSnagItemOfPage(sn,pid));
+    });
+    return items;
+  }
+  const products=_tplActiveProductId==='ALL'?ROADMAP_PRODUCTS:ROADMAP_PRODUCTS.filter(p=>p.id===_tplActiveProductId);
   const myEmail=(gCurrentUser&&gCurrentUser.email||'').trim().toLowerCase();
-  const applyMineFilter=canAssignSnags() && _tplSnagMineFilter;
-  const lane=TPL_SNAG_LANES.find(l=>l.id===_tplSnagLane)||TPL_SNAG_LANES[0];
-  let contentHtml='';
-  productsToRender.forEach(prod=>{
-    // Resolved (fix squashed AND sent back to testing) drops off this list
-    // entirely — it's Development's queue, and a Resolved snag is no longer
-    // theirs to act on. 'Squashed' (fixed but not yet sent back — see
-    // _tplSubmitSquash/_tplSendSnagToTesting) still shows here, since the
-    // developer still owes the "Send to Testing" click. Once Resolved, it's
-    // still fully tracked elsewhere: the "Verify Fix" button on the
-    // Functional tab's own row (_tplReqRowHtml's isVerifyFix) is how a
-    // tester actually retests it, and the Test Report's "Fixes Applied —
-    // Waiting Retest" section lists these explicitly.
-    // Phase-scoped to the shared top-nav phase-pill selection, same as the
-    // Functional/Scenario tabs — unlike the printable Test Report and the
-    // Summary accordion's rollup badge, which deliberately stay unscoped as
-    // a whole-backlog view (see their own comments), the interactive Snags
-    // tab's actual list should only ever show what's relevant right now.
-    // v3: the same phase + tree-selection scope as the tab count and lane
-    // chips (_tpl2SnagScope), so picking an area/feature in the tree narrows
-    // this list too, then narrowed again by the lane chip.
-    let snags=_tpl2SnagScope().filter(sn=>sn.productId===prod.id).filter(lane.match);
-    // "Show only my snags (or unassigned)" — Enhancements have no assignee
-    // concept (see SNAGS' own comment) so they're left alone by this filter
-    // and always stay visible; only actual Snags get narrowed down.
-    if(applyMineFilter) snags=snags.filter(sn=>sn.kind==='Enhancement' || !sn.assignedTo || sn.assignedTo===myEmail);
-    // Flat list (the design has no per-area accordions here — the card's own
-    // "Product › Area › Feature" line says where it lives), still ordered by
-    // Functional Area so related snags sit together.
-    const epicOrder=sn=>{ const e=ROADMAP_EPICS.find(x=>x.id===sn.epicId); return e?(e.order||0):null; };
-    snags=snags.filter(sn=>epicOrder(sn)!==null).sort((a,b)=>epicOrder(a)-epicOrder(b));
-
-    // Page/component issues mirrored in from the Transformation Report — NOT
-    // a copy (same PAGE_SNAGS rows, same squash/clarify actions, see
-    // _trPageSnagRerender), just also shown here so a tester working this
-    // product's Snags tab sees everything blocking it, not only the
-    // requirement-linked snags. PAGE_SNAGS has no assignedTo field at all,
-    // so applyMineFilter is deliberately not applied to it — same "always
-    // visible" treatment Enhancements already get above.
-    const pageSnags=_tplPageSnagsForProduct(prod,{phaseScoped:true}).filter(lane.match);
-    const compSnags=_tplComponentSnagsForProduct(prod,{phaseScoped:true}).filter(lane.match);
-
-    if(!snags.length && !pageSnags.length && !compSnags.length) return;
-    if(showSeparator) contentHtml+=`<div class="rm-product-sep">${escH(prod.name)}</div>`;
-    if(snags.length) contentHtml+=`<div class="tpl3-snags">${snags.map(sn=>_tplSnagCardHtml(sn)).join('')}</div>`;
-    if(pageSnags.length||compSnags.length){
-      contentHtml+=`<div class="tpl3-snags-subhead">Page &amp; Component Issues <span class="tpl3-snags-subhead-note">— reported from the Transformation Report</span></div>
-        <div class="tpl3-snags">${pageSnags.concat(compSnags).map(sn=>_trPageSnagCardHtml(sn)).join('')}</div>`;
-    }
+  const applyMine=canAssignSnags() && _tplSnagMineFilter;
+  // Swim-lane filtering is NOT applied here — _tplRenderSnagsTab applies it so the
+  // dropdown can show a count for every lane over the same (pre-lane) item set.
+  products.forEach(prod=>{
+    let snags=_tpl2SnagScope().filter(sn=>sn.productId===prod.id);
+    // Enhancements have no assignee, so the "mine" filter leaves them alone.
+    if(applyMine) snags=snags.filter(sn=>sn.kind==='Enhancement' || !sn.assignedTo || sn.assignedTo===myEmail);
+    snags.filter(sn=>ROADMAP_EPICS.some(e=>e.id===sn.epicId)).forEach(sn=>add(_tplSnagItemOfReq(sn)));
+    // Page/component issues have no assignee — the "mine" filter never hides them.
+    _tplPageSnagsForProduct(prod,{phaseScoped:true}).concat(_tplComponentSnagsForProduct(prod,{phaseScoped:true}))
+      .forEach(sn=>add(_tplSnagItemOfPage(sn,prod.id)));
   });
-  if(!contentHtml) contentHtml=`<div class="tr-empty-phase">
-    <span class="material-icons-round tr-empty-phase-icon" style="color:var(--rag-green-fg)">check_circle</span>
-    <div class="tr-empty-phase-title">No snags in this scope</div>
-    <div class="tr-empty-phase-sub">${_tplSnagLane==='all'?'Nothing is with development for the branch you have selected.':'No snags in this lane for the branch you have selected.'}</div>
+  return items;
+}
+// An exact requirement-code match wins outright (same rule as the requirement
+// search); otherwise a loose match over everything a person might type.
+function _tplSnagSearchFilter(items, q){
+  q=q.trim().toLowerCase();
+  const exactSnag=items.filter(it=>it.snagCode && it.snagCode.toLowerCase()===q);
+  if(exactSnag.length) return exactSnag;
+  const exact=items.filter(it=>it.code && it.code.toLowerCase()===q);
+  if(exact.length) return exact;
+  const canAsg=canAssignSnags();
+  return items.filter(it=>{
+    const hay=[it.snagCode,it.code,it.text,it.sn.title,it.productName,it.areaName,it.featureName,it.component,
+      it.sn.reporterEmail,it.status,it.sn.id,
+      canAsg?it.assignee:'', canAsg&&it.assignee?_tplTesterDisplayName(it.assignee):''].join(' ').toLowerCase();
+    return hay.includes(q);
+  });
+}
+
+function _tplSnagAccent(it){
+  if(it.status==='Resolved') return 'var(--rag-green-fg)';
+  if(it.status==='Squashed') return 'var(--brand-primary)';
+  if(it.status==='Needs Clarification') return 'var(--rag-amber-fg)';
+  return it.isEnh?'var(--rag-idea-fg)':'var(--rag-red-fg)';
+}
+function _tplSnagStatusChip(it){
+  const lbl={ 'Open':it.isEnh?'Idea — with development':'Open', 'Needs Clarification':'Needs clarification',
+    'Squashed':'Squashed — awaiting retest', 'Resolved':'Resolved' }[it.status]||it.status;
+  const bg={ 'Open':it.isEnh?'var(--rag-idea-bg)':'var(--rag-red-bg)', 'Needs Clarification':'var(--rag-amber-bg)',
+    'Squashed':'var(--brand-primary-light)', 'Resolved':'var(--rag-green-bg)' }[it.status]||'var(--md-surface-container)';
+  return `<span class="tpl3-badge" style="color:${_tplSnagAccent(it)};background:${bg}">${escH(lbl)}</span>`;
+}
+function _tplSnagListRowHtml(it){
+  const sn=it.sn, isPage=it.type==='page';
+  const open=_tplSnagOpenIds.has(it.id)||_tplSquashingSnagId===it.id||_trSnagSquashingId===it.id;
+  const crumbs=[it.productName,it.areaName,it.featureName].filter(Boolean).map(escH).join(' <span style="opacity:.5">›</span> ');
+  let action='';
+  if(isPage){
+    if(sn.status==='Open') action=`<div data-requires-squash><button class="tpl-mark-btn tpl-mark-btn-primary" onclick="event.stopPropagation();_tplListPageSquash('${sn.id}')">Squash</button></div>`;
+  } else if(sn.status==='Open'){
+    action=`<div data-requires-squash><button class="tpl-mark-btn tpl-mark-btn-primary" onclick="event.stopPropagation();_tplListSquash('${sn.id}')">${it.isEnh?'Resolve':'Squash'}</button></div>`;
+  } else if(sn.status==='Squashed'){
+    action=`<div data-requires-squash><button class="tpl-mark-btn tpl-mark-btn-primary" onclick="event.stopPropagation();_tplSendSnagToTesting('${sn.id}')" title="Make this visible to testers so they can verify the fix"><span class="material-icons-round" style="font-size:1.1em">send</span>Send to Testing</button></div>`;
+  }
+  const canAsg=canAssignSnags()&&!isPage&&!it.isEnh;
+  const assigneeChip=canAsg
+    ? `<span class="tpl4-chip${it.assignee?'':' tpl4-chip-muted'}" title="${it.assignee?escH(it.assignee):'Not assigned to anyone'}"><span class="material-icons-round" style="font-size:13px">${it.assignee?'person':'person_off'}</span>${it.assignee?escH(_tplTesterDisplayName(it.assignee)):'Unassigned'}</span>`
+    : '';
+  const def=it.sev?_snagSeverityDef(it.sev):null;
+  const sevChip=(isPage)?'':(it.isEnh
+    ? `<span class="tpl4-chip" style="color:var(--rag-idea-fg);background:var(--rag-idea-bg)">Enhancement</span>`
+    : (def?`<span class="tpl4-chip" style="color:${def.fg};background:${def.bg};font-weight:700" title="${escH(def.label)}">${def.code} ${escH(def.label)}</span>`
+           :`<span class="tpl4-chip tpl4-chip-muted" title="Severity not set — needs triage">No severity</span>`));
+  const cycle=(sn.cycleCount>1)?`<span class="tpl-hier-fail-badge" title="Sent back to development ${sn.cycleCount-1} time(s)">↻ ${sn.cycleCount}</span>`:'';
+  return `<div class="tpl4-row${open?' open':''}" style="--snag-accent:${_tplSnagAccent(it)}" data-tpl-snag-anchor="${it.sn.epicId||''}::${it.productId}">
+    <div class="tpl4-top">
+      <div class="tpl4-crumb" title="${escH([it.productName,it.areaName,it.featureName].filter(Boolean).join(' › '))}">${crumbs}</div>
+      ${_tplSnagStatusChip(it)}${action}
+    </div>
+    <div class="tpl4-main" onclick="_tplToggleSnagRow('${it.id}')">
+      ${it.snagCode?`<span class="tpl3-code" title="Snag number">${escH(it.snagCode)}</span>`:''}
+      ${it.code?`<span class="tpl3-code" title="Requirement code">${escH(it.code)}</span>`:`<span class="tpl3-code" style="opacity:.6">${isPage?'PAGE':'—'}</span>`}
+      <span class="tpl4-title">${escH(it.text)}</span>
+      ${assigneeChip}${sevChip}${cycle}
+      <span class="material-icons-round tpl4-chev">${open?'expand_less':'expand_more'}</span>
+    </div>
+    ${open?`<div class="tpl4-detail">${isPage?_trPageSnagCardHtml(sn):_tplSnagCardHtml(sn)}</div>`:''}
   </div>`;
-  const filterBarHtml=canAssignSnags()
-    ? `<div style="display:flex;align-items:center;gap:8px;padding:14px 20px 0">
-        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:pointer">
-          <input type="checkbox" ${_tplSnagMineFilter?'checked':''} onchange="_tplToggleSnagMineFilter()">
-          Show only my snags (or unassigned)
-        </label>
+}
+function _tplSnagSortWithin(arr){
+  return arr.slice().sort((a,b)=>_rptSevRank(a.sev)-_rptSevRank(b.sev)||String(a.code).localeCompare(String(b.code))||String(a.text).localeCompare(String(b.text)));
+}
+function _tplSnagGroupBy(items, keyFn){
+  const m=new Map(); items.forEach(it=>{ const k=keyFn(it); if(!m.has(k)) m.set(k,[]); m.get(k).push(it); });
+  return m;
+}
+// Unassigned first (it's the triage queue), then people alphabetically.
+function _tplSnagAssigneeKeys(map){
+  return [...map.keys()].sort((a,b)=>{
+    if(!a&&b) return -1; if(a&&!b) return 1;
+    return _tplTesterDisplayName(a).localeCompare(_tplTesterDisplayName(b));
+  });
+}
+function _tplSnagAssigneeLabel(k){ return k?escH(_tplTesterDisplayName(k)):'Unassigned'; }
+function _tplSnagListHtml(items){
+  const canAsg=canAssignSnags();
+  const grp=(_tplSnagGroup==='severity')?'severity':((canAsg&&_tplSnagGroup==='assignee')?'assignee':'area');
+  const rows=arr=>`<div class="tpl4-list">${_tplSnagSortWithin(arr).map(_tplSnagListRowHtml).join('')}</div>`;
+  const byProductOrder=(a,b)=>(a[0].productOrder-b[0].productOrder)||a[0].productName.localeCompare(b[0].productName);
+  let html='';
+  if(grp==='severity'){
+    const sevKeys=[...SNAG_SEVERITIES.map(x=>x.code),'ENH',''];
+    const bySev=_tplSnagGroupBy(items,it=>it.isEnh?'ENH':(it.sev||''));
+    sevKeys.filter(k=>bySev.has(k)).forEach(k=>{
+      const list=bySev.get(k), def=(k&&k!=='ENH')?_snagSeverityDef(k):null;
+      html+=`<div class="tpl4-grp-hd">${def?`<span class="tpl4-chip" style="color:${def.fg};background:${def.bg};font-weight:700">${def.code}</span>${escH(def.label)}`:(k==='ENH'?'<span class="tpl4-chip" style="color:var(--rag-idea-fg);background:var(--rag-idea-bg);font-weight:700">ENH</span>Enhancement':'No severity <span style="font-weight:400;color:var(--text-muted);font-size:11px">(not yet triaged)</span>')}<span class="tpl4-cnt">${list.length}</span></div>`;
+      const byProd=_tplSnagGroupBy(list,it=>it.productId+'|'+it.productName);
+      [...byProd.values()].sort((a,b)=>byProductOrder(a,b)).forEach(pl=>{
+        html+=`<div class="tpl4-sub-hd">${escH(pl[0].productName)} <span class="tpl4-cnt">${pl.length}</span></div>`+rows(pl);
+      });
+    });
+  } else if(grp==='assignee'){
+    const byAsg=_tplSnagGroupBy(items,it=>it.assignee);
+    _tplSnagAssigneeKeys(byAsg).forEach(ak=>{
+      const list=byAsg.get(ak);
+      html+=`<div class="tpl4-grp-hd"><span class="material-icons-round" style="font-size:18px">${ak?'person':'person_off'}</span>${_tplSnagAssigneeLabel(ak)}<span class="tpl4-cnt">${list.length}</span></div>`;
+      const byProd=_tplSnagGroupBy(list,it=>it.productId+'|'+it.productName);
+      [...byProd.values()].sort((a,b)=>byProductOrder(a,b)).forEach(pl=>{
+        html+=`<div class="tpl4-sub-hd">${escH(pl[0].productName)} <span class="tpl4-cnt">${pl.length}</span></div>`+rows(pl);
+      });
+    });
+  } else {
+    const byProd=_tplSnagGroupBy(items,it=>it.productId+'|'+it.productName);
+    [...byProd.values()].sort((a,b)=>byProductOrder(a,b)).forEach(pl=>{
+      html+=`<div class="tpl4-grp-hd">${escH(pl[0].productName)}<span class="tpl4-cnt">${pl.length}</span></div>`;
+      const byArea=_tplSnagGroupBy(pl,it=>it.areaName);
+      [...byArea.values()].sort((a,b)=>(a[0].areaOrder-b[0].areaOrder)||a[0].areaName.localeCompare(b[0].areaName)).forEach(al=>{
+        html+=`<div class="tpl4-sub-hd">${escH(al[0].areaName)} <span class="tpl4-cnt">${al.length}</span></div>`;
+        if(canAsg){
+          const byAsg=_tplSnagGroupBy(al,it=>it.assignee);
+          _tplSnagAssigneeKeys(byAsg).forEach(ak=>{
+            const sl=byAsg.get(ak);
+            html+=`<div class="tpl4-sub2-hd"><span class="material-icons-round" style="font-size:14px;vertical-align:-3px">${ak?'person':'person_off'}</span> ${_tplSnagAssigneeLabel(ak)} <span class="tpl4-cnt">${sl.length}</span></div>`+rows(sl);
+          });
+        } else html+=rows(al);
+      });
+    });
+  }
+  return html;
+}
+function _tplSnagsCardsHtml(items, showSep){
+  const byProd=_tplSnagGroupBy(items,it=>it.productId+'|'+it.productName);
+  let html='';
+  [...byProd.values()].sort((a,b)=>(a[0].productOrder-b[0].productOrder)||a[0].productName.localeCompare(b[0].productName)).forEach(pl=>{
+    const reqs=pl.filter(it=>it.type==='req').sort((a,b)=>a.areaOrder-b.areaOrder);
+    const pages=pl.filter(it=>it.type==='page');
+    if(showSep) html+=`<div class="rm-product-sep">${escH(pl[0].productName)}</div>`;
+    if(reqs.length) html+=`<div class="tpl3-snags">${reqs.map(it=>_tplSnagCardHtml(it.sn)).join('')}</div>`;
+    if(pages.length) html+=`<div class="tpl3-snags-subhead">Page &amp; Component Issues <span class="tpl3-snags-subhead-note">— reported from the Transformation Report</span></div>
+      <div class="tpl3-snags">${pages.map(it=>_trPageSnagCardHtml(it.sn)).join('')}</div>`;
+  });
+  return html;
+}
+/* ── RELEASES ────────────────────────────────────────────────────────────
+   Snags tab > Release: lists every SQUASHED snag (fix done, not yet with testers);
+   a Developer/Editor/Admin ticks the ones going out, optionally adds release notes
+   and presses "Release completed". That records a release (Releases + ReleaseSnags
+   sheets, REL-0001…) and sends each ticked snag back to testing — status Resolved and
+   the requirement's prior results reset, so testers see "Fix ready to verify". Past
+   releases, with their notes and snags, are listed underneath for everyone. */
+let _tplReleaseOpen=false;
+const _tplReleaseSel=new Set();
+let _tplReleaseNotes='';
+let _tplReleaseBusy=false;
+function _tplToggleRelease(){ _tplReleaseOpen=!_tplReleaseOpen; renderTestPlan(); }
+function _tplReleaseToggleSnag(id){ if(_tplReleaseSel.has(id)) _tplReleaseSel.delete(id); else _tplReleaseSel.add(id); renderTestPlan(); }
+function _tplReleaseSelectAll(on){ _tplReleaseSquashed().forEach(sn=>{ if(on) _tplReleaseSel.add(sn.id); else _tplReleaseSel.delete(sn.id); }); renderTestPlan(); }
+function _tplReleaseSquashed(){
+  return SNAGS.filter(sn=>sn.status==='Squashed').sort((a,b)=>String(a.resolvedAt||'').localeCompare(String(b.resolvedAt||'')));
+}
+function _tplReleaseViewHtml(){
+  const squashed=_tplReleaseSquashed();
+  const sel=squashed.filter(sn=>_tplReleaseSel.has(sn.id));
+  const rowHtml=sn=>{
+    const it=_tplSnagItemOfReq(sn);
+    const def=it.sev?_snagSeverityDef(it.sev):null;
+    return `<label class="tpl4-row" style="--snag-accent:var(--brand-primary);display:flex;align-items:center;gap:12px;padding:10px 14px;cursor:pointer">
+      <input type="checkbox" ${_tplReleaseSel.has(sn.id)?'checked':''} onchange="_tplReleaseToggleSnag('${sn.id}')" style="width:16px;height:16px;accent-color:var(--brand-primary)">
+      ${it.snagCode?`<span class="tpl3-code">${escH(it.snagCode)}</span>`:''}${it.code?`<span class="tpl3-code">${escH(it.code)}</span>`:''}
+      <span style="flex:1;min-width:0;font-size:13px;color:var(--ink)">${escH(it.text)}<span style="display:block;font-size:11px;color:var(--text-muted)">${escH([it.productName,it.areaName,it.featureName].filter(Boolean).join(' › '))}</span></span>
+      ${it.isEnh?'<span class="tpl4-chip" style="color:var(--rag-idea-fg);background:var(--rag-idea-bg)">Enhancement</span>':(def?`<span class="tpl4-chip" style="color:${def.fg};background:${def.bg};font-weight:700">${def.code}</span>`:'')}
+      <span style="font-size:11px;color:var(--text-muted);white-space:nowrap">squashed by ${escH(_tplTesterDisplayName(sn.resolvedBy||'')||'—')}${sn.resolvedAt?' · '+_rptFmtDate(sn.resolvedAt):''}</span>
+    </label>`;
+  };
+  let html=`<div style="padding:14px 20px 0;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <button class="ds-btn ds-btn-outline ds-btn-sm" onclick="_tplToggleRelease()"><span class="material-icons-round" style="font-size:1.1em">arrow_back</span>Back to snags</button>
+    <div style="font-size:16px;font-weight:800;color:var(--navy)">Release</div>
+  </div>`;
+  html+=`<div data-requires-squash style="padding:6px 20px 0"><div style="font-size:12px;color:var(--text-muted);margin:8px 0">Tick the squashed snags that are in this release. When you press <b>Release completed</b>, they are sent back to the testers to retest.</div>`;
+  if(!squashed.length){
+    html+=`<div class="tr-empty-phase" style="padding:30px 0"><span class="material-icons-round tr-empty-phase-icon">inventory_2</span><div class="tr-empty-phase-title">No squashed snags waiting</div><div class="tr-empty-phase-sub">Snags a developer has squashed will appear here, ready to release.</div></div>`;
+  } else {
+    html+=`<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" ${sel.length===squashed.length?'checked':''} onchange="_tplReleaseSelectAll(this.checked)" style="accent-color:var(--brand-primary)">Select all (${squashed.length})</label>
+      <span style="font-size:12px;color:var(--text-muted)">${sel.length} selected</span></div>
+      <div class="tpl4-list" style="padding:0">${squashed.map(rowHtml).join('')}</div>
+      <div class="tpl4-ctl" style="margin-top:14px"><span class="tpl4-ctl-lbl">Release notes (optional)</span>
+        <textarea class="minput" rows="3" placeholder="What's in this release…" oninput="_tplReleaseNotes=this.value">${escH(_tplReleaseNotes)}</textarea></div>
+      <div style="margin:14px 0 6px"><button class="ds-btn ds-btn-accent ds-btn-md" ${(!sel.length||_tplReleaseBusy)?'disabled':''} onclick="_tplCompleteRelease()"><span class="material-icons-round" style="font-size:1.1em">rocket_launch</span>${_tplReleaseBusy?'Releasing…':'Release completed'}${sel.length?' ('+sel.length+')':''}</button></div>`;
+  }
+  html+='</div>';
+  const rels=RELEASES.slice().sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
+  html+=`<div style="padding:18px 20px 40px"><div style="font-size:14px;font-weight:800;color:var(--navy);margin-bottom:8px">Release history <span class="tpl4-cnt">${rels.length}</span></div>`;
+  if(!rels.length) html+='<div style="font-size:12px;color:var(--text-muted)">No releases yet.</div>';
+  rels.forEach(r=>{
+    const members=RELEASE_SNAGS.filter(x=>x.releaseId===r.id);
+    const n=members.length||r.snagCount;
+    html+=`<div class="tpl4-row" style="--snag-accent:var(--brand-primary);margin-bottom:8px;padding:12px 14px">
+      <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><span class="tpl3-code" style="font-size:13px;font-weight:700">${escH(r.code)}</span>
+        <span style="font-size:12px;color:var(--text-muted)">${_rptFmtDateTime(r.createdAt)} · by ${escH(_tplTesterDisplayName(r.createdBy)||'—')} · ${n} snag${n===1?'':'s'}</span></div>
+      ${r.notes?`<div style="font-size:12px;color:var(--text2);margin:6px 0;white-space:pre-wrap">${escH(r.notes)}</div>`:''}
+      <div style="display:flex;flex-direction:column;gap:3px;margin-top:6px">${members.map(m=>{
+        const sn=SNAGS.find(x=>x.id===m.snagId), st=ROADMAP_STORIES.find(x=>x.id===m.storyId);
+        return `<div style="font-size:12px;color:var(--text2)"><span class="tpl3-code">${escH(m.snagCode||(sn&&sn.code)||'—')}</span> ${escH(st?st.text.slice(0,100):((sn&&sn.title)||''))}</div>`;
+      }).join('')}</div></div>`;
+  });
+  return html+'</div>';
+}
+async function _tplCompleteRelease(){
+  if(!canSquashSnags()){showToast('Developer access or above is required to create a release');return;}
+  if(!gCurrentUser){showToast('Sign in to create a release');return;}
+  if(_tplReleaseBusy) return;
+  const picked=_tplReleaseSquashed().filter(sn=>_tplReleaseSel.has(sn.id));
+  if(!picked.length){showToast('Tick at least one snag');return;}
+  if(picked.some(sn=>SNAG_SAVE_PENDING.has(sn.id))){showToast('A snag is still saving — please wait…');return;}
+  _tplReleaseBusy=true; picked.forEach(sn=>SNAG_SAVE_PENDING.add(sn.id));
+  renderTestPlan();
+  let res=null;
+  try{ res=await sheetPost({action:'createRelease',snagIds:picked.map(sn=>sn.id),notes:_tplReleaseNotes.trim()}); }
+  catch(e){ showToast('Release failed: '+e.message,8000); }
+  picked.forEach(sn=>SNAG_SAVE_PENDING.delete(sn.id));
+  _tplReleaseBusy=false;
+  if(!res||!res.ok){ renderTestPlan(); return; }
+  const failed=new Set((res.failed||[]).map(f=>f.id));
+  const now=new Date().toISOString();
+  RELEASES.push({id:res.id,code:res.code,notes:_tplReleaseNotes.trim(),createdBy:(res.createdBy||gCurrentUser.email||'').toLowerCase(),createdAt:res.createdAt||now,snagCount:res.snagCount||picked.length});
+  picked.forEach((sn,i)=>{
+    RELEASE_SNAGS.push({id:res.id+'_'+i,releaseId:res.id,snagId:sn.id,snagCode:sn.code||'',storyId:sn.storyId||'',productId:sn.productId||''});
+    if(failed.has(sn.id)) return;
+    sn.status='Resolved'; sn.updatedAt=now;
+    if(sn.storyId) TEST_RESULTS=TEST_RESULTS.filter(r=>!(r.storyId===sn.storyId && r.productId===sn.productId));
+  });
+  _tplReleaseSel.clear(); _tplReleaseNotes='';
+  renderTestPlan();
+  showToast(failed.size?`Release ${res.code} recorded, but ${failed.size} snag(s) could not be sent to testing`:`Release ${res.code} completed — ${picked.length} snag(s) sent to testers to retest`, failed.size?8000:4000);
+  for(const sn of picked){
+    if(failed.has(sn.id)) continue;
+    const product=ROADMAP_PRODUCTS.find(p=>p.id===sn.productId);
+    await _tplPostAutoComment(sn.storyId?'story':'snag', sn.storyId||sn.id, `📮 Sent back to testing in release ${res.code}${product?' on '+product.name:''}`);
+  }
+}
+function _tplSnagToolbarHtml(laneCounts){
+  const canAsg=canAssignSnags();
+  const seg=(cur,val,fn,label)=>`<button class="tpl-subtab-btn${cur===val?' active':''}" onclick="${fn}('${val}')">${label}</button>`;
+  const ctl=(label,inner)=>`<div class="tpl4-ctl"><span class="tpl4-ctl-lbl">${label}</span>${inner}</div>`;
+  const laneSel=`<select class="tpl4-sel" onchange="_tplSetSnagLane(this.value)">${TPL_SNAG_LANES.map(l=>`<option value="${l.id}"${_tplSnagLane===l.id?' selected':''}>${l.label} · ${laneCounts[l.id]||0}</option>`).join('')}</select>`;
+  // 'Assigned' grouping only exists for Developer/Admin; everyone else is always Product-grouped.
+  const grp=(_tplSnagView==='list')
+    ? ctl('Group by',`<select class="tpl4-sel" onchange="_tplSetSnagGroup(this.value)">
+        ${canAsg?`<option value="assignee"${_tplSnagGroup==='assignee'?' selected':''}>Assigned</option>`:''}
+        <option value="severity"${_tplSnagGroup==='severity'?' selected':''}>Severity</option>
+        <option value="area"${(_tplSnagGroup==='area'||(!canAsg&&_tplSnagGroup==='assignee'))?' selected':''}>Product</option></select>`)
+    : '';
+  return `<div style="display:flex;align-items:flex-end;gap:18px;flex-wrap:wrap;padding:14px 20px 0">
+    <button class="ds-btn ds-btn-accent ds-btn-md" onclick="_tplToggleRelease()" title="Send squashed snags back to testing as a release, and see past releases"><span class="material-icons-round" style="font-size:1.1em">rocket_launch</span>Release</button>
+    ${ctl('Swim lane',laneSel)}
+    ${grp}
+    ${ctl('Detail',`<div class="tpl-subtab-toggle">${seg(_tplSnagView,'list','_tplSetSnagView','Less')}${seg(_tplSnagView,'cards','_tplSetSnagView','More')}</div>`)}
+    ${canAsg?ctl('Filter',`<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:pointer;height:32px">
+      <input type="checkbox" ${_tplSnagMineFilter?'checked':''} onchange="_tplToggleSnagMineFilter()">Only my snags (or unassigned)</label>`):''}
+  </div>`;
+}
+function _tplRenderSnagsTab(){
+  if(_tplReleaseOpen) return _tplReleaseViewHtml();
+  const q=_tplSearchQuery.trim();
+  const searching=!!q;
+  let items=_tplSnagItems(searching);
+  if(searching) items=_tplSnagSearchFilter(items,q);
+  // Lane counts are over everything that passed scope/search, before the lane itself.
+  const laneCounts={}; TPL_SNAG_LANES.forEach(l=>{ laneCounts[l.id]=items.filter(it=>l.match(it.sn)).length; });
+  const lane=TPL_SNAG_LANES.find(l=>l.id===_tplSnagLane)||TPL_SNAG_LANES[0];
+  items=items.filter(it=>lane.match(it.sn));
+  const banner=searching
+    ? `<div style="margin:12px 20px 0;padding:9px 14px;border-radius:10px;background:var(--brand-primary-light);color:var(--brand-primary);font-size:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span class="material-icons-round" style="font-size:16px">search</span>
+        <span><b>${items.length}</b> snag${items.length===1?'':'s'} match “${escH(q)}” — searching <b>all</b> products, areas, phases and statuses (including resolved).</span>
+        <button class="ds-btn ds-btn-ghost ds-btn-sm" style="margin-left:auto" onclick="_tplClearSearch()">Clear search</button>
       </div>`
     : '';
-  return filterBarHtml+contentHtml;
+  let body;
+  if(!items.length){
+    body=searching
+      ? `<div class="tr-empty-phase"><span class="material-icons-round tr-empty-phase-icon">search_off</span>
+          <div class="tr-empty-phase-title">No snags match “${escH(q)}”</div>
+          <div class="tr-empty-phase-sub">Search covers requirement code, title, product, area, feature, component and reporter. If it's a requirement that has never failed or had a snag raised, it won't be here — check the Requirements tab.</div></div>`
+      : `<div class="tr-empty-phase"><span class="material-icons-round tr-empty-phase-icon" style="color:var(--rag-green-fg)">check_circle</span>
+          <div class="tr-empty-phase-title">No snags in this scope</div>
+          <div class="tr-empty-phase-sub">${_tplSnagLane==='all'?'Nothing is with development for the branch you have selected.':'No snags in this lane for the branch you have selected.'}</div></div>`;
+  } else {
+    const showSep=searching || _tplActiveProductId==='ALL';
+    body=_tplSnagView==='list'?_tplSnagListHtml(items):_tplSnagsCardsHtml(items,showSep);
+  }
+  return _tplSnagToolbarHtml(laneCounts)+banner+body;
 }
 // ── Manual snag entry — "found and submitted through other means", not
 // discovered via a failed functional test. Requires a Product and a
@@ -17926,7 +18370,7 @@ function _renderAddSnagModal(){
 // the product's existing Functional Areas (the modal's "Other" option — see
 // SNAG_OTHER_EPIC). One "Other" epic per product, reused across every
 // report that picks it rather than creating a fresh one each time.
-function _snagFindOrCreateOtherEpic(productId){
+function _snagFindOrCreateOtherEpic(productId, pending){
   const existing=ROADMAP_EPICS.find(e=>e.productId===productId && (e.name||'').trim().toLowerCase()==='other');
   if(existing) return existing;
   const e={id:'EP'+Date.now(), productId, name:'Other',
@@ -17934,7 +18378,9 @@ function _snagFindOrCreateOtherEpic(productId){
     colour:EPIC_COLOURS[EPIC_COLOURS.length-1]||EPIC_COLOURS[0],
     order:ROADMAP_EPICS.filter(x=>x.productId===productId).length, jiraKey:'', testProductIds:[]};
   ROADMAP_EPICS.push(e);
-  dbUpsertEpic(e);
+  // `pending` (non-editors): collect for the narrow upsertSnagScaffold action instead.
+  if(pending) pending.epic={id:e.id,productId:e.productId,name:e.name,desc:e.desc,colour:e.colour,order:e.order,jiraKey:'',testProductIds:''};
+  else dbUpsertEpic(e);
   return e;
 }
 // Find-or-create a "Manual Snag" (or, for kind==='Enhancement', a separate
@@ -17945,7 +18391,7 @@ function _snagFindOrCreateOtherEpic(productId){
 // a fresh one each time, so they stay organised together (and kept separate
 // from each other) instead of scattering one-off Functions across the
 // Roadmap.
-function _snagFindOrCreateManualFeature(epicId, phaseId, kind){
+function _snagFindOrCreateManualFeature(epicId, phaseId, kind, pending){
   const isEnhancement=kind==='Enhancement';
   const featureName=isEnhancement?'Enhancement':'Manual Snag';
   const existing=ROADMAP_FEATURES.find(f=>f.epicId===epicId && f.phaseId===phaseId && (f.name||'').trim().toLowerCase()===featureName.toLowerCase());
@@ -17957,7 +18403,8 @@ function _snagFindOrCreateManualFeature(epicId, phaseId, kind){
     icon:ROADMAP_ICONS[0], status:'Planned', stretch:false,
     order:ROADMAP_FEATURES.filter(x=>x.epicId===epicId&&x.phaseId===phaseId).length, jiraKey:''};
   ROADMAP_FEATURES.push(f);
-  dbUpsertFeature(f);
+  if(pending) pending.feature={id:f.id,epicId:f.epicId,phaseId:f.phaseId||'',name:f.name,desc:f.desc,icon:f.icon,status:f.status,stretch:'FALSE',order:f.order,jiraKey:''};
+  else dbUpsertFeature(f);
   return f;
 }
 // Lightweight placeholder requirement for a manually-reported snag with no
@@ -17978,12 +18425,13 @@ function _snagComponentOf(story){
   const m=story&&/Component:\s*(.+)$/.exec(story.source||'');
   return m?m[1].trim():'';
 }
-function _snagCreatePlaceholderStory(featureId, text, kind, componentName){
+function _snagCreatePlaceholderStory(featureId, text, kind, componentName, pending){
   const story={id:'ST'+Date.now(), code:_reqGenerateCode(featureId), featureId,
     text:text||'(no description)', stretch:false, type:'', devStatus:'Not Started', testStatus:'Not Started',
     owner:'', source:(kind==='Enhancement'?'Manually reported enhancement':'Manually reported snag')+(componentName?' · Component: '+componentName:''), order:ROADMAP_STORIES.filter(s=>s.featureId===featureId).length, jiraKey:''};
   ROADMAP_STORIES.push(story);
-  dbUpsertStory(story);
+  if(pending) pending.story={id:story.id,code:story.code,featureId:story.featureId,text:story.text,stretch:'FALSE',type:'',devStatus:story.devStatus,testStatus:story.testStatus,owner:'',source:story.source,order:story.order,jiraKey:'',testProductIds:''};
+  else dbUpsertStory(story);
   return story;
 }
 async function saveAddSnagModal(){
@@ -17991,6 +18439,12 @@ async function saveAddSnagModal(){
   if(!d) return;
   const kind=d.kind==='Enhancement'?'Enhancement':'Snag';
   const isEnhancement=kind==='Enhancement';
+  // Editors/Admins create the auto-created Other epic / Manual Snag function /
+  // placeholder requirement through the normal editor-only actions (as before).
+  // Testers and Developers can't call those, so for them those rows are collected
+  // here and persisted through the narrow upsertSnagScaffold action instead —
+  // before the snag itself, so it never points at a requirement that wasn't saved.
+  const pending=canEdit()?null:{};
   const productId=d.productId;
   let epicId=d.epicId;
   const functionId=d.functionId;
@@ -18010,7 +18464,7 @@ async function saveAddSnagModal(){
   // _snagFindOrCreateOtherEpic. Everything downstream then behaves exactly
   // as it would for any other Functional Area.
   if(epicId===SNAG_OTHER_EPIC){
-    epicId=_snagFindOrCreateOtherEpic(productId).id;
+    epicId=_snagFindOrCreateOtherEpic(productId,pending).id;
   }
   // No existing requirement picked — auto-create a placeholder one instead
   // of leaving this unlinked, so it gets the same retest workflow as any
@@ -18027,8 +18481,8 @@ async function saveAddSnagModal(){
   const compObj=compId?COMP_LIBRARY.find(c=>c.id===compId):null;
   const compName=compObj?(compObj.name+(compObj.code?' ('+compObj.code+')':'')):'';
   if(!storyId){
-    const targetFeature=functionId ? ROADMAP_FEATURES.find(f=>f.id===functionId) : _snagFindOrCreateManualFeature(epicId, curPhase, kind);
-    if(targetFeature) storyId=_snagCreatePlaceholderStory(targetFeature.id, title, kind, compName).id;
+    const targetFeature=functionId ? ROADMAP_FEATURES.find(f=>f.id===functionId) : _snagFindOrCreateManualFeature(epicId, curPhase, kind, pending);
+    if(targetFeature) storyId=_snagCreatePlaceholderStory(targetFeature.id, title, kind, compName, pending).id;
   } else if(compName){
     _tplPostAutoComment('story', storyId, (isEnhancement?'Enhancement':'Snag')+' reported — component affected: '+compName+'.');
   }
@@ -18039,13 +18493,31 @@ async function saveAddSnagModal(){
     status:'Open', source:'manual', reporterEmail:email, cycleCount:1,
     severity, estimatedHours, assignedTo, pickedUp:false,
     createdAt:now, resolvedBy:'', resolvedAt:'', updatedAt:now};
+  if(pending && (pending.epic||pending.feature||pending.story)){
+    const scaffoldOk=await dbUpsertSnagScaffold(pending);
+    if(!scaffoldOk){
+      _snagScaffoldRollback(pending);
+      showToast('The '+(isEnhancement?'enhancement':'snag')+' was NOT saved — please try again, and tell an admin if it keeps happening.',8000);
+      return;
+    }
+  }
   SNAGS.push(snag);
-  await dbUpsertSnag(snag);
+  const snagSaved=await dbUpsertSnag(snag);
+  if(!snagSaved){
+    // dbUpsertSnag already toasted the server's reason — don't leave a phantom
+    // snag on screen that doesn't exist on the sheet.
+    SNAGS=SNAGS.filter(s=>s.id!==snag.id);
+    renderTestPlan();
+    return;
+  }
   _tplSnagDraft=null;
   closeModal('addSnagModal');
-  _tplSubTab='snags';
-  renderTestPlan();
-  showToast(isEnhancement?'Enhancement added':'Snag added');
+  // Land on the requirement itself (Requirements tab, its row opened) so the new
+  // snag is seen straight away as a failing requirement, not on the snag list.
+  _tplVerifyCache=null;
+  _tplHideFullyTested=false;
+  _reqGoToTestPlan(storyId,productId);
+  showToast(isEnhancement?'Enhancement added':'Snag added — requirement now shows as failing');
 }
 
 // ── Test Report — printable summary of testing progress ─────────────────
@@ -19040,6 +19512,30 @@ function _snagsRptSevChip(sev){
 function _snagsRptRow_(cells){ return `<tr>${cells.map(c=>`<td>${c}</td>`).join('')}</tr>`; }
 function _snagsRptTh_(cells){ return `<thead><tr>${cells.map(c=>`<th>${c}</th>`).join('')}</tr></thead>`; }
 
+// Body of the "Opened" card — snags created in range, summarised by who reported them.
+function _snagsRptOpenedSection_(D, fromKey, toKey){
+  const rows=D.snagRows.filter(r=>{ const k=_rptDateKey(r.sn.createdAt); return k && k>=fromKey && k<=toKey; })
+    .sort((a,b)=>String(b.sn.createdAt||'').localeCompare(String(a.sn.createdAt||'')));
+  if(!rows.length) return { html:'<div class="empty">No snags raised in this date range.</div>', count:0 };
+  const by=new Map();
+  rows.forEach(r=>{ const k=r.sn.reporterEmail||'(unknown)'; if(!by.has(k)) by.set(k,{who:k,n:0,s12:0,source:{test:0,manual:0}}); const o=by.get(k); o.n++; if(r.sev==='S1'||r.sev==='S2') o.s12++; o.source[r.sn.source==='manual'?'manual':'test']++; });
+  const people=[...by.values()].sort((a,b)=>b.n-a.n);
+  const html=`<table class="small" style="max-width:560px">
+      ${_snagsRptTh_(['Raised by','Snags raised','S1+S2','From failed tests','Reported manually'])}
+      <tbody>${people.map(o=>_snagsRptRow_([escH(_tplTesterDisplayName(o.who)||o.who),'<b>'+o.n+'</b>',o.s12||'—',o.source.test||'—',o.source.manual||'—'])).join('')}
+      <tr class="tot"><td>Total</td><td>${rows.length}</td><td>${people.reduce((a,o)=>a+o.s12,0)||'—'}</td><td>${people.reduce((a,o)=>a+o.source.test,0)||'—'}</td><td>${people.reduce((a,o)=>a+o.source.manual,0)||'—'}</td></tr></tbody>
+    </table>
+    <h3 style="font-size:12px;color:#15294F;margin:14px 0 6px">Snags raised</h3>
+    <table class="small">
+      ${_snagsRptTh_(['Code','Requirement','Product','Area','Sev','Raised by','When','Status'])}
+      <tbody>${rows.map(r=>{
+        const prod=ROADMAP_PRODUCTS.find(p=>p.id===r.productId);
+        return _snagsRptRow_([r.code||'—',escH(r.text.slice(0,80)),escH(prod?prod.name:'—'),escH(r.area),_snagsRptSevChip(r.sev),
+          escH(_tplTesterDisplayName(r.sn.reporterEmail||'')||'—'),_rptFmtDateTime(r.sn.createdAt),escH(r.status)]);
+      }).join('')}</tbody>
+    </table>`;
+  return { html, count: rows.length };
+}
 // Body of the "Squashed" card — everything BELOW the <h2>, so both the
 // initial full-page build and a later date-range refresh can share the
 // exact same markup logic (see _snagsRptRefreshFragments). Returns the html
@@ -19109,7 +19605,10 @@ function _snagsRptNextUpSection_(D){
 function _snagsRptRefreshFragments(fromKey, toKey){
   const D=_tplReportData();
   const sq=_snagsRptSquashedSection_(D, fromKey, toKey);
+  const op=_snagsRptOpenedSection_(D, fromKey, toKey);
   return {
+    openedHtml: op.html,
+    openedCount: op.count,
     squashedHtml: sq.html,
     squashedCount: sq.count,
     accuracyHtml: _snagsRptAccuracySection_(D, fromKey, toKey),
@@ -19122,6 +19621,7 @@ function _tplSnagsReportBuildHtml(){
   const { fromKey, toKey } = _snagsRptDefaultRange(D);
   const rangeLabel=_rptFmtDate(fromKey)+' – '+_rptFmtDate(toKey);
   const squashedSec=_snagsRptSquashedSection_(D, fromKey, toKey);
+  const openedSec=_snagsRptOpenedSection_(D, fromKey, toKey);
   const accuracyHtml=_snagsRptAccuracySection_(D, fromKey, toKey);
   const nextUpHtml=_snagsRptNextUpSection_(D);
   const devGroups=_snagsRptDevGroups(D);
@@ -19195,7 +19695,7 @@ function _tplSnagsReportBuildHtml(){
   <button class="no-print rpt-closex" onclick="window.close()" title="Close and go back">✕</button>
   <div class="rpt-shell">
   <div class="no-print rpt-toolbar">
-    <div class="rpt-nav"><a href="#sec-squashed">Squashed</a><a href="#sec-accuracy">Estimate accuracy</a><a href="#sec-nextup">Next up</a><a href="#sec-outstanding">Outstanding by Area</a></div>
+    <div class="rpt-nav"><a href="#sec-squashed">Squashed</a><a href="#sec-accuracy">Estimate accuracy</a><a href="#sec-nextup">Next up</a><a href="#sec-outstanding">Outstanding by Area</a><a href="#sec-opened">Snags Raised</a></div>
     <div class="rpt-daterange">
       <div class="rpt-pills">
         <button type="button" class="rpt-pill" onclick="_snagsRptSetPreset('day')">Previous day</button>
@@ -19210,6 +19710,7 @@ function _tplSnagsReportBuildHtml(){
   </div>
   <div class="rpt-hero"><h1>Snags &amp; Estimation Report</h1><div class="meta">${escH(foot)}</div></div>
   <div class="tiles">
+    <div class="tile"><div class="num" id="openedTile">${openedSec.count}</div><div class="lbl">Snags raised in range</div></div>
     <div class="tile"><div class="num" id="squashedTile">${squashedSec.count}</div><div class="lbl">Squashed in range</div></div>
     <div class="tile"><div class="num">${nextUpCount}</div><div class="lbl">Picked up — up next</div></div>
     <div class="tile"><div class="num">${waitingCount}</div><div class="lbl">Assigned, not yet picked up</div></div>
@@ -19231,6 +19732,10 @@ function _tplSnagsReportBuildHtml(){
   <div class="rpt-card" id="sec-outstanding">
     <h2>Outstanding snags — by Product &amp; Functional Area</h2>
     ${areaTable}
+  </div>
+  <div class="rpt-card" id="sec-opened">
+    <h2>Snags Raised <span class="rpt-range-sub" id="rangeLabel0">(${escH(rangeLabel)})</span></h2>
+    <div id="openedBody">${openedSec.html}</div>
   </div>
 </div>
 <script>
@@ -19255,6 +19760,9 @@ function _tplSnagsReportBuildHtml(){
     try{
       if(!_opener||_opener.closed) throw new Error('opener closed');
       var r=_opener._snagsRptRefreshFragments(f,t);
+      document.getElementById('openedBody').innerHTML=r.openedHtml;
+      document.getElementById('openedTile').textContent=r.openedCount;
+      document.getElementById('rangeLabel0').textContent='('+r.rangeLabel+')';
       document.getElementById('squashedBody').innerHTML=r.squashedHtml;
       document.getElementById('accuracyBody').innerHTML=r.accuracyHtml;
       document.getElementById('squashedTile').textContent=r.squashedCount;
@@ -19382,8 +19890,7 @@ function renderPlatformView(){
    obstacle avoidance by construction, so a much simpler recursive
    subtree-width layout (classic node-link tree layout) is used instead.
 ═══════════════════════════════════════════ */
-let _stmMode='component'; // 'component' | 'website'
-const STM_CARD_W=196, STM_CARD_H=176, STM_H_GAP=28, STM_V_GAP=64;
+let _stmMode='tree'; // 'tree' (compact cards) | 'component' | 'website'
 const STM_LINE_PALETTE=['#E8633E','#3D8FD1','#5FB87A','#C767C9','#D9A62E','#3DBFAE','#E85C8A','#8B7FE8'];
 
 // Which single group's tree is on screen — a Product's id, '' for the
@@ -19409,100 +19916,542 @@ function _stmSetMode(mode){
   renderSitemapView();
 }
 function _stmUpdateModeButtons(){
-  const cBtn=eid('stmModeComponentBtn'), wBtn=eid('stmModeWebsiteBtn');
+  const tBtn=eid('stmModeTreeBtn'), cBtn=eid('stmModeComponentBtn'), wBtn=eid('stmModeWebsiteBtn');
+  if(tBtn) tBtn.classList.toggle('active-icon', _stmMode==='tree');
   if(cBtn) cBtn.classList.toggle('active-icon', _stmMode==='component');
   if(wBtn) wBtn.classList.toggle('active-icon', _stmMode==='website');
 }
 function _stmEdgeColor(i){ return STM_LINE_PALETTE[i % STM_LINE_PALETTE.length]; }
 
-// Left nav — a flat list of every group currently on offer (each real
-// Product, plus "Unassigned pages" if any page has no product anywhere in
-// its ancestry), mirroring the Test Plan's own .ar-left-nav/.ar-nav-item
-// shell (see #stmLeftNav in the HTML and its visibility toggle in
-// switchView()). Selecting one is the only thing that changes which single
-// tree renderSitemapView() actually builds.
-function renderSitemapNav(orderedGroups){
+// Left nav — product chooser (each real Product, plus "Unassigned pages" if any
+// page has no product anywhere in its ancestry), then the active tree's pages as
+// an indented outline; clicking a page pans/zooms to it (see _stmFocusNode).
+// Nested accordion: each Product is a top-level section; opening it reveals its page
+// tree whose branches are themselves accordions. Open state survives re-renders.
+const _stmNavOpenGroups=new Set();   // product keys whose section is expanded
+const _stmNavOpenNodes=new Set();    // 'groupKey|itemId' branches that are expanded
+function renderSitemapNav(orderedGroups,visibleIds,activeBuilt){
   const wrap=eid('stmLeftNav');
   if(!wrap) return;
+  const prevBody=wrap.querySelector('.tpl-nav-body'), prevTop=prevBody?prevBody.scrollTop:0;
   let html=`<div class="nav-header"><span class="nav-title">Sitemap</span></div><div class="tpl-nav-body">`;
   if(!orderedGroups.length){
     html+='<div style="padding:16px;font-size:11px;color:var(--text3)">No pages visible.</div>';
   } else {
+    if(_stmActiveGroupKey!==null) _stmNavOpenGroups.add(_stmActiveGroupKey);
+    if(activeBuilt&&_stmSelectedId){
+      let p=activeBuilt.parentOf.get(_stmSelectedId);
+      while(p){ _stmNavOpenNodes.add(_stmActiveGroupKey+'|'+p); p=activeBuilt.parentOf.get(p); }
+    }
+    const branch=(items,gkey,depth)=>items.map(it=>{
+      const label=it.ghost?it.ghostLabel:(it.node.title||it.node.id);
+      const nk=gkey+'|'+it.id, hasKids=it.kids.length>0, open=hasKids&&_stmNavOpenNodes.has(nk);
+      return `<div class="stm-nav-node" style="padding-left:${depth?10:0}px"><div class="stm-nav-row">
+        ${hasKids?`<button class="stm-nav-chev" data-nk="${escH(nk)}" onclick="_stmNavToggleNode(this.dataset.nk)" title="${open?'Collapse':'Expand'}"><span class="material-icons-round">${open?'expand_more':'chevron_right'}</span></button>`:'<span class="stm-nav-chev"></span>'}
+        <button class="stm-nav-page${gkey===_stmActiveGroupKey&&it.id===_stmSelectedId?' sel':''}${it.ghost?' ghost':''}" data-g="${escH(gkey)}" data-id="${escH(it.id)}" onclick="_stmNavGo(this.dataset.g,this.dataset.id)" title="${escH(label)}">${escH(label)}</button>
+        ${hasKids?`<span class="tpl-nav-count" style="padding-right:8px">${it.kids.length}</span>`:''}
+      </div>${open?branch(it.kids,gkey,depth+1):''}</div>`;
+    }).join('');
     orderedGroups.forEach(g=>{
       const key=g.product?g.product.id:'';
-      const isActive=_stmActiveGroupKey===key;
+      const isActive=_stmActiveGroupKey===key, open=_stmNavOpenGroups.has(key);
       const label=g.product?g.product.name:'Unassigned pages';
-      html+=`<button class="ar-nav-item tpl-nav-product${isActive?' active':''}" onclick="_stmSelectGroup('${key}')" title="${escH(label)}">
+      html+=`<button class="ar-nav-item tpl-nav-product${isActive?' active':''}" data-g="${escH(key)}" onclick="_stmNavToggleGroup(this.dataset.g)" title="${escH(label)}">
+        <span class="material-icons-round" style="font-size:18px;flex-shrink:0">${open?'expand_more':'chevron_right'}</span>
         <span class="tpl-nav-label">${escH(label)}</span>
         <span class="tpl-nav-count">${g.nodes.length}</span>
       </button>`;
+      if(open){
+        const built=(isActive&&activeBuilt)?activeBuilt:_stmBuildTree(g.nodes,visibleIds);
+        html+=`<div class="stm-nav-tree">${branch(built.roots,key,0)}</div>`;
+      }
     });
   }
   html+='</div>';
   wrap.innerHTML=html;
+  const nb=wrap.querySelector('.tpl-nav-body'); if(nb) nb.scrollTop=prevTop;
+}
+function _stmNavToggleGroup(key){
+  if(_stmNavOpenGroups.has(key)&&key===_stmActiveGroupKey){ _stmNavOpenGroups.delete(key); renderSitemapView({keepView:true}); return; }
+  _stmNavOpenGroups.add(key);
+  if(key!==_stmActiveGroupKey) _stmSelectGroup(key); else renderSitemapView({keepView:true});
+}
+function _stmNavToggleNode(nk){
+  if(_stmNavOpenNodes.has(nk)) _stmNavOpenNodes.delete(nk); else _stmNavOpenNodes.add(nk);
+  renderSitemapView({keepView:true});
+}
+function _stmNavGo(groupKey,id){
+  if(groupKey!==_stmActiveGroupKey){ _stmActiveGroupKey=groupKey; _stmFocusNodeId=id; _stmSelectedId=id; renderSitemapView(); }
+  else _stmFocusNode(id);
 }
 function _stmSelectGroup(key){
   _stmActiveGroupKey=key||'';
+  _stmSelectedId=null;
   renderSitemapView();
 }
 
-// Builds a forest (array of root {node,depth,children}) from one Product's
-// flat node list, via real parentId chains. A node becomes a LOCAL ROOT
-// whenever its own parent isn't itself in this same group — the normal case
-// (a product's home page has no parent at all), but also gracefully covers
-// a node whose parent belongs to a DIFFERENT product (an explicit override
-// elsewhere in the chain — see _iaEffectiveProductId) or a dangling/missing
-// parentId, rather than throwing or dropping the node.
-function _stmBuildTree(nodes){
-  const idSet=new Set(nodes.map(n=>n.id));
-  const childMap=new Map(); nodes.forEach(n=>childMap.set(n.id,[]));
-  const roots=[];
-  nodes.forEach(n=>{
-    if(n.parentId && idSet.has(n.parentId)) childMap.get(n.parentId).push(n);
-    else roots.push(n);
-  });
-  // Same ordering convention as the IA view's own sortedMembers — busiest
-  // (most-connected) pages first, then alphabetical.
-  function sortKids(arr){
-    return arr.slice().sort((a,b)=>{
-      const ca=totalLinkCount(a.id), cb=totalLinkCount(b.id);
-      if(cb!==ca) return cb-ca;
-      return String(a.title||'').localeCompare(String(b.title||''));
-    });
-  }
-  function build(n, depth){ return {node:n, depth, children: sortKids(childMap.get(n.id)||[]).map(c=>build(c,depth+1))}; }
-  return sortKids(roots).map(r=>build(r,0));
+// ── Sitemap v2 (2026-10-01) ─────────────────────────────────────────────────
+// Parent resolution is NORMALISED + TOLERANT (id → trimmed/case-insensitive id
+// → unique title → unique slug) and a parent that is missing or filtered out
+// (phase / product / decommissioned) gets a faded GHOST placeholder instead of
+// silently flattening its children to the top level. Layout is d3.tree()
+// top-down with fixed card sizes; a parent with more than STM_STACK_OVER
+// children stacks its leaf children into column(s). Cards are DOM + SVG
+// connectors (vector — always crisp at any zoom).
+const STM_H_GAP=28, STM_V_GAP=64, STM_STACK_GAP=12, STM_STACK_OVER=6, STM_STACK_ROWS=10;
+// Collapsed branches (node ids, or 'ghost::<id>' / 'missing::<parentId>') — survives re-renders.
+const _stmCollapsed=new Set();
+let _stmSelectedId=null;
+let _stmLastLayout=null, _stmLastBuilt=null;
+
+function _stmDims(){ return _stmMode==='tree' ? {W:200,H:90} : {W:196,H:176}; }
+function _stmNorm(v){ return v==null?'':String(v).trim(); }
+function _stmIdKey(v){ return _stmNorm(v).toLowerCase().replace(/^(\d+)\.0+$/,'$1'); }
+function _stmSlugKey(s){
+  s=_stmNorm(s).toLowerCase(); if(!s) return '';
+  s=s.replace(/^https?:\/\/[^\/]+/,'').split(/[?#]/)[0].replace(/\/+$/,'');
+  return s||'/';
 }
 
-// Classic recursive node-link tree layout: each node's subtree width is the
-// sum of its children's subtree widths (or the card width for a leaf), and
-// each node is centred over the horizontal span of its own children. Several
-// disconnected root trees within one product are laid out side by side, in
-// the same forest. Returns canvas-local (unscaled) pixel positions.
-function _stmLayoutForest(forestRoots){
-  const positions=new Map();
-  let maxDepth=0;
-  function computeWidth(t){
-    if(!t.children.length){ t.w=STM_CARD_W; return t.w; }
-    const sum=t.children.map(computeWidth).reduce((a,b)=>a+b,0)+(t.children.length-1)*STM_H_GAP;
-    t.w=Math.max(STM_CARD_W, sum);
-    return t.w;
+// Resolves a raw parentId against EVERY canonical page (not just the visible
+// ones), so "parent exists but is filtered" can be told apart from "parent
+// doesn't exist". Returns {node, how}.
+function _stmMakeResolver(){
+  const byId=new Map(), byKey=new Map(), byTitle=new Map(), bySlug=new Map();
+  const bump=(m,k,n)=>{ if(!k) return; if(!m.has(k)) m.set(k,[]); m.get(k).push(n); };
+  NODES.forEach(n=>{
+    if(n.variantOf) return;
+    byId.set(_stmNorm(n.id),n); bump(byKey,_stmIdKey(n.id),n);
+    if(n.nodeType==='page'){ bump(byTitle,_stmNorm(n.title).toLowerCase(),n); bump(bySlug,_stmSlugKey(n.slug),n); }
+  });
+  const uniq=(m,k)=>{ const a=m.get(k); return (a&&a.length===1)?a[0]:null; };
+  // Variant-aware entry point: a parentId naming a VARIANT resolves (via the
+  // shared resolveParentId helper) to the ORIGINAL page, and the result carries
+  // `via` = the variant the Sheet actually points at, for the tooltip/diag.
+  return function(raw){
+    const stored=_stmNorm(raw);
+    const direct=stored?gn(stored):null;
+    const orig=resolveParentId(stored);
+    const via=(direct&&direct.variantOf&&orig!==stored)?direct:null;
+    const r=lookup(via?orig:stored);
+    if(via) r.via=via;
+    return r;
+  };
+  function lookup(raw){
+    const key=_stmNorm(raw);
+    if(!key) return {node:null,how:'none'};
+    if(byId.has(key)) return {node:byId.get(key),how:'id'};
+    let n=uniq(byKey,_stmIdKey(key));
+    if(n) return {node:n,how:'id (case/space/number format differs)'};
+    n=uniq(byTitle,key.toLowerCase());
+    if(n) return {node:n,how:'title (parentId holds a title, not an id)'};
+    if(/^(\/|https?:)/i.test(key)){ n=uniq(bySlug,_stmSlugKey(key)); if(n) return {node:n,how:'slug (parentId holds a URL/slug, not an id)'}; }
+    return {node:null,how:'not found'};
+  };
+}
+
+// One Product's pages → forest of {id,node,ghost,kids}. Ghost items stand in
+// for parents that aren't in this tree; see the module comment above.
+function _stmBuildTree(nodes, visibleIds){
+  const resolve=_stmMakeResolver();
+  const inGroup=new Map(nodes.map(n=>[n.id,n]));
+  const mk=(node,extra)=>Object.assign({id:node?node.id:'',node,ghost:false,kids:[]},extra||{});
+  const items=new Map(nodes.map(n=>[n.id,mk(n)]));
+  const ghosts=new Map(), roots=[], diag=[], orphans=[], viaVariant=[];
+
+  function reasonFor(p){
+    if(p.decommissioned) return 'decommissioned page';
+    if(p.nodeType!=='page') return 'not a page ('+p.nodeType+')';
+    if(!visibleIds.has(p.id)){ const ph=PHASES.find(x=>x.id===p.phase); return 'hidden by the phase filter ('+(ph?ph.name:p.phase)+')'; }
+    const pr=ROADMAP_PRODUCTS.find(x=>x.id===(_iaEffectiveProductId(p)||''));
+    return 'belongs to '+(pr?pr.name:'another group');
   }
-  forestRoots.forEach(computeWidth);
-  function place(t, xLeft, depth){
-    maxDepth=Math.max(maxDepth, depth);
-    if(!t.children.length){
-      positions.set(t.node.id, {x:xLeft+t.w/2-STM_CARD_W/2, y:depth*(STM_CARD_H+STM_V_GAP)});
+  // Would hanging `node` under `parentNode` create a loop inside this group?
+  function createsCycle(node,parentNode){
+    let cur=parentNode, d=0;
+    while(cur && d<200){
+      if(cur.id===node.id) return true;
+      const r=resolve(cur.parentId);
+      cur=(r.node&&inGroup.has(r.node.id))?r.node:null; d++;
+    }
+    return false;
+  }
+  function ghostFor(p,depth){
+    const key='ghost::'+p.id;
+    if(ghosts.has(key)) return ghosts.get(key);
+    const g=mk(p,{ghost:true,id:key,ghostLabel:p.title||p.id,ghostReason:reasonFor(p)});
+    ghosts.set(key,g);
+    attach(g,p,depth+1);   // a ghost hangs under ITS parent too (visible one, another ghost, or the top)
+    return g;
+  }
+  // Places `item` (representing `node`) under node's parent. Returns the placement.
+  function attach(item,node,depth){
+    const raw=_stmNorm(node.parentId);
+    if(!raw){ roots.push(item); return 'root'; }
+    const r=resolve(raw);
+    item.viaVariant=r.via||null;   // child attached through a variant → tooltip/tag on its card
+    if(r.node && r.node.id!==node.id){
+      if(inGroup.has(r.node.id) && (item.ghost || !createsCycle(node,r.node))){ items.get(r.node.id).kids.push(item); return 'child'; }
+      if(depth>40){ roots.push(item); return 'root'; }
+      ghostFor(r.node,depth).kids.push(item); return 'ghost-parent';
+    }
+    const key='missing::'+raw.toLowerCase();
+    if(!ghosts.has(key)){
+      const g=mk(null,{ghost:true,missing:true,id:key,ghostLabel:raw,ghostReason:'no page has this id'});
+      ghosts.set(key,g); roots.push(g);
+    }
+    ghosts.get(key).kids.push(item); return 'missing-parent';
+  }
+
+  nodes.forEach(n=>{
+    const raw=_stmNorm(n.parentId), r=raw?resolve(raw):{node:null,how:'none'};
+    const placement=attach(items.get(n.id),n,0);
+    const viaTxt=r.via?(r.via.id+' ('+(r.via.title||'')+', '+(r.via.phase||'')+' variant of '+(r.node?(r.node.title||r.node.id)+' '+r.node.id:r.via.variantOf)+')'):'';
+    diag.push({id:n.id, title:n.title, parentId:n.parentId, 'parentId (normalised)':raw,
+      'resolved parent id':r.node?r.node.id:'', 'parent found':raw?!!r.node:'n/a (top level)', 'matched by':r.how,
+      'resolved via variant':viaTxt,
+      'parent in this tree':placement==='child', placement});
+    if(r.via&&r.node) viaVariant.push({node:n,variant:r.via,original:r.node,text:viaTxt});
+    if(raw && !r.node) orphans.push({node:n,raw,why:'parentId “'+raw+'” matches no page (tried id, case/spaces, title, slug'+(r.via?'; it is a variant whose original page is also missing':'')+').'});
+    else if(raw && r.how!=='id') orphans.push({node:n,raw,soft:true,why:'parent matched by '+r.how+' → “'+(r.node.title||r.node.id)+'” ('+r.node.id+'). Put that id in parentId.'});
+  });
+
+  const label=it=>String(it.ghost?it.ghostLabel:(it.node.title||''));
+  const weight=it=>it.node?totalLinkCount(it.node.id):0;
+  const sortItems=arr=>arr.slice().sort((a,b)=>(weight(b)-weight(a))||label(a).localeCompare(label(b)));
+  // Reachability sweep: drop cycles / duplicate edges, rescue anything unreachable as a root.
+  const seen=new Set(), parentOf=new Map();
+  function walk(it,parentId){
+    seen.add(it.id); if(parentId) parentOf.set(it.id,parentId);
+    it.kids=sortItems(it.kids).filter(k=>!seen.has(k.id));
+    it.kids.forEach(k=>walk(k,it.id));
+  }
+  const sortedRoots=sortItems(roots); sortedRoots.forEach(r=>walk(r,null));
+  [...items.values(),...ghosts.values()].forEach(it=>{ if(!seen.has(it.id)){ sortedRoots.push(it); walk(it,null); } });
+  return {roots:sortedRoots, diag, orphans, viaVariant, parentOf, ghostParentCount:[...ghosts.values()].filter(g=>!g.missing).length};
+}
+
+// d3.tree() top-down layout, nodeSize([card+gap, row]). d3 only places things
+// horizontally (uniform sizes can't express a tall stacked column), so rows are
+// positioned by depth from the tallest thing on each row. A parent with more
+// than STM_STACK_OVER children moves its leaf children into a stacked column
+// (wrapping to extra columns past STM_STACK_ROWS) that d3 treats as ONE wide node.
+function _stmLayout(roots,dims){
+  const {W,H}=dims, colW=W+STM_H_GAP;
+  const prep=item=>{
+    const d={item,kids:[]};
+    if(!item.kids.length || _stmCollapsed.has(item.id)) return d;
+    let rest=item.kids;
+    if(item.kids.length>STM_STACK_OVER){
+      const isLeaf=k=>!k.kids.length||_stmCollapsed.has(k.id);
+      const leaves=item.kids.filter(isLeaf);
+      if(leaves.length>=2){
+        const cols=Math.ceil(leaves.length/STM_STACK_ROWS), rows=Math.ceil(leaves.length/cols);
+        d.kids.push({stack:true,members:leaves.map(prep),cols,rows,kids:[]});
+        rest=item.kids.filter(k=>!isLeaf(k));
+      }
+    }
+    rest.forEach(k=>d.kids.push(prep(k)));
+    return d;
+  };
+  const top={virtual:true,kids:roots.map(prep)};
+  const root=d3.hierarchy(top,d=>d.kids&&d.kids.length?d.kids:null);
+  d3.tree().nodeSize([colW,H+STM_V_GAP]).separation((a,b)=>{
+    const base=((a.data.stack?a.data.cols:1)+(b.data.stack?b.data.cols:1))/2;
+    return a.parent===b.parent?base:base*1.12;
+  })(root);
+
+  const rowH={};
+  root.each(n=>{
+    if(n.depth<1) return;
+    const h=n.data.stack?n.data.rows*H+(n.data.rows-1)*STM_STACK_GAP:H;
+    rowH[n.depth]=Math.max(rowH[n.depth]||0,h);
+  });
+  const maxD=Math.max(0,...Object.keys(rowH).map(Number));
+  const yTop={1:0};
+  for(let d=2;d<=maxD;d++) yTop[d]=yTop[d-1]+rowH[d-1]+STM_V_GAP;
+
+  const boxes=new Map(), edges=[], order=[];
+  const mkBox=(item,x,y,depth)=>{ const b={item,x,y,w:W,h:H,depth}; boxes.set(item.id,b); order.push(b); return b; };
+  const spines=[];
+  root.each(n=>{                      // breadth-first: parents before children
+    if(n.depth<1) return;
+    const d=n.data, y=yTop[n.depth];
+    const parentBox=n.parent.data.virtual?null:boxes.get(n.parent.data.item.id);
+    if(d.stack){
+      const left=n.x-d.cols*colW/2;
+      const pm={parentBox,busY:y-STM_V_GAP/2,cols:[]};
+      for(let c=0;c<d.cols;c++){ const col={spineX:left+c*colW+7,members:[]}; pm.cols.push(col); spines.push(col); }
+      d.members.forEach((m,i)=>{
+        const c=Math.floor(i/d.rows), r=i%d.rows;
+        pm.cols[c].members.push(mkBox(m.item,left+c*colW+16,y+r*(H+STM_STACK_GAP),n.depth-1));
+      });
+      pm.cols=pm.cols.filter(c=>c.members.length);
+      if(parentBox) edges.push({stack:pm});
       return;
     }
-    let cx=xLeft;
-    t.children.forEach(c=>{ place(c, cx, depth+1); cx+=c.w+STM_H_GAP; });
-    const first=positions.get(t.children[0].node.id), last=positions.get(t.children[t.children.length-1].node.id);
-    positions.set(t.node.id, {x:(first.x+last.x)/2, y:depth*(STM_CARD_H+STM_V_GAP)});
+    const b=mkBox(d.item,n.x-W/2,y,n.depth-1);
+    if(parentBox) edges.push({parent:parentBox,child:b});
+  });
+  let minX=Infinity;
+  order.forEach(b=>{ minX=Math.min(minX,b.x); });
+  spines.forEach(c=>{ minX=Math.min(minX,c.spineX); });
+  if(!isFinite(minX)) minX=0;
+  order.forEach(b=>{ b.x-=minX; });
+  spines.forEach(c=>{ c.spineX-=minX; });
+  return {boxes,edges,order,
+    width:Math.max(W,...order.map(b=>b.x+b.w)),
+    height:Math.max(H,...order.map(b=>b.y+b.h))};
+}
+
+// Rounded elbow: down to midY, across, down to the child.
+function _stmElbow(x1,y1,x2,y2,my){
+  const dx=x2-x1;
+  if(Math.abs(dx)<1) return `M${x1},${y1}V${y2}`;
+  const s=dx>0?1:-1, r=Math.min(12,Math.abs(dx)/2,Math.abs(my-y1),Math.abs(y2-my));
+  return `M${x1},${y1}V${my-r}Q${x1},${my} ${x1+s*r},${my}H${x2-s*r}Q${x2},${my} ${x2},${my+r}V${y2}`;
+}
+function _stmDepthColor(depth){ return STM_LINE_PALETTE[depth%STM_LINE_PALETTE.length]; }
+function _stmDrawEdges(svg,layout){
+  const NS='http://www.w3.org/2000/svg';
+  const mk=(d,color,dashed)=>{
+    const p=document.createElementNS(NS,'path');
+    p.setAttribute('d',d); p.setAttribute('fill','none'); p.setAttribute('stroke',color);
+    p.setAttribute('stroke-width','2'); p.setAttribute('stroke-linejoin','round');
+    if(dashed) p.setAttribute('stroke-dasharray','5 4');
+    svg.appendChild(p);
+  };
+  // Solid = a real Link record joins this exact parent→child pair; dashed = structural parentId only.
+  const linked=(pi,ci)=>!!(pi.node&&ci.node&&!pi.ghost&&!ci.ghost&&(LINKS[pi.node.id]||[]).some(l=>l.targetId===ci.node.id));
+  layout.edges.forEach(e=>{
+    if(e.stack){
+      const pm=e.stack, p=pm.parentBox, px=p.x+p.w/2, py=p.y+p.h;
+      const col=_stmDepthColor(pm.cols[0].members[0].depth);
+      const xs=pm.cols.map(c=>c.spineX);
+      mk(`M${px},${py}V${pm.busY}`,col,false);
+      mk(`M${Math.min(px,...xs)},${pm.busY}H${Math.max(px,...xs)}`,col,false);
+      pm.cols.forEach(c=>{
+        const last=c.members[c.members.length-1];
+        mk(`M${c.spineX},${pm.busY}V${last.y+last.h/2}`,col,false);
+        c.members.forEach(m=>mk(`M${c.spineX},${m.y+m.h/2}H${m.x}`,col,!linked(p.item,m.item)));
+      });
+    } else {
+      const p=e.parent,c=e.child;
+      mk(_stmElbow(p.x+p.w/2,p.y+p.h,c.x+c.w/2,c.y,c.y-STM_V_GAP/2),_stmDepthColor(c.depth),!linked(p.item,c.item));
+    }
+  });
+}
+
+function _stmToggleCollapse(id){
+  if(_stmCollapsed.has(id)) _stmCollapsed.delete(id); else _stmCollapsed.add(id);
+  renderSitemapView({keepView:true});
+}
+function _stmExpandAll(){ _stmCollapsed.clear(); renderSitemapView(); }
+// Collapses every branch below the top level so the first level stays visible.
+function _stmCollapseAll(){
+  if(!_stmLastBuilt) return;
+  _stmCollapsed.clear();
+  (function walk(items,depth){ items.forEach(it=>{ if(depth>=1&&it.kids.length) _stmCollapsed.add(it.id); walk(it.kids,depth+1); }); })(_stmLastBuilt.roots,0);
+  renderSitemapView();
+}
+
+function _stmFootEl(item,node,hasKids,collapsed){
+  const f=document.createElement('div'); f.className='stm-t-foot';
+  if(node){
+    const b=document.createElement('button'); b.className='stm-info'; b.title='Open page details';
+    b.innerHTML='<span class="material-icons-round">info</span>';
+    b.onclick=e=>{ e.stopPropagation(); openTray(node.id); };
+    f.appendChild(b);
   }
-  let curX=0;
-  forestRoots.forEach(r=>{ place(r, curX, 0); curX+=r.w+STM_H_GAP*1.5; }); // a bit more air between separate root trees than between siblings
-  return {positions, totalWidth:Math.max(STM_CARD_W, curX-STM_H_GAP*1.5), maxDepth};
+  if(hasKids){
+    const b=document.createElement('button'); b.className='stm-kids'+(collapsed?' collapsed':'');
+    b.title=(collapsed?'Expand':'Collapse')+' this branch ('+item.kids.length+' child page'+(item.kids.length===1?'':'s')+')';
+    b.innerHTML=`<span class="material-icons-round">${collapsed?'chevron_right':'expand_more'}</span>${item.kids.length}`;
+    b.onclick=e=>{ e.stopPropagation(); _stmToggleCollapse(item.id); };
+    f.appendChild(b);
+  }
+  return f;
+}
+
+// One card for a layout box — compact tree card, ghost placeholder, or the
+// older Component/Website mockup card (still _stmBuildCard) — plus the shared
+// position, depth stripe, child-count/collapse badge and click behaviour.
+function _stmMakeCard(box,edgeColorForChild,crossLinks){
+  const item=box.item, node=item.node, hasKids=item.kids.length>0, collapsed=hasKids&&_stmCollapsed.has(item.id);
+  let el;
+  if(item.ghost){
+    el=document.createElement('div'); el.className='stm-card stm-card-ghost';
+    el.innerHTML=`<div class="stm-t-title" title="${escH(item.ghostLabel)}">${escH(item.ghostLabel)}</div>
+      <div class="stm-t-sub stm-t-sub-wrap">${item.missing?'Missing parent':'Parent not shown'} — ${escH(item.ghostReason)}</div>`;
+    el.style.height=box.h+'px';
+  } else if(_stmMode==='tree'){
+    el=document.createElement('div'); el.className='stm-card stm-card-tree';
+    const typ=({page:'Page'})[node.nodeType]||(node.nodeType||'Page');
+    el.title=(node.title||'')+(node.slug?'\n'+node.slug:'');
+    el.innerHTML=`<div class="stm-t-title">${escH(node.title||'(untitled)')}</div>
+      <div class="stm-t-sub">${escH(typ)} · ${escH(node.status||'No status')}</div>`;
+    el.style.height=box.h+'px';
+    el.style.borderLeftColor=_stmDepthColor(box.depth);
+  } else {
+    el=_stmBuildCard(node,edgeColorForChild||new Map(),crossLinks);
+    el.style.borderLeft='5px solid '+_stmDepthColor(box.depth);
+  }
+  el.id='stm-card-'+item.id;
+  if(item.id===_stmSelectedId) el.classList.add('stm-card-sel');
+  if(collapsed) el.classList.add('stm-card-collapsed');
+  el.style.position='absolute'; el.style.left=box.x+'px'; el.style.top=box.y+'px';
+  const foot=_stmFootEl(item,node,hasKids,collapsed);
+  if(item.viaVariant){
+    const v=item.viaVariant, orig=gn(resolveParentId(v.id));
+    const txt='parent: '+(v.title||v.id)+' ('+(v.phase||'variant')+' variant of '+(orig?(orig.title||orig.id):v.variantOf)+')';
+    const tag=document.createElement('span'); tag.className='stm-via'; tag.title=txt;
+    tag.innerHTML='<span class="material-icons-round">call_split</span>'+escH(v.phase||'var.');
+    foot.insertBefore(tag,foot.firstChild);
+    el.title=(el.title?el.title+'\n':'')+txt;
+  }
+  if(item.ghost||_stmMode==='tree'){
+    el.appendChild(foot);
+    if(crossLinks&&crossLinks.length&&!item.ghost){
+      const badge=document.createElement('div'); badge.className='stm-cross-badge';
+      badge.title=crossLinks.length===1?`Links to "${crossLinks[0].title}" in ${crossLinks[0].productLabel}`:`Links to ${crossLinks.length} pages in other products`;
+      badge.innerHTML=`<span class="material-icons-round" style="font-size:11px">arrow_outward</span>${crossLinks.length>1?crossLinks.length:''}`;
+      badge.onclick=e=>{ e.stopPropagation(); _stmToggleCrossPopover(badge,crossLinks); };
+      el.appendChild(badge);
+    }
+  } else { foot.classList.add('stm-foot-abs'); el.appendChild(foot); }
+  el.onclick=e=>{
+    e.stopPropagation();
+    if(hasKids) _stmToggleCollapse(item.id);
+    else if(node) openTray(node.id);
+  };
+  el.ondblclick=e=>{ e.stopPropagation(); if(node&&!item.ghost&&canEdit()) openEditNode(node.id); };
+  return el;
+}
+
+function _stmBuildProductColumn(g,visibleIds,built){
+  const activeKey=g.product?g.product.id:'';
+  const dims=_stmDims();
+  const box=document.createElement('div');
+  box.className='stm-product-box';
+  const label=document.createElement('div');
+  label.className='stm-product-label';
+  label.textContent=g.product?g.product.name:'Unassigned pages';
+  box.appendChild(label);
+
+  const layout=_stmLayout(built.roots,dims);
+  _stmLastLayout=layout;
+  const inner=document.createElement('div');
+  inner.className='stm-tree-inner';
+  inner.style.cssText=`position:relative;width:${layout.width}px;height:${layout.height}px`;
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('width',layout.width); svg.setAttribute('height',layout.height);
+  svg.style.cssText='position:absolute;top:0;left:0;overflow:visible;pointer-events:none';
+  inner.appendChild(svg);
+  _stmDrawEdges(svg,layout);
+
+  layout.order.forEach(b=>{
+    const it=b.item;
+    const edgeColors=new Map();
+    if(!it.ghost&&it.node) it.kids.forEach(k=>{
+      if(!k.node||k.ghost) return;
+      const link=(LINKS[it.node.id]||[]).find(l=>l.targetId===k.node.id);
+      edgeColors.set(k.node.id,{color:_stmDepthColor(b.depth+1),componentId:link?link.componentId:null});
+    });
+    const cross=(!it.ghost&&it.node)?_stmCrossProductLinksFor(it.node,activeKey,visibleIds):[];
+    inner.appendChild(_stmMakeCard(b,edgeColors,cross));
+  });
+  box.appendChild(inner);
+  return box;
+}
+
+// ── Fit / focus ─────────────────────────────────────────────────────────────
+function _stmRectInCanvas(el){
+  const canvas=eid('sitemapCanvas'), s=VIEWPORT.scale||1;
+  const r=el.getBoundingClientRect(), c=canvas.getBoundingClientRect();
+  return {x:(r.left-c.left)/s, y:(r.top-c.top)/s, w:r.width/s, h:r.height/s};
+}
+// Fits the whole tree if that needs ≥50% zoom (never above 100%); otherwise
+// stays at 50% and centres on the root + first level so the user can pan.
+function _stmFit(){
+  const wrap=eid('viewSitemap'), canvas=eid('sitemapCanvas');
+  if(!wrap||!canvas) return;
+  VIEWPORT.setScaleAbs(1); canvas.style.marginLeft='';
+  const vW=wrap.clientWidth, vH=wrap.clientHeight;
+  if(!vW||!vH) return;
+  const cw=canvas.offsetWidth, ch=canvas.offsetHeight;
+  const fit=Math.min((vW-16)/cw,(vH-16)/ch);
+  if(fit>=0.5){
+    const s=Math.min(1,fit);
+    VIEWPORT.setScaleAbs(s);
+    canvas.style.marginLeft=Math.max(0,(vW-cw*s)/2)+'px';
+    wrap.scrollLeft=0; wrap.scrollTop=0;
+    return;
+  }
+  const s=0.5; VIEWPORT.setScaleAbs(s);
+  const near=(_stmLastLayout?_stmLastLayout.order:[]).filter(b=>b.depth<=1);
+  let x0=Infinity,x1=-Infinity,y0=Infinity,rootCx=null;
+  near.forEach(b=>{
+    const el=eid('stm-card-'+b.item.id); if(!el) return;
+    const r=_stmRectInCanvas(el);
+    x0=Math.min(x0,r.x); x1=Math.max(x1,r.x+r.w); y0=Math.min(y0,r.y);
+    if(b.depth===0&&rootCx===null) rootCx=r.x+r.w/2;
+  });
+  if(!isFinite(x0)){ wrap.scrollLeft=0; wrap.scrollTop=0; return; }
+  const cx=((x1-x0)*s<=vW-40)?(x0+x1)/2:(rootCx!==null?rootCx:(x0+x1)/2);
+  wrap.scrollLeft=Math.max(0,cx*s-vW/2);
+  wrap.scrollTop=Math.max(0,y0*s-24);
+}
+// Sidebar / warning-list click: expand any collapsed ancestors, then pan + zoom to the card and highlight it.
+function _stmFocusNode(id){
+  const built=_stmLastBuilt;
+  if(!id||!built) return;
+  let changed=false, p=built.parentOf.get(id);
+  while(p){ if(_stmCollapsed.delete(p)) changed=true; p=built.parentOf.get(p); }
+  _stmSelectedId=id;
+  if(changed){ renderSitemapView({keepView:true,focusId:id}); return; }
+  const card=eid('stm-card-'+id), wrap=eid('viewSitemap'), canvas=eid('sitemapCanvas');
+  if(!card||!wrap||!canvas){ showToast('That page is not in the tree currently shown.'); return; }
+  document.querySelectorAll('.stm-card-sel').forEach(c=>c.classList.remove('stm-card-sel'));
+  card.classList.add('stm-card-sel','stm-card-flash');
+  setTimeout(()=>card.classList.remove('stm-card-flash'),1600);
+  document.querySelectorAll('.stm-nav-page').forEach(b=>b.classList.toggle('sel',b.dataset.id===id));
+  if(VIEWPORT.scale<1){ canvas.style.marginLeft=''; VIEWPORT.setScaleAbs(1); }
+  const s=VIEWPORT.scale, r=_stmRectInCanvas(card);
+  wrap.scrollTo({left:Math.max(0,(r.x+r.w/2)*s-wrap.clientWidth/2), top:Math.max(0,(r.y+r.h/2)*s-wrap.clientHeight/2), behavior:'smooth'});
+}
+
+// Whole-dataset orphan count before/after variant resolution (callable from the
+// console too). "Orphan" = a non-variant node whose stored parentId is not the id
+// of any non-variant node. Read-only; nothing is written back.
+function _stmVariantAudit(){
+  const canon=new Set(NODES.filter(n=>!n.variantOf).map(n=>n.id));
+  const kids=NODES.filter(n=>!n.variantOf && n.parentId);
+  const before=kids.filter(n=>!canon.has(_stmNorm(n.parentId)));
+  const rescued=before.filter(n=>canon.has(resolveParentId(n.parentId)));
+  const after=before.filter(n=>!canon.has(resolveParentId(n.parentId)));
+  console.groupCollapsed('[Sitemap] orphans: before variant fix '+before.length+' → after '+after.length+' ('+rescued.length+' rescued via a variant; '+NODES.filter(n=>n.variantOf).length+' variant nodes)');
+  console.table(rescued.map(n=>{ const v=gn(_stmNorm(n.parentId)), o=gn(resolveParentId(n.parentId));
+    return {id:n.id,title:n.title,'stored parentId (variant)':n.parentId,'variant':v?(v.title+' ['+v.phase+']'):'', 'resolved original':o?(o.id+' '+o.title):''}; }));
+  console.groupEnd();
+  window.STM_VARIANT_RESCUED=rescued;
+  return {before:before.length,after:after.length,rescued:rescued.length};
+}
+function _stmWarnEl(built){
+  const hard=built.orphans.filter(o=>!o.soft), soft=built.orphans.filter(o=>o.soft);
+  const via=built.viaVariant||[];
+  if(!hard.length&&!soft.length&&!built.ghostParentCount&&!via.length) return null;
+  const row=o=>`<li><button type="button" data-id="${escH(o.node.id)}" onclick="_stmFocusNode(this.dataset.id)">${escH(o.node.title||o.node.id)}</button> <span class="stm-warn-id">${escH(o.node.id)}</span> — ${escH(o.why)}</li>`;
+  let html='<div class="stm-warn-bar">';
+  if(hard.length) html+=`<details><summary><span class="material-icons-round">link_off</span>Unlinked pages (${hard.length})</summary>
+    <div class="stm-warn-hint">Their parentId matches no page. Fix parentId in the Sheet; until then they hang under a faded “Missing parent” placeholder.</div><ul>${hard.map(row).join('')}</ul></details>`;
+  if(soft.length) html+=`<details><summary><span class="material-icons-round">rule</span>Parent matched loosely (${soft.length})</summary>
+    <div class="stm-warn-hint">These resolve only because the lookup is forgiving (wrong case, a title or a slug instead of the id). Worth tidying in the Sheet.</div><ul>${soft.map(row).join('')}</ul></details>`;
+  if(via.length) html+=`<details><summary><span class="material-icons-round">call_split</span>Attached through a variant (${via.length})</summary>
+    <div class="stm-warn-hint">Their stored parentId names a phase variant; the tree hangs them under the original page. Nothing to fix — shown for transparency.</div><ul>${via.map(o=>`<li><button type="button" data-id="${escH(o.node.id)}" onclick="_stmFocusNode(this.dataset.id)">${escH(o.node.title||o.node.id)}</button> <span class="stm-warn-id">${escH(o.node.id)}</span> — ${escH(o.text)}</li>`).join('')}</ul></details>`;
+  if(built.ghostParentCount) html+=`<div class="stm-warn-note"><span class="material-icons-round">visibility_off</span>${built.ghostParentCount} faded placeholder${built.ghostParentCount===1?'':'s'} stand in for parents hidden by the phase filter or in another product.</div>`;
+  html+='</div>';
+  const wrap=document.createElement('div'); wrap.className='stm-warn-wrap'; wrap.innerHTML=html;
+  return wrap;
 }
 
 // Cross-PRODUCT outgoing connections only — a real Link/CTA from this exact
@@ -19637,61 +20586,6 @@ function _stmBuildCard(node, edgeColorForChild, crossLinks){
   return el;
 }
 
-function _stmBuildProductColumn(g, visibleIds){
-  const activeKey=g.product?g.product.id:'';
-  const box=document.createElement('div');
-  box.className='stm-product-box';
-  const label=document.createElement('div');
-  label.className='stm-product-label';
-  label.textContent = g.product ? g.product.name : 'Unassigned pages';
-  box.appendChild(label);
-
-  const forest=_stmBuildTree(g.nodes);
-  const {positions, totalWidth, maxDepth}=_stmLayoutForest(forest);
-  const totalHeight=(maxDepth+1)*STM_CARD_H+maxDepth*STM_V_GAP;
-
-  const inner=document.createElement('div');
-  inner.className='stm-tree-inner';
-  inner.style.cssText=`position:relative;width:${totalWidth}px;height:${totalHeight}px`;
-
-  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
-  svg.setAttribute('width',totalWidth); svg.setAttribute('height',totalHeight);
-  svg.style.cssText='position:absolute;top:0;left:0;overflow:visible;pointer-events:none';
-  inner.appendChild(svg);
-
-  function walk(t){
-    const p=positions.get(t.node.id);
-    const edgeColorForChild=new Map();
-    t.children.forEach((c,i)=>{
-      const color=_stmEdgeColor(i);
-      // A real Link record connecting this exact parent→child pair (not
-      // just "adjacent in the tree") is what earns a solid line + (if it
-      // carries a componentId) a highlighted block on the parent card —
-      // see the module comment.
-      const link=(LINKS[t.node.id]||[]).find(l=>l.targetId===c.node.id);
-      edgeColorForChild.set(c.node.id, {color, componentId: link?link.componentId:null});
-      const cp=positions.get(c.node.id);
-      const x1=p.x+STM_CARD_W/2, y1=p.y+STM_CARD_H;
-      const x2=cp.x+STM_CARD_W/2, y2=cp.y;
-      const midY=(y1+y2)/2;
-      const path=document.createElementNS('http://www.w3.org/2000/svg','path');
-      path.setAttribute('d',`M${x1},${y1} C${x1},${midY} ${x2},${midY} ${x2},${y2}`);
-      path.setAttribute('fill','none'); path.setAttribute('stroke',color); path.setAttribute('stroke-width','2');
-      if(!link) path.setAttribute('stroke-dasharray','5 4');
-      svg.appendChild(path);
-    });
-    const crossLinks=_stmCrossProductLinksFor(t.node, activeKey, visibleIds);
-    const card=_stmBuildCard(t.node, edgeColorForChild, crossLinks);
-    card.style.position='absolute'; card.style.left=p.x+'px'; card.style.top=p.y+'px';
-    inner.appendChild(card);
-    t.children.forEach(walk);
-  }
-  forest.forEach(walk);
-
-  box.appendChild(inner);
-  return box;
-}
-
 // Website mode only. Deliberately deferred until AFTER every card is already
 // in the DOM (data-src, not src, at build time) rather than firing dozens of
 // iframe loads inline as each card is created, so every iframe starts its
@@ -19740,8 +20634,12 @@ function _stmKickOffIframeLoads(root){
   });
 }
 
-function renderSitemapView(){
+// opts.keepView: re-render (collapse/expand/focus) without re-fitting — scale and scroll are restored.
+// opts.focusId : pan to this node once rendered.
+function renderSitemapView(opts){
+  opts=(opts&&typeof opts==='object'&&!opts.target)?opts:{};
   const wrap=eid('viewSitemap');
+  const keep=opts.keepView?{s:VIEWPORT.scale,l:wrap.scrollLeft,t:wrap.scrollTop}:null;
   wrap.innerHTML='';
   wrap.style.overflow='auto';
   wrap.style.position='relative';
@@ -19749,42 +20647,26 @@ function renderSitemapView(){
   _stmUpdateModeButtons();
   _stmCloseCrossPopover();
 
-  // Canonical pages only — variants are transformation overlays, not
-  // separate sitemap nodes (same exclusion the IA view applies); touchpoints
-  // (email/phone/sms/chatbot) aren't part of the parentId hierarchy tree
-  // either — out of scope for this view's v1. Decommissioned pages are
-  // excluded too (2026-09-25, user's explicit ask) — unlike the IA view
-  // (which keeps showing them with a warning pill, since that view is about
-  // migration status), the Sitemap is meant to represent the live site, so a
-  // decommissioned page has no business appearing in it. A decommissioned
-  // page that still has real children keeps them in the tree — they just
-  // become local roots of their own (see _stmBuildTree's own comment on a
-  // missing/dangling parentId), same graceful fallback as a deleted parent.
+  // Canonical pages only — variants are transformation overlays, not separate
+  // sitemap nodes (same exclusion the IA view applies); touchpoints aren't part
+  // of the parentId hierarchy; decommissioned pages are excluded (the Sitemap
+  // represents the live site).
   //
-  // Phase filtering (2026-09-25, user's explicit ask): visNodes()'s own
-  // phase filter is CUMULATIVE by design (selecting Phase 2 shows Phase
-  // 0+1+2 together — see its own "IMPORTANT ARCHITECTURAL RULE" comment;
-  // that's the right default for the IA/Roadmap's "what does the site look
-  // like once we reach this phase" mental model). The Sitemap is different
-  // — the user wants it to show EXACTLY the phase(s) ticked in the header
-  // dropdown, nothing earlier. So on top of visNodes()'s own result, a page
-  // is kept only if its own `.phase` is literally one of the selected
-  // phases — unless no actual phase is selected (only "Live", or nothing at
-  // all), in which case there's nothing to narrow and visNodes()'s own
-  // result stands as-is (this deliberately leaves the Live toggle's own
-  // semantics untouched; it's an orthogonal operational-status axis, not
-  // what was asked for here).
+  // Phase filtering: visNodes()'s own phase filter is CUMULATIVE (selecting
+  // Phase 2 shows Phase 0+1+2). The Sitemap shows EXACTLY the phase(s) ticked
+  // in the header dropdown, nothing earlier. Pages whose parent is dropped by
+  // that (or by product grouping) are NOT flattened — _stmBuildTree hangs them
+  // under a faded ghost placeholder for the missing parent.
   const _stmSelectedPhaseIds=[...selectedPhases].filter(p=>p!=='LIVE');
   const vn=visNodes().filter(n=>n.nodeType==='page'&&!n.variantOf&&!n.decommissioned
     &&(_stmSelectedPhaseIds.length===0||_stmSelectedPhaseIds.includes(n.phase)));
-  if(!vn.length){ wrap.innerHTML='<div style="padding:40px;color:var(--text3)">No pages visible</div>'; renderSitemapNav([]); return; }
+  if(!vn.length){ wrap.innerHTML='<div style="padding:40px;color:var(--text3)">No pages visible</div>'; renderSitemapNav([],new Set()); return; }
+  if(typeof d3==='undefined'){ wrap.innerHTML='<div style="padding:40px;color:var(--text3)">The tree layout library (d3) did not load — check your connection and reload.</div>'; return; }
   const visibleIds=new Set(vn.map(n=>n.id));
 
-  // One tree per Product — the user's explicit decision, now literally the
-  // same thing as "one tree per App Block" since their unification (see
-  // _iaEffectiveProductId). A page with no product anywhere in its Parent
-  // ancestry (including via override) lands in a synthetic "Unassigned
-  // pages" group instead of being silently dropped.
+  // One tree per Product (an App Block and a Product are the same thing — see
+  // _iaEffectiveProductId). A page with no product anywhere in its ancestry
+  // lands in a synthetic "Unassigned pages" group instead of being dropped.
   const groups=new Map();
   vn.forEach(n=>{
     const pid=_iaEffectiveProductId(n)||'';
@@ -19798,50 +20680,49 @@ function renderSitemapView(){
     return (a.product.order||0)-(b.product.order||0);
   });
 
-  // 2026-09-25: only ONE group's tree is ever on screen at a time now (the
-  // user's explicit ask — side by side stopped being readable past a couple
-  // of products), chosen via the #stmLeftNav product chooser below.
-  // Auto-repairs _stmActiveGroupKey to the first available group whenever it
-  // doesn't match anything in THIS render (first-ever render, the active
-  // product/its pages disappeared, etc.) rather than showing a blank canvas.
+  // Only ONE group's tree is on screen at a time (chosen in #stmLeftNav).
+  // Auto-repair _stmActiveGroupKey to the first group when it matches nothing.
   if(!orderedGroups.some(g=>(g.product?g.product.id:'')===_stmActiveGroupKey)){
     _stmActiveGroupKey = orderedGroups.length ? (orderedGroups[0].product?orderedGroups[0].product.id:'') : null;
   }
-  renderSitemapNav(orderedGroups);
-
   const activeGroup=orderedGroups.find(g=>(g.product?g.product.id:'')===_stmActiveGroupKey);
-  if(!activeGroup){ wrap.innerHTML='<div style="padding:40px;color:var(--text3)">No pages visible</div>'; return; }
+  if(!activeGroup){ renderSitemapNav(orderedGroups,visibleIds); wrap.innerHTML='<div style="padding:40px;color:var(--text3)">No pages visible</div>'; return; }
+
+  const built=_stmBuildTree(activeGroup.nodes,visibleIds);
+  _stmLastBuilt=built;
+  renderSitemapNav(orderedGroups,visibleIds,built);
+
+  if(!keep){
+    console.groupCollapsed('[Sitemap] parent links — '+(activeGroup.product?activeGroup.product.name:'Unassigned pages')+' ('+built.diag.length+' pages, '+built.orphans.filter(o=>!o.soft).length+' unlinked)');
+    console.table(built.diag);
+    console.groupEnd();
+    window.STM_PARENT_DIAG=built.diag;
+    _stmVariantAudit();
+  }
+
+  const warn=_stmWarnEl(built);
+  if(warn) wrap.appendChild(warn);
 
   const canvasEl=document.createElement('div');
   canvasEl.id='sitemapCanvas';
-  canvasEl.style.cssText='position:relative;display:flex;align-items:flex-start;padding:32px;transform-origin:0 0';
+  canvasEl.style.cssText='position:relative;display:flex;align-items:flex-start;padding:32px;transform-origin:0 0;width:max-content';
   wrap.appendChild(canvasEl);
-
-  canvasEl.appendChild(_stmBuildProductColumn(activeGroup, visibleIds));
+  canvasEl.appendChild(_stmBuildProductColumn(activeGroup,visibleIds,built));
 
   if(_stmMode==='website') _stmKickOffIframeLoads(canvasEl);
 
-  // A cross-product chip (_stmGoToCrossProductPage) just switched groups —
-  // scroll to and briefly flash the page that was actually clicked, once
-  // its card exists in the freshly-built tree, rather than just landing on
-  // an unrelated part of the new product's tree.
-  if(_stmFocusNodeId){
-    const focusId=_stmFocusNodeId;
+  if(keep){
+    VIEWPORT.setScaleAbs(keep.s);
+    wrap.scrollLeft=keep.l; wrap.scrollTop=keep.t;
+    if(opts.focusId){ const fid=opts.focusId; requestAnimationFrame(()=>_stmFocusNode(fid)); }
+  } else {
+    // A cross-product chip (_stmGoToCrossProductPage) asked to land on one page.
+    const focusId=_stmFocusNodeId||opts.focusId||null;
     _stmFocusNodeId=null;
     requestAnimationFrame(()=>{
-      VIEWPORT.fitToScreen();
-      setTimeout(()=>{
-        const card=eid('stm-card-'+focusId);
-        if(!card) return;
-        card.scrollIntoView({behavior:'smooth', block:'center', inline:'center'});
-        card.classList.add('stm-card-flash');
-        setTimeout(()=>card.classList.remove('stm-card-flash'), 1600);
-      }, 260); // after fitToScreen's own transform/scroll settles
+      _stmFit();
+      if(focusId) setTimeout(()=>_stmFocusNode(focusId),80);
     });
-  } else {
-    // Same "fit the freshly-built canvas to the viewport" convention the
-    // Ecosystem view's own render function ends on.
-    requestAnimationFrame(()=>VIEWPORT.fitToScreen());
   }
 }
 
@@ -22273,7 +23154,7 @@ function _renderTrayTab(tab, id){
 
   if(tab==='info'){
     // Info tab — same as old openTray content
-    const appNode=n&&n.parentId?gn(n.parentId):null;
+    const appNode=n&&n.parentId?gn(resolveParentId(n.parentId)):null;
     const ctas=CTAS[id]||[];
     const links=LINKS[id]||[];
     const comps=getNodeComps(id);
@@ -22697,13 +23578,17 @@ const VIEWPORT = (() => {
 
   function _indicator() { return eid('zoomIndicator'); }
 
+  // Sitemap zoom: the +/− buttons step through these; never below 25%.
+  const SITEMAP_STEPS = [0.25, 0.5, 0.75, 1, 1.5];
+
   function _apply(newScale, anchorViewX, anchorViewY) {
     const prev = _scale;
-    _scale = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, newScale));
+    _scale = Math.min(ZOOM_MAX, Math.max(curView==='sitemap' ? SITEMAP_STEPS[0] : ZOOM_MIN, newScale));
     if (Math.abs(_scale - prev) < 0.001) return;
     const target = _target();
     const wrap   = _wrap();
     if (!target || !wrap) return;
+    if (curView==='sitemap') target.style.marginLeft = ''; // drop _stmFit's centring margin once the user zooms
     target.style.transformOrigin = '0 0';
     target.style.transform = `scale(${_scale})`;
     // Keep anchor point fixed under cursor (or centre if no anchor)
@@ -22724,19 +23609,42 @@ const VIEWPORT = (() => {
 
     setScale(s, anchorViewX, anchorViewY) { _apply(s, anchorViewX, anchorViewY); },
 
-    zoomIn(factor=1.25) {
+    // Sets the scale directly (no anchoring, no clamping) — used by the Sitemap's fit/focus.
+    setScaleAbs(s) {
+      _scale = s;
+      const target = _target();
+      if (target) { target.style.transformOrigin = '0 0'; target.style.transform = s === 1 ? '' : `scale(${s})`; }
+      const ind = _indicator(); if (ind) ind.textContent = Math.round(s * 100) + '%';
+      setTimeout(updateMinimap, 80);
+    },
+
+    zoomIn(factor) {
       const wrap = _wrap();
       const rect = wrap ? wrap.getBoundingClientRect() : {left:0,top:0};
       const cx   = rect.left + (wrap ? wrap.offsetWidth  : 0) / 2;
       const cy   = rect.top  + (wrap ? wrap.offsetHeight : 0) / 2;
-      _apply(_scale * factor, cx, cy);
+      if (factor === undefined && curView === 'sitemap') {
+        _apply(SITEMAP_STEPS.find(s => s > _scale + 0.01) || SITEMAP_STEPS[SITEMAP_STEPS.length - 1], cx, cy);
+        return;
+      }
+      _apply(_scale * (factor || 1.25), cx, cy);
     },
 
-    zoomOut(factor=1.25) { this.zoomIn(1 / factor); },
+    zoomOut(factor) {
+      if (factor === undefined && curView === 'sitemap') {
+        const wrap = _wrap();
+        const rect = wrap ? wrap.getBoundingClientRect() : {left:0,top:0};
+        _apply([...SITEMAP_STEPS].reverse().find(s => s < _scale - 0.01) || SITEMAP_STEPS[0],
+               rect.left + (wrap ? wrap.offsetWidth : 0) / 2, rect.top + (wrap ? wrap.offsetHeight : 0) / 2);
+        return;
+      }
+      this.zoomIn(1 / (factor || 1.25));
+    },
 
     reset() {
       _scale = 1;
       const target = _target(); if (!target) return;
+      if (curView === 'sitemap') target.style.marginLeft = '';
       const wrap   = _wrap();
       target.style.transform = '';
       if (wrap) { wrap.scrollLeft = 0; wrap.scrollTop = 0; }
@@ -22745,6 +23653,7 @@ const VIEWPORT = (() => {
     },
 
     fitToScreen() {
+      if (curView === 'sitemap') { _stmFit(); return; }
       const target = _target(); const wrap = _wrap(); if (!target || !wrap) return;
       // Measure content at scale=1
       const savedT = target.style.transform;

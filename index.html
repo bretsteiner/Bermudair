@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- StrategicSitemapper  v163 -->
+<!-- StrategicSitemapper  v169.1 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -2093,6 +2093,46 @@ a.pt-url-val:hover{text-decoration:underline}
 .tpl3-scn-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .tpl3-scn-scope{font-size:13px;color:var(--text-secondary)}
 .tpl3-scn-btns{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
+/* ── SITEMAP VIEW (2026-09-25) — one hierarchical tree per Product, with a
+   Component-view (mockup card + colour-linked outgoing components) and a
+   Website-view (live iframe preview) toggle. See renderSitemapView(). ── */
+.stm-product-box{background:var(--md-surface);border:1px solid var(--md-outline-variant);border-radius:14px;padding:20px 24px 28px;flex-shrink:0;box-shadow:var(--el-1)}
+.stm-product-label{font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--brand-primary);margin-bottom:18px;text-align:center;white-space:nowrap}
+.stm-tree-inner{margin:0 auto}
+.stm-card{width:196px;background:var(--md-surface);border:1px solid var(--md-outline-variant);border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.08);cursor:pointer;overflow:hidden;transition:box-shadow .15s,transform .15s;z-index:1}
+.stm-card:hover{box-shadow:var(--el-2);transform:translateY(-1px);z-index:2}
+.stm-mock{height:150px;display:flex;flex-direction:column;background:var(--md-surface-container)}
+.stm-mock-bar{height:20px;flex-shrink:0;background:var(--md-surface-container-high);display:flex;align-items:center;gap:4px;padding:0 8px}
+.stm-mock-bar span{width:6px;height:6px;border-radius:50%;background:var(--md-outline);flex-shrink:0}
+.stm-mock-url{font-size:8px;color:var(--text3);font-family:var(--font-mono);margin-left:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.stm-mock-body{flex:1;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:4px}
+.stm-mock-block{font-size:9px;font-weight:600;color:var(--text2);background:var(--md-surface);border:1.5px solid var(--md-outline-variant);border-radius:5px;padding:5px 7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:all .15s;flex-shrink:0}
+.stm-mock-empty{color:var(--text3);font-weight:400;font-style:italic;border-style:dashed}
+.stm-caption{font-size:11px;font-weight:600;color:var(--md-on-surface);text-align:center;padding:7px 8px;border-top:1px solid var(--md-outline-variant);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stm-mock-website .stm-mock-body{padding:0;overflow:hidden}
+.stm-website-frame-wrap{position:relative;flex:1;overflow:hidden;background:#fff}
+.stm-website-frame{width:100%;height:100%;border:none;pointer-events:none;display:block}
+.stm-website-fallback{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:var(--md-surface-variant);color:var(--text3);font-size:9px;opacity:0;transition:opacity .2s;text-align:center;padding:8px}
+/* Cross-PRODUCT link badge/popover (2026-09-25) — a small corner badge on
+   any card whose page has a real outgoing Link/CTA into a DIFFERENT
+   product's tree (only one product's tree is ever on screen at once now —
+   see the #stmLeftNav chooser — so this is how a page still reaches a page
+   living in another product without showing every tree side by side). The
+   popover is appended to <body> with position:fixed, computed from the
+   badge's own getBoundingClientRect(), specifically so it's never clipped
+   by .stm-card's own overflow:hidden or skewed by the canvas's zoom
+   transform — see _stmToggleCrossPopover(). */
+.stm-cross-badge{position:absolute;top:6px;right:6px;display:flex;align-items:center;gap:2px;background:var(--brand-primary);color:#fff;font-size:9px;font-weight:700;font-family:var(--font-mono);padding:3px 6px 3px 5px;border-radius:20px;box-shadow:0 1px 4px rgba(0,0,0,.28);cursor:pointer;z-index:3;line-height:1}
+.stm-cross-badge:hover{filter:brightness(1.15)}
+.stm-cross-popover{position:fixed;min-width:180px;max-width:260px;background:var(--md-surface);border:1px solid var(--md-outline-variant);border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.22);padding:6px;z-index:9000;display:flex;flex-direction:column;gap:2px}
+.stm-cross-popover button{display:flex;align-items:center;gap:7px;width:100%;padding:7px 9px;border:none;background:none;border-radius:7px;cursor:pointer;text-align:left;font-family:var(--font-body)}
+.stm-cross-popover button:hover{background:var(--md-surface-variant)}
+.stm-cross-popover-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:600;color:var(--md-on-surface)}
+.stm-cross-popover-product{font-size:9.5px;color:var(--text3);flex-shrink:0}
+/* Brief highlight after _stmGoToCrossProductPage() lands on a card in the
+   newly-switched-to product's tree, so the jump is visually obvious. */
+.stm-card-flash{box-shadow:0 0 0 3px var(--brand-primary),0 10px 26px rgba(0,0,0,.28)!important;transition:box-shadow .25s}
 </style>
 </head>
 <body>
@@ -2409,6 +2449,12 @@ a.pt-url-val:hover{text-decoration:underline}
         </select>
       </div>
     </div>
+    <div class="mfield" id="conn-component-wrap">
+      <label>Component <span style="font-size:9px;color:var(--text3);font-weight:400;text-transform:none;letter-spacing:0">(optional — which component on this page drives this link, e.g. for the Sitemap view)</span></label>
+      <select class="mselect" id="conn-component">
+        <option value="">— Not attributed to a component —</option>
+      </select>
+    </div>
     <div id="conn-internal-wrap">
       <div class="mfield">
         <label>Target node</label>
@@ -2611,6 +2657,10 @@ a.pt-url-val:hover{text-decoration:underline}
   <div class="vb-group" id="vbUrls">
     <button class="ds-btn ds-btn-outline ds-btn-sm js-check-urls" onclick="headerCheckAllUrls()" title="Check every page URL via the Google Sheets backend"><span class="material-icons-round" style="font-size:1.2em">link</span>Check all URLs</button>
   </div>
+  <div class="vb-group" id="vbSitemap" style="display:none">
+    <button class="ds-btn ds-btn-outline ds-btn-sm" id="stmModeComponentBtn" onclick="_stmSetMode('component')" title="Show each page's components, colour-linked to the page they lead to"><span class="material-icons-outlined" style="font-size:1.2em">widgets</span>Component view</button>
+    <button class="ds-btn ds-btn-outline ds-btn-sm" id="stmModeWebsiteBtn" onclick="_stmSetMode('website')" title="Show a live preview of each page's actual URL"><span class="material-icons-outlined" style="font-size:1.2em">language</span>Website view</button>
+  </div>
 </div>
 <div class="app-body">
 
@@ -2628,6 +2678,10 @@ a.pt-url-val:hover{text-decoration:underline}
 
   <!-- TEST PLAN LEFT NAV (shown only in Test Plan view) -->
   <div id="tplLeftNav" class="ar-left-nav tpl-left-nav" style="display:none"></div>
+
+  <!-- SITEMAP LEFT NAV (shown only in Sitemap view) — product chooser, same
+       .ar-left-nav shell as Test Plan/Action Report. See renderSitemapNav(). -->
+  <div id="stmLeftNav" class="ar-left-nav tpl-left-nav" style="display:none"></div>
 
   <!-- Mobile-only backdrop for whichever .ar-left-nav drawer is open (see
        toggleMobileNav()) — click anywhere on it to close. -->
@@ -2657,6 +2711,8 @@ a.pt-url-val:hover{text-decoration:underline}
       </svg>
       <div class="canvas" id="canvas" style="position:relative;z-index:1"></div>
     </div>
+    <!-- Sitemap view — one hierarchical tree per Product, Component/Website toggle -->
+    <div id="viewSitemap" style="display:none;flex:1;position:relative;overflow:hidden"></div>
     <!-- Ecosystem / Force-directed view -->
     <div id="viewEcosystem" style="display:none;flex:1;position:relative;overflow:hidden"></div>
     <!-- Journey and Focus views removed -->
@@ -2684,6 +2740,7 @@ a.pt-url-val:hover{text-decoration:underline}
         <div class="set-group">Workspace</div>
         <div class="stab" id="stab-general"    onclick="switchStab('general')"><span class="material-icons-outlined">tune</span>General</div>
         <div class="stab" id="stab-home"       onclick="switchStab('home')"><span class="material-icons-outlined">home</span>Homepage</div>
+        <div class="stab" id="stab-appblocks"  onclick="switchStab('appblocks')"><span class="material-icons-outlined">apps</span>App Blocks</div>
         <div class="set-group">Reference data</div>
         <div class="stab active" id="stab-systems"  onclick="switchStab('systems')"><span class="material-icons-outlined">dns</span>Systems</div>
         <div class="stab" id="stab-owners"     onclick="switchStab('owners')"><span class="material-icons-outlined">groups</span>Owners</div>
@@ -3637,12 +3694,17 @@ async function sheetPost(body, timeoutMs) {
       signal: controller.signal,
     });
     if (!res.ok) throw new Error(`POST HTTP ${res.status}`);
-    const json = await res.json();
-    if (json && json.error) throw new Error(json.error);
+    let json;
+    try { json = await res.json(); }
+    catch(_) { throw new Error('Server returned an unreadable (non-JSON) response — the backend likely crashed.'); }
+    if (json && json.error) { const se = new Error(json.error); se.isServerError = true; throw se; }
     return json;
   } catch(e) {
     _status = 'error: ' + e.message;
-    if (e.name === 'AbortError') throw new Error('Request timed out — the Sheets backend took too long to respond.');
+    if (e.name === 'AbortError') throw new Error('Request timed out — the Sheets backend took too long to respond. Your change may not have saved.');
+    // fetch() rejects with a bare TypeError for network failures AND for any
+    // response lacking CORS headers (e.g. an Apps Script HTML error page).
+    if (e instanceof TypeError) throw new Error('Could not reach the Sheets backend (network error, or the server failed without a response). Check your connection and retry.');
     throw e;
   } finally {
     clearTimeout(timer);
@@ -3788,7 +3850,7 @@ async function loadFromSheets() {
         const defScope=(r.type==='External'||r.type==='CTA'||r.type==='Button')?'external':'internal';
         LINKS[r.sourceNodeId].push({ id: String(r.id||''), type: r.type||'Internal',
           label: r.label||'', targetId: r.targetId||null, url: r.url||null,
-          scope: r.scope||defScope, ctaType: r.ctaType||null, _sheet:'Links' });
+          scope: r.scope||defScope, ctaType: r.ctaType||null, componentId: r.componentId||null, _sheet:'Links' });
       });
     }
     // Merge CTAs into unified LINKS structure
@@ -3800,7 +3862,7 @@ async function loadFromSheets() {
         const scope = r.targetId ? 'internal' : 'external';
         const unified = { id: String(r.id||''), type: r.ctaType||'Button',
           label: r.label||'', targetId: r.targetId||null, url: r.url||'',
-          scope, ctaType: r.ctaType||'Button', _sheet:'CTAs' };
+          scope, ctaType: r.ctaType||'Button', componentId: r.componentId||null, _sheet:'CTAs' };
         CTAS[r.nodeId].push(unified);
         if (!LINKS[r.nodeId]) LINKS[r.nodeId]=[];
         LINKS[r.nodeId].push(unified);
@@ -4372,7 +4434,14 @@ function _compUsingProductIds(componentId){
   Object.entries(NODE_COMPS).forEach(([nodeId,ncs])=>{
     if(!ncs.some(nc=>nc.componentId===componentId)) return;
     const n=gn(nodeId);
-    if(n&&n.roadmapProductId) productIds.add(n.roadmapProductId);
+    // _iaEffectiveProductId (not n.roadmapProductId directly) — a component
+    // used on a page that has no explicit product of its own still counts,
+    // via whatever its Parent ancestor is linked to. See that
+    // function's own comment: an App Block and a Product are the same thing
+    // now, so "which product is this page in" should never require setting
+    // the field on every single page by hand.
+    const eff=n?_iaEffectiveProductId(n):'';
+    if(eff) productIds.add(eff);
   });
   return ROADMAP_PRODUCTS.filter(p=>productIds.has(p.id)).sort((a,b)=>(a.order||0)-(b.order||0)).map(p=>p.id);
 }
@@ -4445,19 +4514,75 @@ async function _compBackfillRequirements(){
   COMP_LIBRARY.forEach(c=>_compSyncRequirement(c));
 }
 
-function updNodeRoadmapProduct(id, productId){
+// ── APP BLOCK ↔ PRODUCT UNIFICATION (2026-09-25) ───────────────────────────
+// An "App Block" (the IA view's Parent-field grouping — a top-level
+// page with no parentId, plus everything nested under it) and a "Product"
+// (Roadmap / Test Plan) are the same real-world thing: one business site or
+// application. Historically they were two disconnected data structures —
+// this resolver is what actually unifies them: a page's EFFECTIVE product is
+// its own roadmapProductId if set, else inherited from the nearest ancestor
+// (walking parentId) that has one. In practice that means only an App
+// Block's own root page needs the link set — see the "App Blocks" Settings
+// tab (renderAppBlocksTab) for the one-time reconciliation of existing data,
+// and _appBlockApply for setting it going forward. Every page/variant/
+// component underneath then resolves to the same product automatically,
+// with no per-page picker required. A page can still set its own
+// roadmapProductId explicitly to override what it would otherwise inherit.
+function _iaEffectiveProductId(node){
+  let cur=node, depth=0;
+  const seen=new Set();
+  while(cur && depth<80){
+    if(cur.roadmapProductId) return cur.roadmapProductId;
+    if(seen.has(cur.id)) break; // cycle guard — should never happen, but never loop forever on bad data
+    seen.add(cur.id);
+    if(!cur.parentId) break;
+    cur=gn(cur.parentId);
+    depth++;
+  }
+  return '';
+}
+// Help text under the node editor's Product picker — worded differently for
+// a phase-variant overlay (its own, separate "track this transformation on
+// the roadmap" concept) vs. a canonical page (where the field now means
+// "which product does this page's App Block belong to", with inheritance).
+function _neProductHelpText(n){
+  if(n.variantOf){
+    return n.roadmapProductId
+      ? `Tracked on the roadmap under <strong>${escH(_rmVariantEpicLabel(n.nodeType))}</strong>, in ${escH((PHASES.find(ph=>ph.id===n.phase)||{}).name||n.phase)}.`
+      : `Associate this variant with a product to track it on the Product Roadmap, under an auto-created "${escH(_rmVariantEpicLabel(n.nodeType))}" functional area.`;
+  }
+  if(n.roadmapProductId){
+    return `This page's App Block belongs to this product — every page nested under it (via Parent) inherits it automatically, for Test Plan and Component Library tracking. Manage the full list under Settings &gt; App Blocks.`;
+  }
+  const eff=_iaEffectiveProductId(n);
+  const effProd=eff?ROADMAP_PRODUCTS.find(p=>p.id===eff):null;
+  if(effProd) return `Inheriting <strong>${escH(effProd.name)}</strong> from its Parent ancestor. Set a product here only to override it just for this page.`;
+  return `Not linked to a product, and nothing above it in the Parent hierarchy is either — this page (and anything nested under it) won't be scoped to a product for Test Plan / Component tracking yet. See Settings &gt; App Blocks.`;
+}
+function updNodeRoadmapProduct(id, productId, silent){
   if(!canEdit()){showToast('View-only access — editing is disabled');return;}
   const n=gn(id); if(!n) return;
   n.roadmapProductId=productId;
-  _rmSyncNodeVariantFeature(n);
+  // Only a phase-variant overlay tracks itself as a "Page Variants"/etc.
+  // Feature on the Roadmap (see _rmSyncNodeVariantFeature) — a canonical
+  // page's own product link now just defines/overrides which product its
+  // App Block belongs to (see _iaEffectiveProductId above), which isn't
+  // itself trackable "transformation work" the way a variant overlay is, so
+  // it must not spawn a spurious Feature named after the page itself.
+  if(n.variantOf) _rmSyncNodeVariantFeature(n);
   dbUpsertNode(n);
   _rebuildNodeMap();
-  // Every component assigned to this page may now be used on a different
-  // set of products (this page just joined/left one) — resync each so their
-  // Test Plan requirements' home/extra products stay correct.
+  // Every component assigned to this EXACT page may now be used on a
+  // different set of products — resync each so their Test Plan requirements'
+  // home/extra products stay correct. A component only reachable via a
+  // DESCENDANT page that inherits this node's product (rather than being
+  // assigned directly here) isn't walked live — the existing
+  // _compBackfillRequirements() catch-up pass (runs on every load) picks up
+  // any such lag on the next reload rather than this needing a full subtree
+  // walk on every click.
   (NODE_COMPS[id]||[]).forEach(nc=>{ const c=COMP_LIBRARY.find(x=>x.id===nc.componentId); if(c) _compSyncRequirement(c); });
   if(editingNodeId===id) renderNeTab(neTab);
-  showToast(productId?'Added to roadmap':'Removed from roadmap');
+  if(!silent) showToast(productId?'Added to roadmap':'Removed from roadmap');
 }
 async function dbUpsertStory(s){try{await sheetPost({action:'upsertStory',row:{id:s.id,code:s.code||'',featureId:s.featureId,text:s.text||'',stretch:s.stretch?'TRUE':'FALSE',type:s.type||'',devStatus:s.devStatus||'Not Started',testStatus:s.testStatus||'Not Started',owner:s.owner||'',source:s.source||'',order:s.order||0,jiraKey:s.jiraKey||'',testProductIds:(s.testProductIds||[]).join(',')}});}catch(e){console.error('dbUpsertStory:',e);showToast('Sheet write error: '+e.message);}}
 async function dbDeleteStory(id){try{await sheetPost({action:'deleteStory',id});}catch(e){console.error('dbDeleteStory:',e);showToast('Sheet write error: '+e.message);}}
@@ -4474,15 +4599,22 @@ async function dbUpsertSnag(sn){try{await sheetPost({action:'upsertSnag',row:{id
 // — the requirement stays blocked for testers until dbSendSnagToTesting is
 // called separately (see that function). actualHours is optional (undefined
 // is fine — the backend just won't write that column).
-async function dbSquashSnag(id,actualHours){try{await sheetPost({action:'squashSnag',id,actualHours});}catch(e){console.error('dbSquashSnag:',e);showToast('Sheet write error: '+e.message);}}
+// Returns true/false (rather than swallowing the error silently) so callers
+// like _tplSubmitSquash can tell a real write from a failed one — without
+// this, a rejected write (role-cache lag, lock timeout, network blip) still
+// left the snag optimistically marked Squashed locally AND posted its
+// resolution comment, even though the sheet itself never changed. Reported
+// 2026-09-29: "developer clicks Squash, a comment logs, but the snag doesn't
+// actually squash/send back to testing" — this silent-failure gap was why.
+async function dbSquashSnag(id,actualHours){try{await sheetPost({action:'squashSnag',id,actualHours});return true;}catch(e){console.error('dbSquashSnag:',e);showToast('Sheet write error: '+e.message);return false;}}
 // Second of the two actions — sends an already-squashed fix back to testing.
 // Hits the backend's sendSnagToTesting action, which flips status to
 // 'Resolved' (the only status that unblocks the requirement's row for
 // testers — see _tplStoryVerification) and resets this requirement's prior
 // test results for this product in the same call, so retesting needs 2
 // completely fresh passes, same as an initial test.
-async function dbSendSnagToTesting(id){try{await sheetPost({action:'sendSnagToTesting',id});}catch(e){console.error('dbSendSnagToTesting:',e);showToast('Sheet write error: '+e.message);}}
-async function dbRequestSnagClarification(id){try{await sheetPost({action:'requestSnagClarification',id});}catch(e){console.error('dbRequestSnagClarification:',e);showToast('Sheet write error: '+e.message);}}
+async function dbSendSnagToTesting(id){try{await sheetPost({action:'sendSnagToTesting',id});return true;}catch(e){console.error('dbSendSnagToTesting:',e);showToast('Sheet write error: '+e.message);return false;}}
+async function dbRequestSnagClarification(id){try{await sheetPost({action:'requestSnagClarification',id});return true;}catch(e){console.error('dbRequestSnagClarification:',e);showToast('Sheet write error: '+e.message);return false;}}
 // Narrow field-only update for severity/estimatedHours/assignedTo/pickedUp —
 // deliberately NOT routed through dbUpsertSnag, which forces status:'Open'
 // server-side on every call (see its own comment); editing any of these on a
@@ -4492,8 +4624,8 @@ async function dbRequestSnagClarification(id){try{await sheetPost({action:'reque
 // untouched (see updateSnagMeta's own comment).
 async function dbUpdateSnagMeta(id,severity,estimatedHours,assignedTo,pickedUp){try{await sheetPost({action:'updateSnagMeta',id,severity,estimatedHours,assignedTo,pickedUp});}catch(e){console.error('dbUpdateSnagMeta:',e);showToast('Sheet write error: '+e.message);}}
 async function dbUpsertPageSnag(sn){try{await sheetPost({action:'upsertPageSnag',row:{id:sn.id,nodeId:sn.nodeId||'',componentId:sn.componentId||'',title:sn.title||'',status:sn.status||'Open',source:sn.source||'manual',reporterEmail:sn.reporterEmail||'',cycleCount:sn.cycleCount||1,createdAt:sn.createdAt||'',resolvedBy:sn.resolvedBy||'',resolvedAt:sn.resolvedAt||'',updatedAt:sn.updatedAt||''}});}catch(e){console.error('dbUpsertPageSnag:',e);showToast('Sheet write error: '+e.message);}}
-async function dbSquashPageSnag(id){try{await sheetPost({action:'squashPageSnag',id});}catch(e){console.error('dbSquashPageSnag:',e);showToast('Sheet write error: '+e.message);}}
-async function dbRequestPageSnagClarification(id){try{await sheetPost({action:'requestPageSnagClarification',id});}catch(e){console.error('dbRequestPageSnagClarification:',e);showToast('Sheet write error: '+e.message);}}
+async function dbSquashPageSnag(id){try{await sheetPost({action:'squashPageSnag',id});return true;}catch(e){console.error('dbSquashPageSnag:',e);showToast('Sheet write error: '+e.message);return false;}}
+async function dbRequestPageSnagClarification(id){try{await sheetPost({action:'requestPageSnagClarification',id});return true;}catch(e){console.error('dbRequestPageSnagClarification:',e);showToast('Sheet write error: '+e.message);return false;}}
 // Manual on-demand trigger for the daily Product Progress snapshot (see
 // PRODUCT_PROGRESS's declaration and the backend's captureProductProgressSnapshot
 // comment) — mainly for getting today's first data point without waiting for
@@ -5393,7 +5525,13 @@ function isAnc(node,ancId){let c=node;while(c.parentId){if(c.parentId===ancId)re
 function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function eid(id){return document.getElementById(id)}
 let _toastTimer=null;
-function showToast(msg){const t=eid('toast');t.textContent=msg;t.classList.add('show');clearTimeout(_toastTimer);_toastTimer=setTimeout(()=>t.classList.remove('show'),2400)}
+// Second arg: pass a NUMBER to hold the toast on screen longer than the
+// 2400ms default (used for the snag-write-failure toasts below, which
+// otherwise vanished as fast as a routine success toast — see
+// dbSquashSnag's 2026-09-29 comment). Existing call sites that pass a STRING
+// here (e.g. 'error', meant as a type flag that was never actually wired up)
+// keep their original 2400ms behavior unchanged — only a number opts in.
+function showToast(msg,durationOrType){const t=eid('toast');t.textContent=msg;t.classList.add('show');clearTimeout(_toastTimer);const ms=typeof durationOrType==='number'?durationOrType:2400;_toastTimer=setTimeout(()=>t.classList.remove('show'),ms)}
 function prevImg(inp,prev){const url=eid(inp).value.trim();const w=eid(prev);w.innerHTML=url?`<img src="${escH(url)}" onerror="this.parentElement.innerHTML='<span class=np>Cannot load</span>'">`:'<span class="np">No image</span>'}
 function openModal(id){eid(id).classList.add('open')}
 function closeModal(id){eid(id).classList.remove('open')}
@@ -6446,7 +6584,7 @@ function renderCanvasIA(){
       <span class="orphan-title">Unassigned nodes</span>
       <span class="orphan-count">${orphans.length}</span>
     </div>
-    <div class="orphan-desc">These nodes have no Business Application (parentId). Assign a parent to place them in an application block.</div>`;
+    <div class="orphan-desc">These nodes have no Parent (parentId). Assign a parent to place them in an application block.</div>`;
     const cards=document.createElement('div');cards.className='orphan-cards';
     orphans.forEach(n=>{
       const c=buildCard(n,jSet);c.id='card-'+n.id;
@@ -8771,8 +8909,17 @@ function renderNeTab(tab){
       <div class="ne-section">
         <div class="ne-section-title">Details</div>
         <div class="drow"><div class="drow-lbl">Title</div><input class="dinput" id="ne-title" value="${n?escH(n.title):''}" placeholder="e.g. Contact Us" ${id?`onchange="upd('${id}','title',this.value)"`:''}></div>
-        <div class="ne-grid3">
-          <div><div style="font-size:9px;color:var(--text3);font-weight:600;margin-bottom:4px;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.3px">Business Application</div><select class="dinput dselect" id="ne-parent">${parentOpts}</select></div>
+        <div class="ne-grid2">
+          <div><div style="font-size:9px;color:var(--text3);font-weight:600;margin-bottom:4px;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.3px">Parent</div><select class="dinput dselect" id="ne-parent">${parentOpts}</select></div>
+          <div><div style="font-size:9px;color:var(--text3);font-weight:600;margin-bottom:4px;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.3px">Product</div>
+            <select class="dinput dselect" id="ne-roadmap-product" ${id?`onchange="updNodeRoadmapProduct('${id}',this.value)"`:''}>
+              <option value="">${(n&&n.variantOf)?'— Not on roadmap —':'— Inherit from Parent —'}</option>
+              ${ROADMAP_PRODUCTS.map(p=>`<option value="${p.id}"${n&&n.roadmapProductId===p.id?' selected':''}>${escH(p.name)}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div style="font-size:10px;color:var(--text3);margin:4px 0 8px;line-height:1.4">${n?_neProductHelpText(n):'Product can be set once the page is saved — or left blank to inherit from its Parent.'}</div>
+        <div class="ne-grid2">
           <div><div style="font-size:9px;color:var(--text3);font-weight:600;margin-bottom:4px;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.3px">Phase</div><select class="dinput dselect" id="ne-phase" ${id?`onchange="upd('${id}','phase',this.value)"`:''}>${phaseOpts}</select></div>
           <div><div style="font-size:9px;color:var(--text3);font-weight:600;margin-bottom:4px;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.3px">Owner</div><select class="dinput dselect" id="ne-owner" ${id?`onchange="upd('${id}','owner',this.value)"`:''}>${ownerOpts}</select></div>
         </div>
@@ -8783,20 +8930,7 @@ function renderNeTab(tab){
         </div>`
         :`<div class="drow" style="margin-top:8px"><div class="drow-lbl">URL</div><input class="dinput mono" id="ne-slug" value="${n?escH(n.slug||''):''}" placeholder="https://… or /path" ${id?`onchange="upd('${id}','slug',this.value);refreshNeHeader('${id}')"`:''}></div>`}
         <div class="drow"><div class="drow-lbl">Notes</div><textarea class="dinput" rows="2" style="resize:vertical" id="ne-notes" ${id?`onchange="upd('${id}','notes',this.value)"`:''}>${n?escH(n.notes||''):''}</textarea></div>
-      </div>
-      ${(n&&n.variantOf)?`
-      <div class="ne-section">
-        <div class="ne-section-title">Roadmap</div>
-        <div class="drow"><div class="drow-lbl">Product</div>
-          <select class="dinput dselect" id="ne-roadmap-product" ${id?`onchange="updNodeRoadmapProduct('${id}',this.value)"`:''}>
-            <option value="">— Not on roadmap —</option>
-            ${ROADMAP_PRODUCTS.map(p=>`<option value="${p.id}"${n.roadmapProductId===p.id?' selected':''}>${escH(p.name)}</option>`).join('')}
-          </select>
-        </div>
-        <div style="font-size:10px;color:var(--text3);margin-top:4px;line-height:1.4">
-          ${n.roadmapProductId?`Tracked on the roadmap under <strong>${escH(_rmVariantEpicLabel(n.nodeType))}</strong>, in ${escH((PHASES.find(ph=>ph.id===n.phase)||{}).name||n.phase)}.`:`Associate this variant with a product to track it on the Product Roadmap, under an auto-created "${escH(_rmVariantEpicLabel(n.nodeType))}" functional area.`}
-        </div>
-      </div>`:''}`;
+      </div>`;
   }
 
   if(tab==='transformation'){
@@ -9386,12 +9520,28 @@ function openConnModal(pid){
   eid('conn-scope').value='internal';
   eid('conn-modal-title').textContent='Add connection';
   const ctx=eid('conn-source-ctx'); if(ctx) ctx.style.display='none';
+  _populateConnComponentPicker(pid);
   // Reset inline create form
   hideConnCreateForm();
   const noMatch=eid('conn-no-match'); if(noMatch) noMatch.style.display='none';
   filterConnNodes();
   togConnType();
   openModal('connModal');
+}
+// Populates the "Component" picker with whatever components are already
+// assigned to the SOURCE page (see getNodeComps) — the same set shown in
+// that page's own Components tab. Drives the Sitemap view's Component View
+// colour-attribution (a link with a componentId highlights that block on
+// the source card in the same colour as the connector line to its target —
+// see _stmComponentForLink). Purely optional; a page with no components
+// assigned just shows the one "not attributed" option.
+function _populateConnComponentPicker(pid){
+  const sel=eid('conn-component');
+  if(!sel) return;
+  const comps=pid?getNodeComps(pid):[];
+  sel.innerHTML='<option value="">— Not attributed to a component —</option>'
+    +comps.map(c=>`<option value="${c.componentId}">${escH(c.name)}${c.code?' — '+escH(c.code):''}</option>`).join('');
+  sel.value='';
 }
 
 function togConnType(suppressScopeReset){
@@ -9542,8 +9692,9 @@ function createAndLinkNode(){
   const type=eid('conn-type').value;
   const scope=eid('conn-scope').value;
   const isCta=CTA_TYPES.has(type);
+  const componentId=eid('conn-component')?.value||null;
   const connId='C'+Date.now();
-  const obj={id:connId, type, label, targetId:newId, url:slug||null, scope, ctaType:isCta?type:null, _sheet:'Links'};
+  const obj={id:connId, type, label, targetId:newId, url:slug||null, scope, ctaType:isCta?type:null, componentId, _sheet:'Links'};
   if(!LINKS[addingConnFor]) LINKS[addingConnFor]=[];
   LINKS[addingConnFor].push(obj);
   if(isCta){
@@ -9582,8 +9733,9 @@ function saveConn(){
       if(match) targetId=match.id;
     }
   }
+  const componentId=eid('conn-component')?.value||null;
   const newId='C'+Date.now();
-  const obj={id:newId, type, label, targetId, url:url||null, scope, ctaType:isCta?type:null, _sheet:'Links'};
+  const obj={id:newId, type, label, targetId, url:url||null, scope, ctaType:isCta?type:null, componentId, _sheet:'Links'};
   if(!LINKS[addingConnFor]) LINKS[addingConnFor]=[];
   LINKS[addingConnFor].push(obj);
   // Write to the correct sheet: CTAs sheet for CTA types, Links sheet otherwise
@@ -9831,6 +9983,7 @@ let curView = 'ia';
 const VIEW_OPTIONS=[
   {id:'home',          icon:'home',          label:'Homepage'},
   {id:'ia',            icon:'account_tree',  label:'IA — Hierarchy'},
+  {id:'sitemap',       icon:'schema',        label:'Sitemap'},
   {id:'ecosystem',     icon:'hub',           label:'Ecosystem — Relationships'},
   {id:'audit',         icon:'troubleshoot',  label:'Audit — Diagnostics'},
   {id:'platform',      icon:'dns',           label:'Platform - Systems View'},
@@ -9942,6 +10095,7 @@ let _lastVW=window.innerWidth;
 window.addEventListener('resize',()=>{ if(window.innerWidth!==_lastVW){ _lastVW=window.innerWidth; closeViewMenu(); if(typeof closePhaseMenu==='function') closePhaseMenu(); closeHdrBurger(); } });
 const VIEW_CONTAINERS = {
   ia:             'canvasWrap',
+  sitemap:        'viewSitemap',
   ecosystem:      'viewEcosystem',
   audit:          'viewAudit',
   platform:       'viewPlatform',
@@ -9971,11 +10125,12 @@ function switchView(v){
   _hideStartScreen();   // a real view was chosen — never leave the Homepage overlay covering it
   const setBtn=eid('hdrSettingsBtn'); if(setBtn) setBtn.classList.toggle('active-icon', v==='settings');
   curView = v;
-  const lnEl=eid('leftNav'),arLnEl=eid('arLeftNav'),tplLnEl=eid('tplLeftNav');
-  const noLeftNav = v==='actionreport'||v==='transformation'||v==='roadmap'||v==='requirements'||v==='redirects'||v==='testplan'||v==='settings';
+  const lnEl=eid('leftNav'),arLnEl=eid('arLeftNav'),tplLnEl=eid('tplLeftNav'),stmLnEl=eid('stmLeftNav');
+  const noLeftNav = v==='actionreport'||v==='transformation'||v==='roadmap'||v==='requirements'||v==='redirects'||v==='testplan'||v==='settings'||v==='sitemap';
   if(lnEl)lnEl.style.display=noLeftNav?'none':'';
   if(arLnEl){arLnEl.style.display=v==='actionreport'?'flex':'none';arLnEl.style.flexDirection='column';}
   if(tplLnEl){tplLnEl.style.display=v==='testplan'?'flex':'none';tplLnEl.style.flexDirection='column';}
+  if(stmLnEl){stmLnEl.style.display=v==='sitemap'?'flex':'none';stmLnEl.style.flexDirection='column';}
   // Hide all view containers
   Object.values(VIEW_CONTAINERS).forEach(id=>{
     const el=eid(id);if(el)el.style.display='none';
@@ -9992,11 +10147,11 @@ function switchView(v){
   // The toolbar strip now also carries each view's own buttons (they used to sit
   // in the global header): zoom + sitemap actions on the canvas views, Journeys
   // on every view that shows the Journeys list, Check all URLs on Audit.
-  const isCanvasView=(v==='ia'||v==='ecosystem');
+  const isCanvasView=(v==='ia'||v==='ecosystem'||v==='sitemap');
   const showToolbar=isCanvasView||v==='audit'||v==='platform';
   const viewBar=eid('viewBar');
   if(viewBar) viewBar.style.display=showToolbar?'flex':'none';
-  [['zoomGroup',isCanvasView],['vbSep',isCanvasView],['vbJourneys',showToolbar],['vbNodes',isCanvasView],['vbSheets',isCanvasView],['vbUrls',v==='audit']]
+  [['zoomGroup',isCanvasView],['vbSep',isCanvasView],['vbJourneys',showToolbar],['vbNodes',isCanvasView],['vbSheets',isCanvasView],['vbUrls',v==='audit'],['vbSitemap',v==='sitemap']]
     .forEach(([id,on])=>{ const el=eid(id); if(el) el.style.display=on?'flex':'none'; });
   // Layers menu only makes sense against the IA/Ecosystem canvases it filters —
   // elsewhere it's dead chrome. On Requirements Tracker specifically, its footer
@@ -10014,6 +10169,7 @@ function switchView(v){
   // Render the chosen view
   switch(v){
     case 'ia':           renderCanvasIA(); break;
+    case 'sitemap':      renderSitemapView(); break;
     case 'ecosystem':    renderEcosystem(); break;
     case 'audit':        renderAuditView(); break;
     case 'platform':     renderPlatformView(); break;
@@ -10026,18 +10182,19 @@ function switchView(v){
     case 'settings':       break;   // openSettings() has already rendered the chosen tab
   }
   toggleMobileNav(false);
-  // Only Action Report needs the floating fallback button — Test Plan hosts
-  // its own inline toggle in req-header instead (see renderTestPlan()), so
-  // showing both there would be redundant.
+  // Action Report and Sitemap both need the floating fallback button — Test
+  // Plan hosts its own inline toggle in req-header instead (see
+  // renderTestPlan()), so showing it there too would be redundant.
   const fab=eid('mnavFab');
-  if(fab) fab.classList.toggle('mnav-visible', v==='actionreport');
+  if(fab) fab.classList.toggle('mnav-visible', v==='actionreport'||v==='sitemap');
 }
 // Opens/closes whichever .ar-left-nav drawer belongs to the CURRENT view
-// (Action Report or Test Plan share that one class — see its CSS comment)
-// as a mobile off-canvas panel. `open` true/false sets it explicitly; omit
-// to toggle. No-op for any other view, none of which have this sidebar.
+// (Action Report, Test Plan and Sitemap share that one class — see its CSS
+// comment) as a mobile off-canvas panel. `open` true/false sets it
+// explicitly; omit to toggle. No-op for any other view, none of which have
+// this sidebar.
 function toggleMobileNav(open){
-  const id = curView==='testplan' ? 'tplLeftNav' : curView==='actionreport' ? 'arLeftNav' : null;
+  const id = curView==='testplan' ? 'tplLeftNav' : curView==='actionreport' ? 'arLeftNav' : curView==='sitemap' ? 'stmLeftNav' : null;
   const el = id ? eid(id) : null;
   const backdrop = eid('mnavBackdrop');
   if(!el) return;
@@ -11179,14 +11336,25 @@ async function _trSubmitSquashPageSnag(id){
   if(!gCurrentUser){showToast('Sign in to squash a snag');return;}
   const sn=PAGE_SNAGS.find(s=>s.id===id); if(!sn)return;
   const notes=(eid('tr-pagesnag-notes-'+id)?.value||'').trim();
+  if(_snagActionBlocked(id))return;
+  SNAG_SAVE_PENDING.add(id);
   const email=gCurrentUser.email.trim().toLowerCase();
   const now=new Date().toISOString();
-  sn.status='Resolved'; sn.resolvedBy=email; sn.resolvedAt=now; sn.updatedAt=now;
+  const prev={status:sn.status,resolvedBy:sn.resolvedBy,resolvedAt:sn.resolvedAt,updatedAt:sn.updatedAt};
+  const optimistic={status:'Resolved',resolvedBy:email,resolvedAt:now,updatedAt:now};
+  Object.assign(sn,optimistic);
   _trSnagSquashingId=null;
   _trPageSnagRerender();
   showToast('Page snag marked resolved');
   // Sequenced, not concurrent — same reasoning as the Test Plan's _tplSubmitSquash.
-  await dbSquashPageSnag(id);
+  const ok=await dbSquashPageSnag(id);
+  SNAG_SAVE_PENDING.delete(id);
+  if(!ok){
+    _snagRollback(sn,optimistic,prev);
+    _trPageSnagRerender();
+    return; // dbSquashPageSnag already toasted the real error — don't post a comment for a write that never happened
+  }
+  _trPageSnagRerender();
   await _tplPostAutoComment('pageSnag', id, `🔧 Snag squashed${notes?': '+notes:' (no notes provided)'}`);
 }
 // Sibling outcome to _trSubmitSquashPageSnag, reachable from the same inline
@@ -11197,12 +11365,23 @@ async function _trSubmitPageSnagClarification(id){
   const sn=PAGE_SNAGS.find(s=>s.id===id); if(!sn)return;
   const notes=(eid('tr-pagesnag-notes-'+id)?.value||'').trim();
   if(!notes){showToast('Enter what you need clarified','error');return;}
+  if(_snagActionBlocked(id))return;
+  SNAG_SAVE_PENDING.add(id);
   const now=new Date().toISOString();
-  sn.status='Needs Clarification'; sn.updatedAt=now;
+  const prev={status:sn.status,updatedAt:sn.updatedAt};
+  const optimistic={status:'Needs Clarification',updatedAt:now};
+  Object.assign(sn,optimistic);
   _trSnagSquashingId=null;
   _trPageSnagRerender();
   showToast('Clarification requested');
-  await dbRequestPageSnagClarification(id);
+  const ok=await dbRequestPageSnagClarification(id);
+  SNAG_SAVE_PENDING.delete(id);
+  if(!ok){
+    _snagRollback(sn,optimistic,prev);
+    _trPageSnagRerender();
+    return;
+  }
+  _trPageSnagRerender();
   await _tplPostAutoComment('pageSnag', id, `❓ Clarification requested: ${notes}`);
 }
 function _trPageSnagSquashFormHtml(sn){
@@ -13161,6 +13340,7 @@ let _reqSearchQuery='';
 let _reqAddBarCollapsed=false; // the sticky bottom Add-requirements bar — collapsible for more table space
 let _reqDetailStoryId=null; // story id shown in the Requirement Detail modal, or null if closed
 let _reqDetailEditMode=false; // false = read-only detail view, true = fields are editable
+let _rdSquashingSnagId=null; // snag id whose inline squash/clarify form is expanded, in the modal's Testing section — see _rdStartSquash
 
 // Sticky "add requirements" context — set Phase/Epic/Feature once, add several
 // requirements against it without having to re-pick from a long combined list
@@ -13180,11 +13360,12 @@ let _reqAddFeatureId='';
 // note and each shown view's icon/description ARE user-editable, via
 // Settings > Homepage — see HOMEPAGE_VIEW_META/WELCOME_NOTE below.
 const HOMEPAGE_GROUPS=[
-  {title:'Website Management', views:['ia','ecosystem','platform','redirects']},
+  {title:'Website Management', views:['ia','sitemap','ecosystem','platform','redirects']},
   {title:'Project Management', views:['transformation','roadmap','requirements','testplan']},
 ];
 let HOMEPAGE_VIEW_META={
   ia:            {icon:'account_tree', desc:'Explore your sitemap as a navigable hierarchy.'},
+  sitemap:       {icon:'schema',       desc:'A visual sitemap tree per product — page components, or live website previews.'},
   ecosystem:     {icon:'hub',          desc:'See how pages and content connect to each other.'},
   platform:      {icon:'dns',          desc:'View pages grouped by system and platform.'},
   transformation:{icon:'bar_chart',    desc:'Track migration progress phase by phase.'},
@@ -13723,13 +13904,17 @@ function addReqEntry(){
    edited, opened from the Requirements Tracker (click a row), the Product
    Roadmap (click a requirement) and the Test Plan (code / "Open requirement").
    Shows every field (Type / Owner / Source / Dev + derived Test status /
-   Location), a per-product Testing section (read-only — results are recorded
-   in the Test Plan) and the full inline comment thread. "Edit" switches the
-   fields to inputs in place; Save writes through dbUpsertStory and returns to
-   the read-only view. ──────────────────────────────────────────────────── */
+   Location), a per-product Testing section (results are recorded in the Test
+   Plan, but any open snag on a product can also be Squashed / Sent to
+   Testing / have Clarification requested right here — see _rdStartSquash
+   below, added 2026-09-29 so Developers/Editors/Admins don't have to leave
+   the modal to act on a snag) and the full inline comment thread. "Edit"
+   switches the fields to inputs in place; Save writes through dbUpsertStory
+   and returns to the read-only view. ─────────────────────────────────── */
 function openReqDetail(storyId){
   _reqDetailStoryId=storyId;
   _reqDetailEditMode=false;
+  _rdSquashingSnagId=null;
   _renderReqDetail();
   openModal('reqDetailModal');
 }
@@ -13741,6 +13926,7 @@ function closeReqDetail(skipRerender){
   closeModal('reqDetailModal');
   _reqDetailStoryId=null;
   _reqDetailEditMode=false;
+  _rdSquashingSnagId=null;
   // The thread is embedded in this modal (see _renderReqDetail) — release the
   // shared comment renderer so the standalone Comments popup starts clean.
   if(_cmtContainerId==='rd-comments'){ _cmtCurrentEntity=null; _cmtContainerId='cmt-body'; _cmtReplyTo=null; _cmtEditingId=null; }
@@ -13851,10 +14037,12 @@ function _reqFactChipsHtml(s){
 
 // Per-product Testing section. Each product a requirement is tested on gets its
 // OWN block with its own status, sign-off count and per-tester history —
-// nothing is blended across products. Read-only by design: results are
-// recorded in the Test Plan (two-tester sign-off, notes, snags all live
-// there); "Open in Test Plan" jumps straight to this requirement on that
-// product.
+// nothing is blended across products. Recording a Pass/Fail result itself
+// still only happens in the Test Plan (two-tester sign-off, notes); "Open in
+// Test Plan" jumps straight to this requirement on that product for that. An
+// already-open snag on a product, though, can be actioned right here — see
+// _rdStartSquash below — so an Admin/Developer reviewing a requirement
+// doesn't have to separately go find it in the Test Plan's Snags tab.
 function _reqDetailTestingHtml(s){
   const pids=_tplStoryTestProductIds(s);
   let h=`<div class="rd-section-head"><div class="rd-section-label" style="margin:0">Testing</div>${reqTestPillHtml(s)}</div>`;
@@ -13876,6 +14064,25 @@ function _reqDetailTestingHtml(s){
       </div>`;
     }).join('');
     const cycle=st.priorSnag&&st.priorSnag.cycleCount>1?`<span class="rd-test-gate" title="Sent back to development ${st.priorSnag.cycleCount-1} time(s)">↻ cycle ${st.priorSnag.cycleCount}</span>`:'';
+    // Squash / Send to Testing / Request Clarification — same three actions,
+    // same role gate (data-requires-squash → canSquashSnags(), Developer or
+    // above) as the Test Plan's Snags tab, just reachable without leaving
+    // this modal. Only shown for a snag that's actually actionable: Open or
+    // Needs Clarification offers Squash/Resolve, Squashed offers Send to
+    // Testing; a Resolved snag (or none at all) shows nothing here.
+    const sn=st.priorSnag;
+    const isSquashing=sn && _rdSquashingSnagId===sn.id;
+    let snagActions='';
+    if(sn && sn.status!=='Resolved' && !isSquashing){
+      const isEnhancement=sn.kind==='Enhancement';
+      if(sn.status==='Squashed'){
+        snagActions=`<div data-requires-squash style="margin-top:8px"><button class="tpl-mark-btn tpl-mark-btn-primary" onclick="_rdSendSnagToTesting('${sn.id}')" title="Make this visible to testers so they can verify the fix"><span class="material-icons-round" style="font-size:1.1em">send</span>Send to Testing</button></div>`;
+      } else {
+        snagActions=`<div data-requires-squash style="margin-top:8px"><button class="tpl-mark-btn tpl-mark-btn-primary" onclick="_rdStartSquash('${sn.id}')">${isEnhancement?'Resolve':'Squash'}</button></div>`;
+      }
+    } else if(isSquashing){
+      snagActions=`<div data-requires-squash style="margin-top:8px">${_rdSquashFormHtml(sn)}</div>`;
+    }
     return `<div class="rd-test-block${st.tone==='red'?' rd-test-fail':''}">
       <div class="rd-test-hd">
         <span class="tpl3-dot" style="background:${st.dot}"></span><b>${name}</b>
@@ -13884,9 +14091,133 @@ function _reqDetailTestingHtml(s){
         <button class="tpl3-link" style="margin-left:auto" onclick="_reqGoToTestPlan('${s.id}','${pid}')">Open in Test Plan<span class="material-icons-round">arrow_forward</span></button>
       </div>
       ${hist?`<div class="tpl3-hist">${hist}</div>`:'<div class="rd-test-empty">No results recorded yet.</div>'}
+      ${snagActions}
     </div>`;
   }).join('');
   return h;
+}
+// Modal-scoped counterparts to the Test Plan's _tplStartSquash/_tplSubmitSquash/
+// _tplSendSnagToTesting/_tplSubmitClarification — same backend actions and the
+// same optimistic-update-then-verify pattern (see dbSquashSnag's own comment
+// for why a failed write is rolled back rather than left to silently drift
+// from the sheet), just driven from the Requirement Detail modal's Testing
+// section instead of the Test Plan's inline snag card. Kept as separate
+// functions (rather than reusing the Test Plan ones outright) because their
+// form fields live in this modal's DOM and re-rendering here means calling
+// _renderReqDetail(), not renderTestPlan() — the two views can be open at
+// different times showing the very same snag.
+function _rdStartSquash(id){
+  if(!canSquashSnags()){showToast('View-only access — editing is disabled');return;}
+  if(!gCurrentUser){showToast('Sign in to squash a snag');return;}
+  _rdSquashingSnagId=id; _renderReqDetail();
+}
+function _rdCancelSquash(){ _rdSquashingSnagId=null; _renderReqDetail(); }
+async function _rdSubmitSquash(id){
+  if(!canSquashSnags()){showToast('View-only access — editing is disabled');return;}
+  if(!gCurrentUser){showToast('Sign in to squash a snag');return;}
+  const sn=SNAGS.find(s=>s.id===id); if(!sn)return;
+  const notes=(eid('rd-squash-notes-'+id)?.value||'').trim();
+  const actualHoursRaw=(eid('rd-squash-actualhours-'+id)?.value||'').trim();
+  if(!actualHoursRaw){showToast('Enter the actual time spent before squashing','error');return;}
+  const actualHours=Number(actualHoursRaw);
+  if(isNaN(actualHours)||actualHours<0){showToast('Enter a valid number of hours','error');return;}
+  if(_snagActionBlocked(id))return;
+  SNAG_SAVE_PENDING.add(id);
+  const email=gCurrentUser.email.trim().toLowerCase();
+  const now=new Date().toISOString();
+  const prev={status:sn.status,resolvedBy:sn.resolvedBy,resolvedAt:sn.resolvedAt,updatedAt:sn.updatedAt,actualHours:sn.actualHours};
+  const optimistic={status:'Squashed',resolvedBy:email,resolvedAt:now,updatedAt:now,actualHours};
+  Object.assign(sn,optimistic);
+  const entityType=sn.storyId?'story':'snag', entityId=sn.storyId||sn.id;
+  const product=ROADMAP_PRODUCTS.find(p=>p.id===sn.productId);
+  _rdSquashingSnagId=null;
+  _renderReqDetail();
+  showToast('Snag squashed — click "Send to Testing" when it\'s ready for retest');
+  const ok=await dbSquashSnag(id, actualHours);
+  SNAG_SAVE_PENDING.delete(id);
+  if(!ok){
+    _snagRollback(sn,optimistic,prev);
+    _renderReqDetail();
+    return;
+  }
+  _renderReqDetail();
+  const estTxt=sn.estimatedHours!=null?` (est. ${sn.estimatedHours}h)`:'';
+  await _tplPostAutoComment(entityType, entityId, `🔧 Snag squashed on ${product?product.name:'product'} — ${actualHours}h actual${estTxt}${notes?': '+notes:' (no notes provided)'}. Not yet sent back to testing.`);
+  _renderReqDetail();
+}
+async function _rdSendSnagToTesting(id){
+  if(!canSquashSnags()){showToast('View-only access — editing is disabled');return;}
+  if(!gCurrentUser){showToast('Sign in to send this snag back to testing');return;}
+  const sn=SNAGS.find(s=>s.id===id); if(!sn)return;
+  if(_snagActionBlocked(id))return;
+  SNAG_SAVE_PENDING.add(id);
+  const now=new Date().toISOString();
+  const prev={status:sn.status,updatedAt:sn.updatedAt};
+  const prevResults=sn.storyId?TEST_RESULTS.filter(r=>r.storyId===sn.storyId && r.productId===sn.productId):[];
+  const optimistic={status:'Resolved',updatedAt:now};
+  Object.assign(sn,optimistic);
+  if(sn.storyId){
+    TEST_RESULTS=TEST_RESULTS.filter(r=>!(r.storyId===sn.storyId && r.productId===sn.productId));
+  }
+  const entityType=sn.storyId?'story':'snag', entityId=sn.storyId||sn.id;
+  const product=ROADMAP_PRODUCTS.find(p=>p.id===sn.productId);
+  _renderReqDetail();
+  showToast('Sent back to testing — ready for retesting');
+  const ok=await dbSendSnagToTesting(id);
+  SNAG_SAVE_PENDING.delete(id);
+  if(!ok){
+    _snagRollback(sn,optimistic,prev);
+    if(prevResults.length) TEST_RESULTS.push(...prevResults);
+    _renderReqDetail();
+    return;
+  }
+  _renderReqDetail();
+  await _tplPostAutoComment(entityType, entityId, `📮 Sent back to testing on ${product?product.name:'product'} for verification`);
+  _renderReqDetail();
+}
+async function _rdSubmitClarification(id){
+  if(!canSquashSnags()){showToast('View-only access — editing is disabled');return;}
+  if(!gCurrentUser){showToast('Sign in to request clarification');return;}
+  const sn=SNAGS.find(s=>s.id===id); if(!sn)return;
+  const notes=(eid('rd-squash-notes-'+id)?.value||'').trim();
+  if(!notes){showToast('Enter what you need clarified','error');return;}
+  if(_snagActionBlocked(id))return;
+  SNAG_SAVE_PENDING.add(id);
+  const now=new Date().toISOString();
+  const prev={status:sn.status,updatedAt:sn.updatedAt};
+  const optimistic={status:'Needs Clarification',updatedAt:now};
+  Object.assign(sn,optimistic);
+  const entityType=sn.storyId?'story':'snag', entityId=sn.storyId||sn.id;
+  const product=ROADMAP_PRODUCTS.find(p=>p.id===sn.productId);
+  _rdSquashingSnagId=null;
+  _renderReqDetail();
+  showToast('Clarification requested');
+  const ok=await dbRequestSnagClarification(id);
+  SNAG_SAVE_PENDING.delete(id);
+  if(!ok){
+    _snagRollback(sn,optimistic,prev);
+    _renderReqDetail();
+    return;
+  }
+  _renderReqDetail();
+  await _tplPostAutoComment(entityType, entityId, `❓ Clarification requested on ${product?product.name:'product'}: ${notes}`);
+  _renderReqDetail();
+}
+function _rdSquashFormHtml(sn){
+  return `<div class="tpl-mark-form" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <label style="font-size:10px;color:var(--text3);white-space:nowrap">Actual hours spent <span style="color:var(--rag-red-fg,#C2503F)">*</span></label>
+      <input type="number" min="0" step="0.25" class="req-select" id="rd-squash-actualhours-${sn.id}" placeholder="e.g. 2.5" style="width:90px;height:30px" value="${sn.estimatedHours!=null?sn.estimatedHours:''}">
+      <span style="font-size:10px;color:var(--text3)">required to squash${sn.estimatedHours!=null?` — estimated ${sn.estimatedHours}h`:''}</span>
+    </div>
+    <textarea class="tpl-mark-notes" id="rd-squash-notes-${sn.id}" placeholder="What did you change to resolve this… (or, if requesting clarification, what you need to know)" autofocus></textarea>
+    <div style="font-size:10px;color:var(--text3)">Squashing marks the fix done in code — you'll get a separate "Send to Testing" button once it's ready to be retested.</div>
+    <div class="tpl-mark-form-btns">
+      <button class="tpl-mark-btn tpl-pass-btn" onclick="_rdSubmitSquash('${sn.id}')"><span class="material-icons-round" style="font-size:13px">check_circle</span>${sn.kind==='Enhancement'?'Resolve':'Squash'}</button>
+      <button class="tpl-mark-btn" onclick="_rdSubmitClarification('${sn.id}')"><span class="material-icons-round" style="font-size:13px">help_outline</span>Request Clarification</button>
+      <button class="tpl-mark-btn" onclick="_rdCancelSquash()">Cancel</button>
+    </div>
+  </div>`;
 }
 // Jump from the modal to this requirement, on one product, in the Test Plan:
 // switches to the requirement's phase if it isn't in the current selection,
@@ -14280,15 +14611,23 @@ function _tplScopedStories(){
   // story can be in scope for more than one product now), see
   // _tplStoriesInProduct for that. Callers that need a single product's
   // slice call that on top of this.
-  return ROADMAP_STORIES.filter(s=>{
+  const phaseScoped=ROADMAP_STORIES.filter(s=>{
     const feature=ROADMAP_FEATURES.find(f=>f.id===s.featureId);
-    if(!feature || !selectedPhases.has(feature.phaseId)) return false;
-    if(_tplSearchQuery){
-      const q=_tplSearchQuery.trim().toLowerCase();
-      if(q && !s.text.toLowerCase().includes(q) && !(s.code||'').toLowerCase().includes(q)) return false;
-    }
-    return true;
+    return feature && selectedPhases.has(feature.phaseId);
   });
+  const q=_tplSearchQuery.trim().toLowerCase();
+  if(!q) return phaseScoped;
+  // An exact code match (e.g. pasting "BOOK-DATE-004") wins outright — without
+  // this, a plain substring search on the requirement TEXT surfaced every
+  // requirement that merely MENTIONS that code somewhere (cross-references,
+  // "see also …", etc.), plus any other code sharing it as a substring (e.g.
+  // "BOOK-DATE-0041"), so searching one exact code came back with many
+  // unrelated results instead of the one requirement it actually names.
+  // Reported 2026-09-29. Anything that isn't an exact code hit falls back to
+  // the original loose text+code substring search, unchanged.
+  const exact=phaseScoped.filter(s=>(s.code||'').toLowerCase()===q);
+  if(exact.length) return exact;
+  return phaseScoped.filter(s=>s.text.toLowerCase().includes(q) || (s.code||'').toLowerCase().includes(q));
 }
 function _tplSelectProduct(id){
   _tplActiveProductId=id;
@@ -16628,6 +16967,33 @@ function deleteScenarioEntry(id){
    own thread instead (entityType='snag'). ────────────────────────────── */
 let _tplSquashingSnagId=null;   // snag id whose inline squash-note form is expanded
 let _tplClosedSnagEpics=new Set(); // separate from _tplClosedEpics — collapsing an area in Functional Tests shouldn't affect Snags
+
+// ── Snag save concurrency guard ──────────────────────────────────────────
+// Reported 2026-09-29: clicking Squash, then clicking Send to Testing on the
+// SAME snag before the Squash write had come back, raced the two optimistic
+// updates — and when the Squash write then failed, its rollback blindly
+// restored every field it had snapshotted (via Object.assign), stomping the
+// Send to Testing success that had landed in between: the snag ended up back
+// at 'Open' even though the server-side Resolved write had actually gone
+// through. Two independent fixes, both needed:
+//   1. SNAG_SAVE_PENDING blocks a second action from starting on a snag id
+//      that already has one in flight, so the race can't happen at all.
+//   2. _snagRollback only restores a field if it STILL holds the value this
+//      call optimistically set — if something else changed it in the
+//      meantime (which (1) should now prevent, but this is the cheap second
+//      line of defence), that field is left alone instead of overwritten.
+// Shared (not per-view) because the Test Plan, the Transformation Report's
+// Page Snags and the Requirement Detail modal all act on the very same
+// SNAGS/PAGE_SNAGS records by id — a save started from one must still block
+// a conflicting action clicked from another.
+const SNAG_SAVE_PENDING = new Set();
+function _snagActionBlocked(id){
+  if (SNAG_SAVE_PENDING.has(id)) { showToast('Still saving the previous action on this snag — please wait…', 3000); return true; }
+  return false;
+}
+function _snagRollback(sn, optimistic, prev){
+  Object.keys(optimistic).forEach(k => { if (sn[k] === optimistic[k]) sn[k] = prev[k]; });
+}
 let _tplSnagDraft=null;         // working copy for the "+ Add Snag" modal, or null when closed
 // "Show only my snags (or unassigned)" toggle — Developer/Admin only (see
 // canAssignSnags()), since the field it filters on is invisible to every
@@ -16778,20 +17144,42 @@ async function _tplSubmitSquash(id){
   if(!actualHoursRaw){showToast('Enter the actual time spent before squashing','error');return;}
   const actualHours=Number(actualHoursRaw);
   if(isNaN(actualHours)||actualHours<0){showToast('Enter a valid number of hours','error');return;}
+  if(_snagActionBlocked(id))return;
+  SNAG_SAVE_PENDING.add(id);
   const email=gCurrentUser.email.trim().toLowerCase();
   const now=new Date().toISOString();
+  // Snapshot so a failed write below can be rolled back exactly — without
+  // this, a rejected write (role-cache lag, lock timeout, network blip) left
+  // the snag optimistically stuck at Squashed locally (and its comment
+  // posted) even though the sheet itself never changed — see dbSquashSnag's
+  // own comment. Next reload then showed it back at Open with no obvious
+  // explanation ("logs a comment but doesn't squash it").
+  const prev={status:sn.status,resolvedBy:sn.resolvedBy,resolvedAt:sn.resolvedAt,updatedAt:sn.updatedAt,actualHours:sn.actualHours};
   // Status goes to 'Squashed', NOT 'Resolved' — this only records that the
   // fix is done in code. The requirement stays blocked in the tester's view
   // (TEST_RESULTS untouched here) until _tplSendSnagToTesting is called
   // separately, e.g. once a deploy has actually gone out.
-  sn.status='Squashed'; sn.resolvedBy=email; sn.resolvedAt=now; sn.updatedAt=now; sn.actualHours=actualHours;
+  const optimistic={status:'Squashed',resolvedBy:email,resolvedAt:now,updatedAt:now,actualHours};
+  Object.assign(sn,optimistic);
   const entityType=sn.storyId?'story':'snag', entityId=sn.storyId||sn.id;
   const product=ROADMAP_PRODUCTS.find(p=>p.id===sn.productId);
   _tplSquashingSnagId=null;
   renderTestPlan();
   showToast('Snag squashed — click "Send to Testing" when it\'s ready for retest');
   // Sequenced, not concurrent — same reasoning as _tplSubmitStoryResult.
-  await dbSquashSnag(id, actualHours);
+  // dbSquashSnag never throws (it catches its own errors), so no try/finally
+  // is needed to guarantee this delete runs.
+  const ok=await dbSquashSnag(id, actualHours);
+  SNAG_SAVE_PENDING.delete(id);
+  if(!ok){
+    // Field-safe: only reverts a field that still holds what THIS call set —
+    // see SNAG_SAVE_PENDING's own comment for the concurrent-action bug this
+    // guards against (e.g. Send to Testing landing in between).
+    _snagRollback(sn,optimistic,prev);
+    renderTestPlan();
+    return; // dbSquashSnag already toasted the real error — don't post a comment for a write that never happened
+  }
+  renderTestPlan(); // clears the "Saving…" state now the write has landed
   const estTxt=sn.estimatedHours!=null?` (est. ${sn.estimatedHours}h)`:'';
   await _tplPostAutoComment(entityType, entityId, `🔧 Snag squashed on ${product?product.name:'product'} — ${actualHours}h actual${estTxt}${notes?': '+notes:' (no notes provided)'}. Not yet sent back to testing.`);
 }
@@ -16807,8 +17195,13 @@ async function _tplSendSnagToTesting(id){
   if(!canSquashSnags()){showToast('View-only access — editing is disabled');return;}
   if(!gCurrentUser){showToast('Sign in to send this snag back to testing');return;}
   const sn=SNAGS.find(s=>s.id===id); if(!sn)return;
+  if(_snagActionBlocked(id))return;
+  SNAG_SAVE_PENDING.add(id);
   const now=new Date().toISOString();
-  sn.status='Resolved'; sn.updatedAt=now;
+  const prev={status:sn.status,updatedAt:sn.updatedAt};
+  const prevResults=sn.storyId?TEST_RESULTS.filter(r=>r.storyId===sn.storyId && r.productId===sn.productId):[];
+  const optimistic={status:'Resolved',updatedAt:now};
+  Object.assign(sn,optimistic);
   // Full reset — every prior tester's result for this requirement+product is
   // cleared, not just the failing one, so retesting needs 2 completely fresh
   // passes ("just like an initial test"). The backend's sendSnagToTesting()
@@ -16821,7 +17214,20 @@ async function _tplSendSnagToTesting(id){
   const product=ROADMAP_PRODUCTS.find(p=>p.id===sn.productId);
   renderTestPlan();
   showToast('Sent back to testing — ready for retesting');
-  await dbSendSnagToTesting(id);
+  const ok=await dbSendSnagToTesting(id);
+  SNAG_SAVE_PENDING.delete(id);
+  if(!ok){
+    // Roll back both the status AND the optimistically-cleared TEST_RESULTS —
+    // the backend's reset never happened either, since it's part of the same
+    // authorized call. See dbSquashSnag's comment for why this matters. The
+    // status rollback is field-safe (see _snagRollback) in case a concurrent
+    // Squash/Clarification landed on this same snag in between.
+    _snagRollback(sn,optimistic,prev);
+    if(prevResults.length) TEST_RESULTS.push(...prevResults);
+    renderTestPlan();
+    return;
+  }
+  renderTestPlan();
   await _tplPostAutoComment(entityType, entityId, `📮 Sent back to testing on ${product?product.name:'product'} for verification`);
 }
 
@@ -16836,14 +17242,25 @@ async function _tplSubmitClarification(id){
   const sn=SNAGS.find(s=>s.id===id); if(!sn)return;
   const notes=(eid('tpl-squash-notes-'+id)?.value||'').trim();
   if(!notes){showToast('Enter what you need clarified','error');return;}
+  if(_snagActionBlocked(id))return;
+  SNAG_SAVE_PENDING.add(id);
   const now=new Date().toISOString();
-  sn.status='Needs Clarification'; sn.updatedAt=now;
+  const prev={status:sn.status,updatedAt:sn.updatedAt};
+  const optimistic={status:'Needs Clarification',updatedAt:now};
+  Object.assign(sn,optimistic);
   const entityType=sn.storyId?'story':'snag', entityId=sn.storyId||sn.id;
   const product=ROADMAP_PRODUCTS.find(p=>p.id===sn.productId);
   _tplSquashingSnagId=null;
   renderTestPlan();
   showToast('Clarification requested');
-  await dbRequestSnagClarification(id);
+  const ok=await dbRequestSnagClarification(id);
+  SNAG_SAVE_PENDING.delete(id);
+  if(!ok){
+    _snagRollback(sn,optimistic,prev);
+    renderTestPlan();
+    return;
+  }
+  renderTestPlan();
   await _tplPostAutoComment(entityType, entityId, `❓ Clarification requested on ${product?product.name:'product'}: ${notes}`);
 }
 
@@ -18938,6 +19355,497 @@ function renderPlatformView(){
 }
 
 /* ═══════════════════════════════════════════
+   SITEMAP VIEW (2026-09-25)
+   One hierarchical tree per Product (per the user's explicit "one tree per
+   app block, side by side" decision — now that App Blocks and Products are
+   unified, see _iaEffectiveProductId, that means one tree per Product).
+   Two rendering modes, toggled via _stmSetMode:
+     'component' (default) — each page as a browser-chrome mockup card
+        listing its real Components (NODE_COMPS/COMP_LIBRARY). Each parent→
+        child tree edge gets its own colour; if a real Link record connects
+        that exact parent→child pair AND carries a componentId (see the
+        Connection Modal's new Component picker), the matching component
+        block on the PARENT card is highlighted in the same colour — the
+        "this component is what leads to that page" attribution from the
+        reference mockup. An edge with no real Link record at all (pure
+        parentId nesting, no formal connection ever created) is drawn dashed
+        instead of solid, so "structural only" reads differently from "an
+        actual tracked link".
+     'website' — each card shows a live <iframe> of the page's real URL
+        (via resolveSlugToAbsolute), with a best-effort automatic fallback
+        placeholder — see _stmKickOffIframeLoads's own comment for the one
+        real limitation (X-Frame-Options blocks can't be reliably detected
+        from client-side JS at all; a load-timeout + onerror heuristic is
+        what "automatic" means here for v1).
+   Deliberately NOT reusing the IA view's gutter-avoidance router — a tree
+   laid out top-down with each node centred over its children never needs
+   obstacle avoidance by construction, so a much simpler recursive
+   subtree-width layout (classic node-link tree layout) is used instead.
+═══════════════════════════════════════════ */
+let _stmMode='component'; // 'component' | 'website'
+const STM_CARD_W=196, STM_CARD_H=176, STM_H_GAP=28, STM_V_GAP=64;
+const STM_LINE_PALETTE=['#E8633E','#3D8FD1','#5FB87A','#C767C9','#D9A62E','#3DBFAE','#E85C8A','#8B7FE8'];
+
+// Which single group's tree is on screen — a Product's id, '' for the
+// synthetic "Unassigned pages" group, or null before the first render ever
+// resolves it (see renderSitemapView's auto-repair). 2026-09-25: the view
+// used to lay every product's tree out side by side; with more than a
+// couple of products that became unreadable, so it's now ONE tree at a
+// time, chosen via the #stmLeftNav product chooser (renderSitemapNav/
+// _stmSelectGroup) — the same left-nav pattern the Test Plan uses for its
+// own product switcher.
+let _stmActiveGroupKey=null;
+// Set by _stmGoToCrossProductPage() right before switching groups, so the
+// very next renderSitemapView() knows which card to scroll to/flash once
+// the new group's tree exists in the DOM. Always consumed (reset to null)
+// by that same render.
+let _stmFocusNodeId=null;
+// The one open cross-product popover, if any — see _stmToggleCrossPopover.
+let _stmOpenPopoverAnchor=null, _stmOpenPopover=null, _stmPopoverOutsideHandler=null;
+
+function _stmSetMode(mode){
+  if(_stmMode===mode) return;
+  _stmMode=mode;
+  renderSitemapView();
+}
+function _stmUpdateModeButtons(){
+  const cBtn=eid('stmModeComponentBtn'), wBtn=eid('stmModeWebsiteBtn');
+  if(cBtn) cBtn.classList.toggle('active-icon', _stmMode==='component');
+  if(wBtn) wBtn.classList.toggle('active-icon', _stmMode==='website');
+}
+function _stmEdgeColor(i){ return STM_LINE_PALETTE[i % STM_LINE_PALETTE.length]; }
+
+// Left nav — a flat list of every group currently on offer (each real
+// Product, plus "Unassigned pages" if any page has no product anywhere in
+// its ancestry), mirroring the Test Plan's own .ar-left-nav/.ar-nav-item
+// shell (see #stmLeftNav in the HTML and its visibility toggle in
+// switchView()). Selecting one is the only thing that changes which single
+// tree renderSitemapView() actually builds.
+function renderSitemapNav(orderedGroups){
+  const wrap=eid('stmLeftNav');
+  if(!wrap) return;
+  let html=`<div class="nav-header"><span class="nav-title">Sitemap</span></div><div class="tpl-nav-body">`;
+  if(!orderedGroups.length){
+    html+='<div style="padding:16px;font-size:11px;color:var(--text3)">No pages visible.</div>';
+  } else {
+    orderedGroups.forEach(g=>{
+      const key=g.product?g.product.id:'';
+      const isActive=_stmActiveGroupKey===key;
+      const label=g.product?g.product.name:'Unassigned pages';
+      html+=`<button class="ar-nav-item tpl-nav-product${isActive?' active':''}" onclick="_stmSelectGroup('${key}')" title="${escH(label)}">
+        <span class="tpl-nav-label">${escH(label)}</span>
+        <span class="tpl-nav-count">${g.nodes.length}</span>
+      </button>`;
+    });
+  }
+  html+='</div>';
+  wrap.innerHTML=html;
+}
+function _stmSelectGroup(key){
+  _stmActiveGroupKey=key||'';
+  renderSitemapView();
+}
+
+// Builds a forest (array of root {node,depth,children}) from one Product's
+// flat node list, via real parentId chains. A node becomes a LOCAL ROOT
+// whenever its own parent isn't itself in this same group — the normal case
+// (a product's home page has no parent at all), but also gracefully covers
+// a node whose parent belongs to a DIFFERENT product (an explicit override
+// elsewhere in the chain — see _iaEffectiveProductId) or a dangling/missing
+// parentId, rather than throwing or dropping the node.
+function _stmBuildTree(nodes){
+  const idSet=new Set(nodes.map(n=>n.id));
+  const childMap=new Map(); nodes.forEach(n=>childMap.set(n.id,[]));
+  const roots=[];
+  nodes.forEach(n=>{
+    if(n.parentId && idSet.has(n.parentId)) childMap.get(n.parentId).push(n);
+    else roots.push(n);
+  });
+  // Same ordering convention as the IA view's own sortedMembers — busiest
+  // (most-connected) pages first, then alphabetical.
+  function sortKids(arr){
+    return arr.slice().sort((a,b)=>{
+      const ca=totalLinkCount(a.id), cb=totalLinkCount(b.id);
+      if(cb!==ca) return cb-ca;
+      return String(a.title||'').localeCompare(String(b.title||''));
+    });
+  }
+  function build(n, depth){ return {node:n, depth, children: sortKids(childMap.get(n.id)||[]).map(c=>build(c,depth+1))}; }
+  return sortKids(roots).map(r=>build(r,0));
+}
+
+// Classic recursive node-link tree layout: each node's subtree width is the
+// sum of its children's subtree widths (or the card width for a leaf), and
+// each node is centred over the horizontal span of its own children. Several
+// disconnected root trees within one product are laid out side by side, in
+// the same forest. Returns canvas-local (unscaled) pixel positions.
+function _stmLayoutForest(forestRoots){
+  const positions=new Map();
+  let maxDepth=0;
+  function computeWidth(t){
+    if(!t.children.length){ t.w=STM_CARD_W; return t.w; }
+    const sum=t.children.map(computeWidth).reduce((a,b)=>a+b,0)+(t.children.length-1)*STM_H_GAP;
+    t.w=Math.max(STM_CARD_W, sum);
+    return t.w;
+  }
+  forestRoots.forEach(computeWidth);
+  function place(t, xLeft, depth){
+    maxDepth=Math.max(maxDepth, depth);
+    if(!t.children.length){
+      positions.set(t.node.id, {x:xLeft+t.w/2-STM_CARD_W/2, y:depth*(STM_CARD_H+STM_V_GAP)});
+      return;
+    }
+    let cx=xLeft;
+    t.children.forEach(c=>{ place(c, cx, depth+1); cx+=c.w+STM_H_GAP; });
+    const first=positions.get(t.children[0].node.id), last=positions.get(t.children[t.children.length-1].node.id);
+    positions.set(t.node.id, {x:(first.x+last.x)/2, y:depth*(STM_CARD_H+STM_V_GAP)});
+  }
+  let curX=0;
+  forestRoots.forEach(r=>{ place(r, curX, 0); curX+=r.w+STM_H_GAP*1.5; }); // a bit more air between separate root trees than between siblings
+  return {positions, totalWidth:Math.max(STM_CARD_W, curX-STM_H_GAP*1.5), maxDepth};
+}
+
+// Cross-PRODUCT outgoing connections only — a real Link/CTA from this exact
+// node to a page whose OWN effective product (_iaEffectiveProductId) differs
+// from `activeKey` (the group currently being rendered). A same-group target
+// is never included here — it's either already drawn as a normal tree edge,
+// or it's a non-hierarchical link within the same product, which is out of
+// this view's scope (see the module comment; that's what the IA view's own
+// page-links already cover). Deduped by target: the same page linked twice
+// (once via Links, once via CTAs) only ever produces one chip. Restricted to
+// pages currently in `visibleIds` (the same visNodes()-filtered set the rest
+// of this render uses) so a chip never points at a phase-filtered-out or
+// otherwise hidden page.
+function _stmCrossProductLinksFor(node, activeKey, visibleIds){
+  const out=[], seen=new Set();
+  function consider(arr){
+    (arr||[]).forEach(c=>{
+      const tid=c.targetId;
+      if(!tid || tid===node.id || seen.has(tid) || !visibleIds.has(tid)) return;
+      const tgt=gn(tid);
+      if(!tgt || tgt.nodeType!=='page' || tgt.variantOf) return;
+      const tgtKey=_iaEffectiveProductId(tgt)||'';
+      if(tgtKey===activeKey) return;
+      seen.add(tid);
+      out.push({
+        targetId: tid, title: tgt.title||tid,
+        productLabel: tgtKey ? ((ROADMAP_PRODUCTS.find(p=>p.id===tgtKey)||{}).name||'Unknown product') : 'Unassigned pages',
+      });
+    });
+  }
+  consider(LINKS[node.id]);
+  consider(CTAS[node.id]);
+  return out;
+}
+
+// Opens (or, clicking the same badge twice in a row, closes) the popover
+// listing a card's cross-product links. Appended to <body> with
+// position:fixed and coordinates from the badge's own
+// getBoundingClientRect() — deliberately NOT a normal in-flow child of
+// .stm-card, which clips overflow (needed elsewhere to round the mockup's
+// square corners), and NOT position:absolute within the (possibly zoomed)
+// canvas, whose transform:scale would otherwise have to be un-done by hand
+// to place it correctly.
+function _stmToggleCrossPopover(anchorEl, links){
+  const reopening=_stmOpenPopoverAnchor===anchorEl;
+  _stmCloseCrossPopover();
+  if(reopening) return;
+  const rect=anchorEl.getBoundingClientRect();
+  const pop=document.createElement('div');
+  pop.className='stm-cross-popover';
+  pop.style.top=(rect.bottom+6)+'px';
+  pop.style.left=Math.max(8,Math.min(rect.left,window.innerWidth-268))+'px';
+  pop.innerHTML=links.map(cl=>`<button type="button" data-target="${escH(cl.targetId)}">
+      <span class="material-icons-round" style="font-size:13px">arrow_outward</span>
+      <span class="stm-cross-popover-title">${escH(cl.title)}</span>
+      <span class="stm-cross-popover-product">${escH(cl.productLabel)}</span>
+    </button>`).join('');
+  pop.querySelectorAll('button').forEach(b=>{
+    b.onclick=(e)=>{ e.stopPropagation(); _stmCloseCrossPopover(); _stmGoToCrossProductPage(b.dataset.target); };
+  });
+  document.body.appendChild(pop);
+  _stmOpenPopoverAnchor=anchorEl;
+  _stmOpenPopover=pop;
+  _stmPopoverOutsideHandler=(e)=>{ if(!pop.contains(e.target)&&e.target!==anchorEl) _stmCloseCrossPopover(); };
+  setTimeout(()=>document.addEventListener('mousedown',_stmPopoverOutsideHandler,true),0);
+}
+function _stmCloseCrossPopover(){
+  if(_stmOpenPopover){ _stmOpenPopover.remove(); _stmOpenPopover=null; }
+  if(_stmPopoverOutsideHandler){ document.removeEventListener('mousedown',_stmPopoverOutsideHandler,true); _stmPopoverOutsideHandler=null; }
+  _stmOpenPopoverAnchor=null;
+}
+// Switches the active group to wherever this page actually lives, and asks
+// the next render to scroll to/flash it — see _stmFocusNodeId.
+function _stmGoToCrossProductPage(nodeId){
+  const n=gn(nodeId);
+  if(!n){ showToast('That page could not be found.'); return; }
+  _stmActiveGroupKey=_iaEffectiveProductId(n)||'';
+  _stmFocusNodeId=nodeId;
+  renderSitemapView();
+}
+
+// `edgeColorForChild`: Map(childNodeId → {color, componentId|null}) — this
+// node's own OUTGOING edges within the tree, keyed by which child each leads
+// to. Used only to know which of THIS card's own component blocks (if any)
+// should be highlighted, and in what colour — see the module comment above.
+// `crossLinks`: this node's OWN cross-product outgoing connections (see
+// _stmCrossProductLinksFor) — rendered as a small corner badge, independent
+// of _stmMode (a page's real connections don't change between Component and
+// Website view).
+function _stmBuildCard(node, edgeColorForChild, crossLinks){
+  const el=document.createElement('div');
+  el.className='stm-card';
+  el.id='stm-card-'+node.id;
+  let bodyHtml;
+  if(_stmMode==='component'){
+    const comps=getNodeComps(node.id);
+    const highlightByCompId=new Map();
+    edgeColorForChild.forEach(({color,componentId})=>{ if(componentId) highlightByCompId.set(componentId,color); });
+    bodyHtml=`<div class="stm-mock">
+      <div class="stm-mock-bar"><span></span><span></span><span></span></div>
+      <div class="stm-mock-body">
+        ${comps.length?comps.map(c=>{
+          const hl=highlightByCompId.get(c.componentId);
+          return `<div class="stm-mock-block" style="${hl?`border-color:${hl};background:${hl}22;color:${hl}`:''}" title="${escH(c.name)}">${escH(c.name)}</div>`;
+        }).join(''):'<div class="stm-mock-block stm-mock-empty">No components assigned</div>'}
+      </div>
+    </div>`;
+  } else {
+    const absUrl=resolveSlugToAbsolute(node.slug);
+    bodyHtml=`<div class="stm-mock stm-mock-website">
+      <div class="stm-mock-bar"><span></span><span></span><span></span><span class="stm-mock-url">${escH(absUrl||'No URL')}</span></div>
+      <div class="stm-website-frame-wrap">
+        ${absUrl
+          ? `<iframe class="stm-website-frame" data-src="${escH(absUrl)}" title="${escH(node.title)}"></iframe><div class="stm-website-fallback" id="stm-fallback-${node.id}"><span class="material-icons-round" style="font-size:18px">public_off</span><div>Preview unavailable</div></div>`
+          : `<div class="stm-website-fallback" style="opacity:1"><span class="material-icons-round" style="font-size:18px">link_off</span><div>No URL set</div></div>`}
+      </div>
+    </div>`;
+  }
+  el.innerHTML=`${bodyHtml}<div class="stm-caption" title="${escH(node.title)}">${escH(node.title)}</div>`;
+  if(crossLinks && crossLinks.length){
+    const badge=document.createElement('div');
+    badge.className='stm-cross-badge';
+    badge.title=crossLinks.length===1
+      ? `Links to "${crossLinks[0].title}" in ${crossLinks[0].productLabel}`
+      : `Links to ${crossLinks.length} pages in other products`;
+    badge.innerHTML=`<span class="material-icons-round" style="font-size:11px">arrow_outward</span>${crossLinks.length>1?crossLinks.length:''}`;
+    badge.onclick=(e)=>{ e.stopPropagation(); _stmToggleCrossPopover(badge, crossLinks); };
+    el.appendChild(badge);
+  }
+  el.onclick=(e)=>{ e.stopPropagation(); openTray(node.id); };
+  el.ondblclick=(e)=>{ e.stopPropagation(); if(canEdit()) openEditNode(node.id); };
+  return el;
+}
+
+function _stmBuildProductColumn(g, visibleIds){
+  const activeKey=g.product?g.product.id:'';
+  const box=document.createElement('div');
+  box.className='stm-product-box';
+  const label=document.createElement('div');
+  label.className='stm-product-label';
+  label.textContent = g.product ? g.product.name : 'Unassigned pages';
+  box.appendChild(label);
+
+  const forest=_stmBuildTree(g.nodes);
+  const {positions, totalWidth, maxDepth}=_stmLayoutForest(forest);
+  const totalHeight=(maxDepth+1)*STM_CARD_H+maxDepth*STM_V_GAP;
+
+  const inner=document.createElement('div');
+  inner.className='stm-tree-inner';
+  inner.style.cssText=`position:relative;width:${totalWidth}px;height:${totalHeight}px`;
+
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('width',totalWidth); svg.setAttribute('height',totalHeight);
+  svg.style.cssText='position:absolute;top:0;left:0;overflow:visible;pointer-events:none';
+  inner.appendChild(svg);
+
+  function walk(t){
+    const p=positions.get(t.node.id);
+    const edgeColorForChild=new Map();
+    t.children.forEach((c,i)=>{
+      const color=_stmEdgeColor(i);
+      // A real Link record connecting this exact parent→child pair (not
+      // just "adjacent in the tree") is what earns a solid line + (if it
+      // carries a componentId) a highlighted block on the parent card —
+      // see the module comment.
+      const link=(LINKS[t.node.id]||[]).find(l=>l.targetId===c.node.id);
+      edgeColorForChild.set(c.node.id, {color, componentId: link?link.componentId:null});
+      const cp=positions.get(c.node.id);
+      const x1=p.x+STM_CARD_W/2, y1=p.y+STM_CARD_H;
+      const x2=cp.x+STM_CARD_W/2, y2=cp.y;
+      const midY=(y1+y2)/2;
+      const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+      path.setAttribute('d',`M${x1},${y1} C${x1},${midY} ${x2},${midY} ${x2},${y2}`);
+      path.setAttribute('fill','none'); path.setAttribute('stroke',color); path.setAttribute('stroke-width','2');
+      if(!link) path.setAttribute('stroke-dasharray','5 4');
+      svg.appendChild(path);
+    });
+    const crossLinks=_stmCrossProductLinksFor(t.node, activeKey, visibleIds);
+    const card=_stmBuildCard(t.node, edgeColorForChild, crossLinks);
+    card.style.position='absolute'; card.style.left=p.x+'px'; card.style.top=p.y+'px';
+    inner.appendChild(card);
+    t.children.forEach(walk);
+  }
+  forest.forEach(walk);
+
+  box.appendChild(inner);
+  return box;
+}
+
+// Website mode only. Deliberately deferred until AFTER every card is already
+// in the DOM (data-src, not src, at build time) rather than firing dozens of
+// iframe loads inline as each card is created, so every iframe starts its
+// own independent load/timeout race at the same moment instead of staggered.
+//
+// IMPORTANT LIMITATION (documented, not a bug to "fix" lightly): a page that
+// refuses to be framed (X-Frame-Options: DENY/SAMEORIGIN, or a CSP
+// frame-ancestors policy) still fires the iframe's own 'load' event — the
+// browser silently renders its own blank/blocked page INSIDE the frame, with
+// no JS-visible signal that this happened (a same-origin-policy restriction
+// on cross-origin frames, not something this app can see around). So this
+// heuristic reliably catches network failures (DNS, timeout, connection
+// refused — via the timer below and 'error') but can NOT reliably detect
+// "loaded, but it's actually a blocked/blank page" — that page will just
+// show its own blank iframe rather than the fallback placeholder. The fully
+// reliable fix is a server-side HTTP HEAD/GET (the backend already does this
+// kind of fetch for URL health checks) that inspects the response's
+// X-Frame-Options/CSP headers before ever attempting to iframe it — not
+// implemented in this pass; see project memory for this as a flagged
+// follow-up if it's ever needed.
+function _stmKickOffIframeLoads(root){
+  root.querySelectorAll('.stm-website-frame[data-src]').forEach(iframe=>{
+    const src=iframe.getAttribute('data-src');
+    const wrap=iframe.closest('.stm-website-frame-wrap');
+    const fallback=wrap?wrap.querySelector('.stm-website-fallback'):null;
+    let settled=false;
+    const timer=setTimeout(()=>{
+      if(settled) return; settled=true;
+      iframe.style.display='none';
+      if(fallback) fallback.style.opacity='1';
+    }, 4500);
+    iframe.addEventListener('load', ()=>{
+      if(settled) return; settled=true;
+      clearTimeout(timer);
+      iframe.style.display='';
+      if(fallback) fallback.style.opacity='0';
+    });
+    iframe.addEventListener('error', ()=>{
+      if(settled) return; settled=true;
+      clearTimeout(timer);
+      iframe.style.display='none';
+      if(fallback) fallback.style.opacity='1';
+    });
+    iframe.removeAttribute('data-src');
+    iframe.src=src;
+  });
+}
+
+function renderSitemapView(){
+  const wrap=eid('viewSitemap');
+  wrap.innerHTML='';
+  wrap.style.overflow='auto';
+  wrap.style.position='relative';
+  wrap.style.background='var(--canvas-bg)';
+  _stmUpdateModeButtons();
+  _stmCloseCrossPopover();
+
+  // Canonical pages only — variants are transformation overlays, not
+  // separate sitemap nodes (same exclusion the IA view applies); touchpoints
+  // (email/phone/sms/chatbot) aren't part of the parentId hierarchy tree
+  // either — out of scope for this view's v1. Decommissioned pages are
+  // excluded too (2026-09-25, user's explicit ask) — unlike the IA view
+  // (which keeps showing them with a warning pill, since that view is about
+  // migration status), the Sitemap is meant to represent the live site, so a
+  // decommissioned page has no business appearing in it. A decommissioned
+  // page that still has real children keeps them in the tree — they just
+  // become local roots of their own (see _stmBuildTree's own comment on a
+  // missing/dangling parentId), same graceful fallback as a deleted parent.
+  //
+  // Phase filtering (2026-09-25, user's explicit ask): visNodes()'s own
+  // phase filter is CUMULATIVE by design (selecting Phase 2 shows Phase
+  // 0+1+2 together — see its own "IMPORTANT ARCHITECTURAL RULE" comment;
+  // that's the right default for the IA/Roadmap's "what does the site look
+  // like once we reach this phase" mental model). The Sitemap is different
+  // — the user wants it to show EXACTLY the phase(s) ticked in the header
+  // dropdown, nothing earlier. So on top of visNodes()'s own result, a page
+  // is kept only if its own `.phase` is literally one of the selected
+  // phases — unless no actual phase is selected (only "Live", or nothing at
+  // all), in which case there's nothing to narrow and visNodes()'s own
+  // result stands as-is (this deliberately leaves the Live toggle's own
+  // semantics untouched; it's an orthogonal operational-status axis, not
+  // what was asked for here).
+  const _stmSelectedPhaseIds=[...selectedPhases].filter(p=>p!=='LIVE');
+  const vn=visNodes().filter(n=>n.nodeType==='page'&&!n.variantOf&&!n.decommissioned
+    &&(_stmSelectedPhaseIds.length===0||_stmSelectedPhaseIds.includes(n.phase)));
+  if(!vn.length){ wrap.innerHTML='<div style="padding:40px;color:var(--text3)">No pages visible</div>'; renderSitemapNav([]); return; }
+  const visibleIds=new Set(vn.map(n=>n.id));
+
+  // One tree per Product — the user's explicit decision, now literally the
+  // same thing as "one tree per App Block" since their unification (see
+  // _iaEffectiveProductId). A page with no product anywhere in its Parent
+  // ancestry (including via override) lands in a synthetic "Unassigned
+  // pages" group instead of being silently dropped.
+  const groups=new Map();
+  vn.forEach(n=>{
+    const pid=_iaEffectiveProductId(n)||'';
+    if(!groups.has(pid)) groups.set(pid, {product: pid?ROADMAP_PRODUCTS.find(p=>p.id===pid):null, nodes:[]});
+    groups.get(pid).nodes.push(n);
+  });
+  const orderedGroups=[...groups.values()].sort((a,b)=>{
+    if(!a.product && b.product) return 1;
+    if(a.product && !b.product) return -1;
+    if(!a.product && !b.product) return 0;
+    return (a.product.order||0)-(b.product.order||0);
+  });
+
+  // 2026-09-25: only ONE group's tree is ever on screen at a time now (the
+  // user's explicit ask — side by side stopped being readable past a couple
+  // of products), chosen via the #stmLeftNav product chooser below.
+  // Auto-repairs _stmActiveGroupKey to the first available group whenever it
+  // doesn't match anything in THIS render (first-ever render, the active
+  // product/its pages disappeared, etc.) rather than showing a blank canvas.
+  if(!orderedGroups.some(g=>(g.product?g.product.id:'')===_stmActiveGroupKey)){
+    _stmActiveGroupKey = orderedGroups.length ? (orderedGroups[0].product?orderedGroups[0].product.id:'') : null;
+  }
+  renderSitemapNav(orderedGroups);
+
+  const activeGroup=orderedGroups.find(g=>(g.product?g.product.id:'')===_stmActiveGroupKey);
+  if(!activeGroup){ wrap.innerHTML='<div style="padding:40px;color:var(--text3)">No pages visible</div>'; return; }
+
+  const canvasEl=document.createElement('div');
+  canvasEl.id='sitemapCanvas';
+  canvasEl.style.cssText='position:relative;display:flex;align-items:flex-start;padding:32px;transform-origin:0 0';
+  wrap.appendChild(canvasEl);
+
+  canvasEl.appendChild(_stmBuildProductColumn(activeGroup, visibleIds));
+
+  if(_stmMode==='website') _stmKickOffIframeLoads(canvasEl);
+
+  // A cross-product chip (_stmGoToCrossProductPage) just switched groups —
+  // scroll to and briefly flash the page that was actually clicked, once
+  // its card exists in the freshly-built tree, rather than just landing on
+  // an unrelated part of the new product's tree.
+  if(_stmFocusNodeId){
+    const focusId=_stmFocusNodeId;
+    _stmFocusNodeId=null;
+    requestAnimationFrame(()=>{
+      VIEWPORT.fitToScreen();
+      setTimeout(()=>{
+        const card=eid('stm-card-'+focusId);
+        if(!card) return;
+        card.scrollIntoView({behavior:'smooth', block:'center', inline:'center'});
+        card.classList.add('stm-card-flash');
+        setTimeout(()=>card.classList.remove('stm-card-flash'), 1600);
+      }, 260); // after fitToScreen's own transform/scroll settles
+    });
+  } else {
+    // Same "fit the freshly-built canvas to the viewport" convention the
+    // Ecosystem view's own render function ends on.
+    requestAnimationFrame(()=>VIEWPORT.fitToScreen());
+  }
+}
+
+/* ═══════════════════════════════════════════
    LOGO EDIT
 ═══════════════════════════════════════════ */
 let logoImgUrl = '';
@@ -18987,7 +19895,7 @@ let _jiraSyncing = false;
 let settingsOrigKeys = { cms:[], owner:[], status:[], reqtype:[] };
 
 let _settingsReturnView='ia';   // the view Settings was opened from — where Close goes back to
-const SETTINGS_TITLES={general:'General',home:'Homepage',systems:'Systems',owners:'Owners',statuses:'Statuses',reqtypes:'Requirement types',
+const SETTINGS_TITLES={general:'General',home:'Homepage',appblocks:'App Blocks',systems:'Systems',owners:'Owners',statuses:'Statuses',reqtypes:'Requirement types',
   brand:'Brand',logo:'Logo',layout:'Layout',crawl:'Page Audit',components:'Components',jira:'Jira'};
 function openSettings(tab){
   if(curView!=='settings') _settingsReturnView=curView;
@@ -19016,7 +19924,7 @@ function closeSettings(){
 }
 function switchStab(tab){
   settingsTab = tab;
-  ['general','systems','owners','statuses','reqtypes','brand','logo','layout','crawl','components','jira','home'].forEach(t=>{
+  ['general','systems','owners','statuses','reqtypes','brand','logo','layout','crawl','components','jira','home','appblocks'].forEach(t=>{
     const el=eid('stab-'+t); if(el) el.classList.toggle('active', t===tab);
   });
   const ttl=eid('settingsPageTitle'); if(ttl) ttl.textContent=SETTINGS_TITLES[tab]||'Settings';
@@ -19037,6 +19945,107 @@ function renderSettingsBody(){
   if(settingsTab === 'components') body.innerHTML = renderComponentsTab();
   if(settingsTab === 'jira'){ body.innerHTML = renderJiraTab(); _jiraFetchStatus(); }
   if(settingsTab === 'home')      body.innerHTML = renderHomeTab();
+  if(settingsTab === 'appblocks') body.innerHTML = renderAppBlocksTab();
+}
+
+// ── APP BLOCKS SETTINGS TAB ──────────────────────────────────────────────
+// The one-time (and ongoing, for newly-added blocks) reconciliation UI for
+// _iaEffectiveProductId above: match each App Block's root page to its
+// Product by name where a confident match exists, and let the rest be
+// paired (or a new product created) by hand. Setting a link here is just
+// updNodeRoadmapProduct() on that root page — the exact same call every
+// other Product picker in the app already goes through.
+function _appBlockRoots(){
+  return NODES.filter(n=>!n.parentId&&n.nodeType==='page'&&!n.variantOf)
+    .sort((a,b)=>String(a.title||'').localeCompare(String(b.title||'')));
+}
+// Case/whitespace-insensitive exact-then-loose name match. Never applies
+// anything on its own — always just a SUGGESTION the user confirms via
+// "Apply", so nothing gets silently linked based on a guess.
+function _appBlockSuggestProduct(root){
+  const norm=s=>String(s||'').trim().toLowerCase();
+  const rn=norm(root.title);
+  if(!rn) return null;
+  let hit=ROADMAP_PRODUCTS.find(p=>norm(p.name)===rn);
+  if(hit) return hit;
+  hit=ROADMAP_PRODUCTS.find(p=>{ const pn=norm(p.name); return pn && (rn.includes(pn)||pn.includes(rn)); });
+  return hit||null;
+}
+function renderAppBlocksTab(){
+  const roots=_appBlockRoots();
+  const unmatchedProducts=ROADMAP_PRODUCTS.filter(p=>!roots.some(r=>r.roadmapProductId===p.id));
+  const rows=roots.map(root=>{
+    const linked=root.roadmapProductId?ROADMAP_PRODUCTS.find(p=>p.id===root.roadmapProductId):null;
+    const suggestion=!linked?_appBlockSuggestProduct(root):null;
+    let statusHtml;
+    if(linked){
+      statusHtml=`<span class="ds-status-pill sm" style="background:var(--rag-green-bg);color:var(--rag-green-fg)"><span class="ds-status-pill-dot" style="background:var(--rag-green-fg)"></span>Linked to ${escH(linked.name)}</span>`;
+    } else if(suggestion){
+      statusHtml=`<span class="ds-status-pill sm" style="background:var(--rag-amber-bg);color:var(--rag-amber-fg)">Suggested: ${escH(suggestion.name)}</span>
+        <button class="tray-action-btn" style="height:24px;flex-shrink:0" onclick="_appBlockApply('${root.id}','${suggestion.id}')">Apply</button>`;
+    } else {
+      statusHtml=`<span class="ds-status-pill sm" style="background:var(--md-surface-container);color:var(--text3)">No match found</span>`;
+    }
+    return `<div class="comp-mgr-row" id="ab-row-${root.id}">
+      <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;flex-wrap:wrap">
+        <div style="min-width:150px;font-size:12px;font-weight:600;color:var(--md-on-surface)">${escH(root.title)}</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">${statusHtml}</div>
+        <select class="req-select" style="width:auto;max-width:180px;margin-left:auto" onchange="if(this.value)_appBlockApply('${root.id}',this.value)">
+          <option value="">${linked?'Change link…':'Link manually…'}</option>
+          ${ROADMAP_PRODUCTS.map(p=>`<option value="${p.id}"${root.roadmapProductId===p.id?' selected':''}>${escH(p.name)}</option>`).join('')}
+        </select>
+        <button class="comp-mgr-del" title="Create a new product named &quot;${escH(root.title)}&quot; and link it" onclick="_appBlockCreateAndLink('${root.id}')">+</button>
+      </div>
+    </div>`;
+  }).join('');
+  const suggestedCount=roots.filter(r=>!r.roadmapProductId&&_appBlockSuggestProduct(r)).length;
+  return `<div class="settings-section">
+    <div class="settings-section-title">App Blocks &amp; Products</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:14px;line-height:1.6">
+      An <strong>App Block</strong> (a top-level page with no Parent, in the node editor) and a <strong>Product</strong> (Roadmap / Test Plan) are the same thing: one business site or application. Link each App Block's root page to its Product below; every page nested under that root then inherits the link automatically, so you never have to set it per page.
+    </div>
+    ${suggestedCount?`<button class="cfg-add-btn" style="background:var(--brand-primary);color:#fff;border:none;margin-bottom:12px" onclick="_appBlockApplyAllSuggestions()">Apply ${suggestedCount} suggested match${suggestedCount===1?'':'es'}</button>`:''}
+    <div id="ab-list" class="cfg-list">${rows||'<div style="font-size:11px;color:var(--text3);padding:16px 0;text-align:center">No App Blocks yet — add a top-level page in the IA view first.</div>'}</div>
+    ${unmatchedProducts.length?`<div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--md-outline-variant)">
+      <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Products with no App Block yet</div>
+      <div style="font-size:10px;color:var(--text3);margin-bottom:8px;line-height:1.5">These exist on the Roadmap but aren't linked from any App Block above — link one to them from its row, or leave them as roadmap-only planning entries.</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">${unmatchedProducts.map(p=>`<span class="rd-view-pill">${escH(p.name)}</span>`).join('')}</div>
+    </div>`:''}
+  </div>`;
+}
+function _appBlockApply(rootId, productId){
+  updNodeRoadmapProduct(rootId, productId);
+  renderSettingsBody();
+}
+function _appBlockApplyAllSuggestions(){
+  if(!canEdit()){showToast('View-only access — editing is disabled');return;}
+  const roots=_appBlockRoots();
+  let n=0;
+  roots.forEach(r=>{
+    if(r.roadmapProductId) return;
+    const s=_appBlockSuggestProduct(r);
+    if(s){ updNodeRoadmapProduct(r.id, s.id, true); n++; }
+  });
+  renderSettingsBody();
+  showToast(n?`Linked ${n} App Block${n===1?'':'s'} to their matching product`:'Nothing to apply');
+}
+function _appBlockCreateAndLink(rootId){
+  if(!canEdit()){showToast('View-only access — editing is disabled');return;}
+  const root=gn(rootId); if(!root) return;
+  const name=(root.title||'Untitled').trim();
+  const dupe=ROADMAP_PRODUCTS.find(p=>p.name.trim().toLowerCase()===name.toLowerCase());
+  if(dupe){
+    if(!confirm(`A product named "${name}" already exists — link to it instead of creating a duplicate?`)) return;
+    updNodeRoadmapProduct(rootId, dupe.id);
+    renderSettingsBody();
+    return;
+  }
+  const prod={id:'PR'+Date.now(), name, desc:'', order:ROADMAP_PRODUCTS.length, jiraKey:''};
+  ROADMAP_PRODUCTS.push(prod);
+  dbUpsertProduct(prod);
+  updNodeRoadmapProduct(rootId, prod.id, true);
+  renderSettingsBody();
+  showToast(`Created product "${name}" and linked it`);
 }
 
 
@@ -19750,7 +20759,7 @@ function renderLayoutTab(){
   return `<div class="settings-section">
     <div class="settings-section-title">IA View — Application grid</div>
     <div style="font-size:11px;color:var(--text3);margin-bottom:14px;line-height:1.5">
-      Controls how nodes are arranged within each Business Application block on the IA Hierarchy view.
+      Controls how nodes are arranged within each App Block on the IA Hierarchy view.
     </div>
     <div class="mfield">
       <label>Max columns per application block</label>
@@ -21326,7 +22335,7 @@ function _renderTrayTab(tab, id){
     })();
 
     html+=`<div class="tray-section"><div class="tray-section-title">Details</div>`;
-    if(appNode) html+=`<div class="tray-row"><div class="tray-lbl">Business App</div><div class="tray-val" style="cursor:pointer;color:var(--accent)" onclick="openTray('${appNode.id}')">${escH(appNode.title)}</div></div>`;
+    if(appNode) html+=`<div class="tray-row"><div class="tray-lbl">Parent</div><div class="tray-val" style="cursor:pointer;color:var(--accent)" onclick="openTray('${appNode.id}')">${escH(appNode.title)}</div></div>`;
     if(n.slug)  html+=`<div class="tray-row"><div class="tray-lbl">As-Is URL</div><div class="tray-val mono">${escH(n.slug)}</div></div>`;
     if(n.newSlug) html+=`<div class="tray-row"><div class="tray-lbl">To-Be URL</div><div class="tray-val mono">${escH(n.newSlug)}</div></div>`;
     if(n.owner) html+=`<div class="tray-row"><div class="tray-lbl">Owner</div><div class="tray-val">${escH(n.owner)}</div></div>`;
@@ -21473,7 +22482,7 @@ function _renderTrayEditTab(tab, id, body){
       <div class="ne-section"><div class="ne-section-title">Details</div>
         <div class="drow"><div class="drow-lbl">Title</div><input class="dinput" value="${n?escH(n.title):''}" placeholder="e.g. Contact Us" onchange="upd('${id}','title',this.value);_renderTray()"></div>
         <div class="ne-grid3">
-          <div><div style="font-size:9px;color:var(--text3);font-weight:600;margin-bottom:4px">Business App</div><select class="dinput dselect" onchange="upd('${id}','parentId',this.value||null)">${parentOpts}</select></div>
+          <div><div style="font-size:9px;color:var(--text3);font-weight:600;margin-bottom:4px">Parent</div><select class="dinput dselect" onchange="upd('${id}','parentId',this.value||null)">${parentOpts}</select></div>
           <div><div style="font-size:9px;color:var(--text3);font-weight:600;margin-bottom:4px">Phase</div><select class="dinput dselect" onchange="upd('${id}','phase',this.value)">${phaseOpts}</select></div>
           <div><div style="font-size:9px;color:var(--text3);font-weight:600;margin-bottom:4px">Owner</div><select class="dinput dselect" onchange="upd('${id}','owner',this.value)">${ownerOpts}</select></div>
         </div>
@@ -21678,12 +22687,13 @@ const VIEWPORT = (() => {
     // in the corner after "Fit".
     return eid(
       curView==='ia'          ? 'canvas' :
+      curView==='sitemap'     ? 'sitemapCanvas' :
       curView==='ecosystem'   ? 'ecoCanvas' :
       curView==='actionreport'? 'viewActionReport' : 'viewAudit'
     );
   }
 
-  function _wrap() { return curView==='ecosystem' ? eid('viewEcosystem') : eid('canvasWrap'); }
+  function _wrap() { return curView==='ecosystem' ? eid('viewEcosystem') : curView==='sitemap' ? eid('viewSitemap') : eid('canvasWrap'); }
 
   function _indicator() { return eid('zoomIndicator'); }
 
@@ -21800,6 +22810,8 @@ eid('canvasWrap').addEventListener('wheel', e => VIEWPORT.handleWheel(e), {passi
 // #canvasWrap) — needs its own wheel listener or ctrl+scroll zoom would
 // silently do nothing there.
 eid('viewEcosystem').addEventListener('wheel', e => VIEWPORT.handleWheel(e), {passive: false});
+// Same reasoning for the Sitemap view's own wrap (#viewSitemap).
+eid('viewSitemap').addEventListener('wheel', e => VIEWPORT.handleWheel(e), {passive: false});
 
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){document.querySelectorAll('.modal-bg.open').forEach(m=>m.classList.remove('open'));selNodeId=null;closeTray();if(_iaPinnedCardIds.size){_iaPinnedCardIds=new Set();_iaApplyFocusState();}renderCanvas()}

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- StrategicSitemapper  v173 -->
+<!-- StrategicSitemapper  v193  (v193 = To Do tasks can have several assignees (needs backend v103); v192 = To Do list view replaces the Requirements Tracker tile on the Homepage (Tracker stays on the View menu); needs backend v102 + setupSpreadsheet(); v183 = TEMP: Scenarios admin-only, see TEMP_SCENARIOS_ADMIN_ONLY; v184 = Project List view; v185 = Project List: bars + product dependency matrix; v186 = project Owner; v187 = instant product-name tooltips; v188 = projects can follow another project; v189 = Roadmap columns are projects + Backlog + drag/drop + add project to product; v190 = Add functional area in left column, Add product in dropdown, Settings > Products & Projects; v191 = complete/delete projects, project templates, admin can attribute a snag to another user) -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -1512,6 +1512,130 @@ a.pt-url-val:hover{text-decoration:underline}
 .rm-tab.active{color:var(--brand-primary);border-bottom-color:var(--brand-primary)}
 .rm-tab-add{padding:8px 14px;margin:8px 0;font-size:11px;font-weight:600;border:1px dashed var(--brand-primary);border-radius:8px;color:var(--brand-primary);cursor:pointer;white-space:nowrap;background:none;flex-shrink:0}
 .rm-tab-add:hover{background:var(--brand-primary-light)}
+.pj-body{flex:1;min-height:0;overflow:auto;padding:16px 20px}
+.pj-table{width:100%;border-collapse:collapse;font-size:12px;background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.pj-table th{text-align:left;padding:9px 12px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);background:var(--md-surface-container);border-bottom:1px solid var(--border)}
+.pj-table td{padding:12px;vertical-align:top;border-bottom:1px solid var(--border);color:var(--ink)}
+.pj-table tr:last-child td{border-bottom:none}
+.pj-name{display:flex;gap:10px;align-items:flex-start;min-width:200px}
+.pj-dot{width:12px;height:12px;border-radius:4px;flex-shrink:0;margin-top:3px}
+.pj-title{font-weight:700;font-size:13px}
+.pj-desc{font-size:11px;color:var(--text3);margin-top:2px}
+.pj-edit{border:none;background:none;cursor:pointer;color:var(--text3);padding:0 2px;flex-shrink:0}
+.pj-edit:hover{color:var(--brand-primary)}
+.pj-dates{white-space:nowrap;font-size:11.5px}
+.pj-dates small{display:block;color:var(--text3);margin-top:2px}
+.pj-status{display:inline-block;padding:2px 9px;border-radius:10px;font-size:10.5px;font-weight:700;white-space:nowrap}
+.pj-prod{margin-bottom:8px}
+.pj-prod:last-child{margin-bottom:0}
+.pj-prod-name{border:none;background:none;padding:0;cursor:pointer;font-family:var(--font-body);font-size:12px;font-weight:700;color:var(--brand-primary)}
+.pj-prod-name:hover{text-decoration:underline}
+.pj-prod-meta{font-size:10.5px;color:var(--text3);margin-left:6px}
+.pj-areas{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.pj-area{font-size:10.5px;padding:2px 8px;border-radius:8px;background:var(--md-surface-container);color:var(--text2)}
+.pj-none{font-size:11px;color:var(--text3)}
+/* ── To Do list (v192) ── */
+.td-body{flex:1;min-height:0;overflow:auto;padding:14px 20px 40px}
+.td-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.td-sel{font-family:var(--font-body);font-size:12px;padding:6px 10px;border:1px solid var(--md-outline);border-radius:10px;background:var(--md-surface-variant);color:var(--md-on-surface);max-width:190px}
+.td-quick{display:flex;gap:8px;align-items:center;margin-bottom:14px;max-width:760px}
+.td-quick input{flex:1;font-family:var(--font-body);font-size:13px;padding:10px 14px;border:1px solid var(--md-outline);border-radius:22px;background:var(--white);color:var(--ink);outline:none}
+.td-quick input:focus{border-color:var(--brand-primary)}
+.td-group{margin-bottom:14px;max-width:960px}
+.td-ghead{display:flex;align-items:center;gap:8px;padding:6px 4px;cursor:pointer;user-select:none;font-weight:700;font-size:13px;color:var(--ink)}
+.td-ghead .td-chev{font-size:18px;color:var(--text3);transition:transform .15s}
+.td-group.collapsed .td-chev{transform:rotate(-90deg)}
+.td-group.collapsed .td-list{display:none}
+.td-gcount{font-size:11px;font-weight:600;color:var(--text3);background:var(--md-surface-container);border-radius:10px;padding:1px 8px}
+.td-gdot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.td-list{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.td-empty{padding:14px;font-size:12px;color:var(--text3)}
+.td-row{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-bottom:1px solid var(--border);cursor:pointer}
+.td-row:last-child{border-bottom:none}
+.td-row:hover{background:var(--md-surface-container)}
+.td-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--md-outline);background:none;flex-shrink:0;margin-top:1px;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;color:#fff}
+.td-check:disabled{cursor:default;opacity:.5}
+.td-check:not(:disabled):hover{border-color:var(--brand-primary)}
+.td-row.done .td-check{background:#2E7D6B;border-color:#2E7D6B}
+.td-check .material-icons-round{font-size:14px}
+.td-main{flex:1;min-width:0}
+.td-title{font-size:13px;font-weight:600;color:var(--ink);overflow-wrap:anywhere}
+.td-row.done .td-title{text-decoration:line-through;color:var(--text3);font-weight:500}
+.td-code{font-family:var(--font-mono,'Roboto Mono',monospace);font-size:10px;color:var(--text3);margin-right:6px;font-weight:500}
+.td-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:5px;align-items:center}
+.td-chip{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:10px;background:var(--md-surface-container);color:var(--text2);white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis}
+.td-chip i{width:8px;height:8px;border-radius:3px;display:inline-block;flex-shrink:0}
+.td-chip.overdue{background:#fce8e6;color:#c5221f}
+.td-chip.p-High{background:#fce8e6;color:#c5221f}
+.td-chip.p-Medium{background:#fef3d6;color:#8a5a00}
+.td-chip.p-Low{background:#e6f2ee;color:#2E7D6B}
+.td-st{font-family:var(--font-body);font-size:11px;font-weight:700;border:none;border-radius:10px;padding:3px 6px;cursor:pointer}
+.td-st.New{background:#e8f0fe;color:#1a56c4}
+.td-st.InProgress{background:#fef3d6;color:#8a5a00}
+.td-st.Complete{background:#e6f2ee;color:#2E7D6B}
+.td-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.td-people{display:flex;flex-wrap:wrap;gap:4px 14px;padding:8px 10px;border:1px solid var(--md-outline);border-radius:10px;background:var(--md-surface-variant);max-height:120px;overflow:auto}
+.mfield .td-person{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--ink);text-transform:none;letter-spacing:0;font-weight:500;margin:0;cursor:pointer}
+.td-mgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+@media (max-width:600px){ .td-mgrid{grid-template-columns:1fr} .td-body{padding:12px 12px 40px} .td-row{flex-wrap:wrap} }
+.pj-owner{display:inline-block;font-size:9.5px;font-weight:700;padding:1px 7px;border-radius:8px;background:var(--md-surface-container);color:var(--text2);vertical-align:1px;white-space:nowrap}
+.pj-chip{font-size:10px;font-weight:600;padding:1px 7px;border-radius:8px;background:var(--brand-primary-light);color:var(--brand-primary);white-space:nowrap}
+.pj-gantt{position:relative;background:var(--white);border:1px solid var(--border);border-radius:10px;width:max-content;min-width:100%}
+.pj-g-row{display:flex;border-bottom:1px solid var(--border)}
+.pj-g-row:last-child{border-bottom:none}
+.pj-g-label{position:sticky;left:0;z-index:3;flex:0 0 240px;width:240px;box-sizing:border-box;padding:10px 12px;background:var(--white);border-right:1px solid var(--border)}
+.pj-g-head .pj-g-label{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);background:var(--md-surface-container)}
+.pj-g-track{position:relative;flex:0 0 auto;min-height:52px}
+.pj-g-head .pj-g-track{min-height:30px;background:var(--md-surface-container)}
+.pj-g-tick{position:absolute;top:0;bottom:0;border-left:1px solid var(--border);font-size:10px;font-weight:600;color:var(--text3);padding:7px 0 0 5px;box-sizing:border-box;white-space:nowrap;overflow:hidden}
+.pj-g-head .pj-g-tick{border-left-color:var(--text3)}
+.pj-bar{position:absolute;top:50%;height:26px;margin-top:-13px;border-radius:7px;overflow:hidden;cursor:default;display:flex;align-items:center;box-shadow:var(--el-1)}
+.pj-bar.editable{cursor:pointer}
+.pj-bar-fill{position:absolute;left:0;top:0;bottom:0;background:rgba(0,0,0,.28)}
+.pj-bar-txt{position:relative;padding:0 8px;font-size:11px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pj-g-matrix{position:sticky;right:0;z-index:3;display:flex;flex:0 0 auto;background:var(--white);border-left:1px solid var(--border)}
+.pj-g-head .pj-g-matrix{background:var(--md-surface-container)}
+.pj-m-cell{position:relative;flex:0 0 30px;width:30px;display:flex;align-items:center;justify-content:center}
+.pj-m-cell.ln-up::before,.pj-m-cell.ln-down::after{content:'';position:absolute;left:50%;width:2px;margin-left:-1px;background:var(--pc);opacity:.55}
+.pj-m-cell.ln-up::before{top:0;bottom:50%}
+.pj-m-cell.ln-down::after{top:50%;bottom:0}
+.pj-dot2{position:relative;z-index:1;border-radius:50%;display:block}
+.pj-dot2.solo{width:8px;height:8px;background:var(--text3);opacity:.45}
+.pj-dot2.shared{width:14px;height:14px;background:var(--pc,var(--brand-primary))}
+.pj-dot2.clash{width:14px;height:14px;background:var(--pc,var(--brand-primary));outline:2px solid var(--rag-red-fg);outline-offset:1px}
+.pj-m-head{flex:0 0 30px;width:30px;height:100px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;padding:6px 0;box-sizing:border-box;border-bottom:3px solid var(--pc)}
+.pj-m-head span{writing-mode:vertical-rl;transform:rotate(180deg);font-size:10px;font-weight:700;color:var(--ink);max-height:72px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pj-m-head b{font-size:9px;color:var(--text3)}
+.pj-tip{position:fixed;z-index:9999;display:none;max-width:320px;padding:6px 10px;border-radius:8px;background:var(--ink);color:#fff;font-size:11.5px;font-weight:600;line-height:1.4;pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.pj-legend{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;font-size:11px;color:var(--text2);margin-bottom:10px}
+.pj-legend .pj-dot2{display:inline-block;vertical-align:-3px;margin-right:5px}
+.pj-today{position:absolute;top:0;bottom:0;width:2px;background:var(--brand-accent);z-index:2;pointer-events:none}
+.pj-today span{position:absolute;top:2px;left:4px;font-size:9px;font-weight:700;color:var(--brand-accent);white-space:nowrap}
+.rm-fa-add-cell{background:var(--white);padding:8px}
+.rm-fa-fill{background:var(--white)}
+.rm-prodmenu-add{margin-top:6px;padding:8px;border-top:1px solid var(--border);font-size:12px;font-weight:600;color:var(--brand-primary);cursor:pointer;border-radius:0 0 6px 6px}
+.rm-prodmenu-add:hover{background:var(--brand-primary-light)}
+.rm-showdone{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);cursor:pointer;white-space:nowrap;flex-shrink:0}
+.rm-ph-row{display:flex;align-items:center;gap:6px;min-width:0}
+.rm-ph-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1}
+.rm-ph-sub{font-family:var(--font-body);font-size:10px;font-weight:600;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+.rm-ph-x{border:none;background:none;cursor:pointer;color:var(--text3);font-size:13px;padding:0 2px;margin-left:auto;flex-shrink:0}
+.rm-ph-x:hover{color:var(--rag-red-fg)}
+.rm-feature-card[draggable=true]{cursor:grab}
+.rm-feature-card.rm-dragging{opacity:.4}
+.rm-phase-cell.rm-drop-ok{outline:2px dashed var(--brand-primary);outline-offset:-3px;background:var(--brand-primary-light)!important}
+.rm-phase-cell.rm-drop-no{outline:2px dashed var(--rag-red-fg);outline-offset:-3px}
+.rm-title{font-family:var(--font-display);font-size:18px;font-weight:800;letter-spacing:-.2px;color:var(--ink);margin:0 6px 0 0;white-space:nowrap}
+.rm-prodmenu-wrap{position:relative;flex-shrink:0}
+.rm-prodbtn{display:inline-flex;align-items:center;gap:6px;max-width:320px}
+.rm-prodbtn-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rm-prodmenu{position:absolute;top:calc(100% + 6px);left:0;z-index:80;width:300px;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:8px}
+.rm-prodmenu-search{width:100%;font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--canvas);color:var(--ink);margin-bottom:6px;box-sizing:border-box}
+.rm-prodmenu-list{max-height:320px;overflow-y:auto}
+.rm-prodmenu-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;font-size:12px;color:var(--ink);cursor:pointer}
+.rm-prodmenu-row:hover{background:var(--brand-primary-light)}
+.rm-prodmenu-all{font-weight:700;border-bottom:1px solid var(--border);border-radius:6px 6px 0 0;margin-bottom:2px}
+.rm-prodmenu-empty{padding:10px;font-size:11px;color:var(--text3)}
 .rm-content{flex:1;overflow:auto}
 .rm-empty{padding:60px 20px;text-align:center;color:var(--text3)}
 .rm-empty-title{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px}
@@ -1873,6 +1997,10 @@ a.pt-url-val:hover{text-decoration:underline}
 .tpl2-nav-feature{padding:7px 10px 7px 40px;font-size:11px;font-weight:500;color:var(--text3)}
 .tpl2-nav-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tpl2-nav-count{font-family:var(--font-mono);font-size:9.5px;font-weight:600;color:var(--text3);flex-shrink:0}
+.tpl2-nav-snagcount{min-width:20px;text-align:center;padding:1px 6px;border-radius:10px;font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--text3);background:var(--md-surface-container);flex-shrink:0}
+.tpl2-nav-snagcount.hot{color:var(--rag-red-fg);background:var(--rag-red-bg)}
+.tpl2-nav-crit{padding:1px 5px;border-radius:8px;font-size:9px;font-weight:700;color:#fff;background:var(--rag-red-fg);flex-shrink:0}
+.tpl2-nav-quiet{opacity:.5}
 .tpl2-nav-fail{width:7px;height:7px;border-radius:50%;background:var(--rag-red-fg);flex-shrink:0}
 .tpl2-nav-chev{font-size:15px;color:var(--text3);flex-shrink:0}
 .tpl2-nav-hd{padding:12px 14px 8px;border-bottom:1px solid var(--md-outline-variant)}
@@ -2312,6 +2440,72 @@ a.pt-url-val:hover{text-decoration:underline}
 </div>
 </div>
 
+<!-- Add a project to a product (Product Roadmap, v189) -->
+<div class="modal-bg" id="rmAddProjModal">
+<div class="modal">
+  <div class="mhead"><h3>Add project to product</h3><button class="mclose" onclick="closeModal('rmAddProjModal')">✕</button></div>
+  <div class="mbody">
+    <div class="mfield"><label>Product</label><select class="mselect" id="rmap-product" onchange="_rmApRefresh()"></select></div>
+    <div class="mfield"><label>Project</label><select class="mselect" id="rmap-project"></select>
+      <div style="font-size:10.5px;color:var(--text3);margin-top:4px">Pick a project that already exists, or choose "Create a new project" to set one up and link it to this product.</div></div>
+  </div>
+  <div class="mfoot"><button class="mbtn mbtn-cancel" onclick="closeModal('rmAddProjModal')">Cancel</button><button class="mbtn mbtn-save" onclick="_rmApSave()">Continue</button></div>
+</div>
+</div>
+
+<!-- Project template editor (Settings > Project templates, v191) -->
+<div class="modal-bg" id="ptplModal">
+<div class="modal" style="max-width:640px">
+  <div class="mhead"><h3 id="ptm-title">New project template</h3><button class="mclose" onclick="closeModal('ptplModal')">✕</button></div>
+  <div class="mbody">
+    <div class="mfield"><label>Template name</label><input class="minput" id="ptm-name" placeholder="e.g. Open a new destination airport"></div>
+    <div class="mfield"><label>Description</label><input class="minput" id="ptm-desc" placeholder="When to use this template"></div>
+    <div class="ne-grid2" style="gap:10px">
+      <div class="mfield" style="margin:0"><label>Default owner</label><select class="mselect" id="ptm-owner"></select></div>
+      <div class="mfield" style="margin:0"><label>Typical length (days)</label><input class="minput" type="number" min="0" id="ptm-days" placeholder="e.g. 90"></div>
+    </div>
+    <div class="mfield" style="margin-top:10px"><label>Features and checks <span id="ptm-count" style="font-weight:400;color:var(--text3);margin-left:6px"></span></label>
+      <textarea class="minput" id="ptm-text" rows="14" style="font-family:var(--font-mono);font-size:12px" oninput="_ptUpdateCount()" placeholder="# Airport set-up | Operations&#10;- Confirm {project} slot allocation&#10;- Ground handling agreement signed&#10;&#10;# Website | Commercial&#10;- Add {project} to the destinations list"></textarea>
+      <div style="font-size:10.5px;color:var(--text3);margin-top:4px;line-height:1.6">A line starting with <b>#</b> is a feature; add <b>| Functional area</b> to say where it goes (optional). Lines starting with <b>-</b> under it are its requirements / checks. <b>{project}</b> is replaced with the new project's name.</div>
+    </div>
+  </div>
+  <div class="mfoot"><button class="mbtn mbtn-danger" id="ptm-delete" style="display:none;margin-right:auto" onclick="_ptDelete(_ptEditId)">Delete template</button><button class="mbtn mbtn-cancel" onclick="closeModal('ptplModal')">Cancel</button><button class="mbtn mbtn-save" onclick="_ptSave()">Save template</button></div>
+</div>
+</div>
+
+<!-- Add / edit project (Project List view, v184) -->
+<div class="modal-bg" id="projModal">
+<div class="modal">
+  <div class="mhead"><h3 id="pjm-title">Add project</h3><button class="mclose" onclick="closeModal('projModal')">✕</button></div>
+  <div class="mbody">
+    <div class="mfield" id="pjm-tpl-wrap" style="display:none"><label>Start from a template</label>
+      <select class="minput" id="pjm-tpl" onchange="_pjTplChange()"></select>
+      <div id="pjm-tpl-opts" style="display:none;margin-top:8px">
+        <div class="ne-grid2" style="gap:10px">
+          <div><label>Create the checks in product</label><select class="minput" id="pjm-tpl-prod" onchange="_pjTplProdChange()"></select></div>
+          <div><label>Functional area (where none is named)</label><select class="minput" id="pjm-tpl-area"></select></div>
+        </div>
+        <div id="pjm-tpl-info" style="font-size:10.5px;color:var(--text3);margin-top:4px;line-height:1.5"></div>
+      </div></div>
+    <div class="mfield"><label>Project name</label><input class="minput" id="pjm-name" placeholder="e.g. Personalisation Engine"></div>
+    <div class="mfield"><label>Description</label><input class="minput" id="pjm-desc" placeholder="One-line summary"></div>
+    <div class="mfield"><label>Colour</label><div class="ph-colour-row" id="pjColourRow"></div></div>
+    <div class="mfield"><label>Owner</label><select class="minput" id="pjm-owner"></select></div>
+    <div class="mfield"><label>Schedule</label>
+      <div style="display:flex;gap:8px"><select class="minput" id="pjm-follow" style="flex:2" onchange="_pjApplyFollowUI(true)"></select>
+      <input class="minput" type="number" id="pjm-lag" style="flex:1" placeholder="Gap (days)" title="Days between the previous project ending and this one starting" oninput="_pjApplyFollowUI(true)"></div>
+      <div style="font-size:10.5px;color:var(--text3);margin-top:4px">Choose a project to start after it: this project then moves automatically whenever that project's dates change.</div></div>
+    <div class="mfield" style="display:flex;gap:12px">
+      <div style="flex:1"><label>Start date</label><input class="minput" type="date" id="pjm-start"></div>
+      <div style="flex:1"><label>End date</label><input class="minput" type="date" id="pjm-end"></div>
+    </div>
+    <div class="mfield"><label>% complete (0–100)</label><input class="minput" type="number" min="0" max="100" id="pjm-pct" value="0"></div>
+    <div class="mfield"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600"><input type="checkbox" id="pjm-done" onchange="if(this.checked)eid('pjm-pct').value=100"> Project complete — hide it from the Roadmap and Project List</label></div>
+  </div>
+  <div class="mfoot"><button class="mbtn mbtn-danger" id="pjm-delete" style="display:none;margin-right:auto" onclick="_pjDelete(_pjEditId)">Delete project</button><button class="mbtn mbtn-cancel" onclick="closeModal('projModal')">Cancel</button><button class="mbtn mbtn-save" onclick="_pjSave()">Save project</button></div>
+</div>
+</div>
+
 <!-- Add Journey -->
 <div class="modal-bg" id="journeyModal">
 <div class="modal">
@@ -2416,7 +2610,7 @@ a.pt-url-val:hover{text-decoration:underline}
     </div>
     <div class="mfield"><label>Icon</label><div class="tp-type-grid" id="rmFeatureIconGrid"></div></div>
     <div class="ne-grid2" style="gap:10px">
-      <div class="mfield" style="margin:0"><label>Phase</label><select class="mselect" id="rmf-phase"></select></div>
+      <div class="mfield" style="margin:0"><label>Project</label><select class="mselect" id="rmf-phase"></select></div>
       <div class="mfield" style="margin:0"><label>Status</label>
         <select class="mselect" id="rmf-status">
           <option>Planned</option><option>In Progress</option><option>Done</option>
@@ -2459,6 +2653,21 @@ a.pt-url-val:hover{text-decoration:underline}
   <div class="mfoot">
     <button class="mbtn mbtn-cancel" onclick="closeModal('tplPromptModal')">Close</button>
     <button class="mbtn mbtn-save" onclick="_tplCopyPromptTemplate()">Copy to clipboard</button>
+  </div>
+</div>
+</div>
+
+<!-- Snags: AI prompt template for bulk markdown import (admin) -->
+<div class="modal-bg" id="snagPromptModal">
+<div class="modal" style="max-width:640px">
+  <div class="mhead"><h3>Snag Import Prompt Template</h3><button class="mclose" onclick="closeModal('snagPromptModal')">✕</button></div>
+  <div class="mbody">
+    <div style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.5">Paste this into ChatGPT, Claude or any AI tool — along with your raw list of problems/ideas — to get markdown this app can import directly via "Import snags".</div>
+    <textarea id="snagPromptText" readonly style="width:100%;box-sizing:border-box;min-height:360px;padding:10px 12px;border:1px solid var(--md-outline-variant);border-radius:8px;background:var(--md-surface);font-size:11px;font-family:var(--font-mono,monospace);line-height:1.5;resize:vertical"></textarea>
+  </div>
+  <div class="mfoot">
+    <button class="mbtn mbtn-cancel" onclick="closeModal('snagPromptModal')">Close</button>
+    <button class="mbtn mbtn-save" onclick="_snagCopyPromptTemplate()">Copy to clipboard</button>
   </div>
 </div>
 </div>
@@ -2585,6 +2794,33 @@ a.pt-url-val:hover{text-decoration:underline}
 </div>
 
 <!-- Comments Modal -->
+<!-- To Do task modal (v192) — sits BEFORE commentsModal so the comments panel opens on top of it -->
+<div class="modal-bg" id="taskModal">
+<div class="modal wide">
+  <div class="mhead"><h3 id="td-modal-title">New task</h3><button class="mclose" onclick="closeModal('taskModal')">✕</button></div>
+  <div class="mbody">
+    <div class="mfield"><label>Task</label><input class="minput" id="td-title" placeholder="What needs to be done?" maxlength="200"></div>
+    <div class="mfield"><label>Details (optional)</label><textarea class="minput" id="td-desc" rows="3" style="resize:vertical" placeholder="Any context, links or acceptance notes…"></textarea></div>
+    <div class="td-mgrid">
+      <div class="mfield" style="grid-column:1/-1"><label>Assigned to (tick one or more)</label><div id="td-assignee" class="td-people"></div></div>
+      <div class="mfield"><label>Status</label><select class="mselect" id="td-status"></select></div>
+      <div class="mfield"><label>Product (optional)</label><select class="mselect" id="td-product"></select></div>
+      <div class="mfield"><label>Project (optional)</label><select class="mselect" id="td-project"></select></div>
+      <div class="mfield"><label>Priority (optional)</label><select class="mselect" id="td-priority"></select></div>
+      <div class="mfield"><label>Due date (optional)</label><input class="minput" type="date" id="td-due"></div>
+    </div>
+    <div id="td-readonly-note" style="display:none;font-size:11px;color:var(--text3);margin-top:-4px">View only — you can edit tasks assigned to you; Editors and Admins can edit any task.</div>
+  </div>
+  <div class="mfoot" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+    <button class="mbtn mbtn-cancel" id="td-comments-btn" style="display:none" onclick="_tdOpenComments()"><span class="material-icons-round" style="font-size:15px;vertical-align:-3px;margin-right:4px">chat_bubble_outline</span>Comments<span id="td-comments-n"></span></button>
+    <button class="mbtn mbtn-danger" id="td-delete-btn" style="display:none" onclick="_tdDelete()">Delete</button>
+    <div style="flex:1"></div>
+    <button class="mbtn mbtn-cancel" onclick="closeModal('taskModal')">Cancel</button>
+    <button class="mbtn mbtn-save" id="td-save-btn" onclick="_tdSaveModal()">Save</button>
+  </div>
+</div>
+</div>
+
 <div class="modal-bg" id="commentsModal">
 <div class="modal wide">
   <div class="mhead"><h3 id="cmt-modal-title">Comments</h3><button class="mclose" onclick="closeCommentsPanel()">✕</button></div>
@@ -2791,8 +3027,12 @@ a.pt-url-val:hover{text-decoration:underline}
     <div id="viewTransformation" style="display:none;flex:1;min-width:0;overflow:auto"></div>
     <!-- Product Roadmap view -->
     <div id="viewRoadmap" style="display:none;flex:1;min-width:0;overflow:auto"></div>
+    <!-- Project List view (v184) — phases are Projects -->
+    <div id="viewProjects" style="display:none;flex:1;min-width:0;overflow:auto"></div>
     <!-- Requirements Tracker view -->
     <div id="viewRequirements" style="display:none;flex:1;min-width:0;overflow:auto"></div>
+    <!-- To Do list view (v192) -->
+    <div id="viewTodo" style="display:none;flex:1;min-width:0;overflow:auto"></div>
     <!-- Redirect Tracker view -->
     <div id="viewRedirects" style="display:none;flex:1;min-width:0;overflow:auto"></div>
     <!-- Test Plan view -->
@@ -2806,6 +3046,8 @@ a.pt-url-val:hover{text-decoration:underline}
         <div class="stab" id="stab-general"    onclick="switchStab('general')"><span class="material-icons-outlined">tune</span>General</div>
         <div class="stab" id="stab-home"       onclick="switchStab('home')"><span class="material-icons-outlined">home</span>Homepage</div>
         <div class="stab" id="stab-appblocks"  onclick="switchStab('appblocks')"><span class="material-icons-outlined">apps</span>App Blocks</div>
+        <div class="stab" id="stab-portfolio"  onclick="switchStab('portfolio')"><span class="material-icons-outlined">inventory_2</span>Products &amp; Projects</div>
+        <div class="stab" id="stab-ptemplates" onclick="switchStab('ptemplates')"><span class="material-icons-outlined">content_copy</span>Project templates</div>
         <div class="set-group">Reference data</div>
         <div class="stab active" id="stab-systems"  onclick="switchStab('systems')"><span class="material-icons-outlined">dns</span>Systems</div>
         <div class="stab" id="stab-owners"     onclick="switchStab('owners')"><span class="material-icons-outlined">groups</span>Owners</div>
@@ -2819,6 +3061,8 @@ a.pt-url-val:hover{text-decoration:underline}
         <div class="stab" id="stab-crawl"      onclick="switchStab('crawl')"><span class="material-icons-outlined">travel_explore</span>Page Audit</div>
         <div class="stab" id="stab-components" onclick="switchStab('components')"><span class="material-icons-outlined">widgets</span>Components</div>
         <div class="stab" id="stab-jira"       onclick="switchStab('jira')"><span class="material-icons-outlined">sync_alt</span>Jira</div>
+        <div class="set-group" data-requires-admin style="display:none">Access</div>
+        <div class="stab" id="stab-roles"      data-requires-admin style="display:none" onclick="switchStab('roles')"><span class="material-icons-outlined">admin_panel_settings</span>Roles</div>
       </aside>
       <div class="set-main">
         <div class="set-main-hd"><h1 id="settingsPageTitle">Settings</h1></div>
@@ -2884,43 +3128,6 @@ a.pt-url-val:hover{text-decoration:underline}
   <canvas id="minimapCanvas" width="200" height="140"></canvas>
 </div>
 
-<!-- RBAC ADMIN PANEL -->
-<div class="rbac-overlay hidden" id="rbacOverlay">
-  <div class="rbac-card">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-      <div>
-        <div style="font-size:17px;font-weight:700;color:var(--md-on-surface)">Access & Roles</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:2px">Roles are stored in your Google Sheet — only admins can edit.</div>
-      </div>
-      <button onclick="eid('rbacOverlay').classList.add('hidden')" style="background:none;border:1px solid var(--md-outline-variant);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:13px;color:var(--text2)">✕ Close</button>
-    </div>
-    <div id="rbacList"></div>
-    <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--md-outline-variant)">
-      <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px">Add user</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <input id="rbacEmailInput" type="email" placeholder="user@domain.com" style="flex:1;min-width:180px;font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid var(--md-outline-variant);background:var(--md-surface-variant);color:var(--text);font-family:var(--font-mono)">
-        <input id="rbacNameInput" type="text" placeholder="Name (optional)" style="width:140px;font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid var(--md-outline-variant);background:var(--md-surface-variant);color:var(--text)">
-        <select id="rbacRoleInput" style="font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid var(--md-outline-variant);background:var(--md-surface-variant);color:var(--text)">
-          <option value="editor">Editor</option>
-          <option value="tester">Tester</option>
-          <option value="developer">Developer</option>
-          <option value="viewer">Viewer</option>
-          <option value="admin">Admin</option>
-        </select>
-        <button onclick="rbacAddUser()" style="padding:6px 14px;border-radius:8px;border:none;background:var(--brand-primary);color:#fff;font-size:12px;font-weight:600;cursor:pointer">Add</button>
-      </div>
-      <div style="margin-top:12px;padding:10px 12px;background:var(--md-surface-container);border-radius:8px;font-size:10px;color:var(--text3);line-height:1.6">
-        <strong style="color:var(--text2)">Role permissions:</strong><br>
-        🔴 <strong>Admin</strong> — full access, can manage roles and sync to Sheets<br>
-        🔵 <strong>Editor</strong> — can add/edit nodes, links, journeys; cannot manage roles<br>
-        🔷 <strong>Tester</strong> — can record Test Plan Pass/Fail results with notes; cannot edit anything else<br>
-        🟠 <strong>Developer</strong> — can squash snags on the Test Plan's Snags tab; cannot edit anything else<br>
-        🟢 <strong>Viewer</strong> — read-only access; cannot edit anything
-      </div>
-    </div>
-    <div id="viewAccessSection" style="margin-top:18px;padding-top:14px;border-top:1px solid var(--md-outline-variant)"></div>
-  </div>
-</div>
 
 <div class="toast" id="toast"></div>
 
@@ -2974,20 +3181,66 @@ function canMarkTests(){ return isEditor()||isTester(); }
 // per the user's explicit choice, Developers don't also mark Pass/Fail on
 // functional tests, keeping the tester/developer split clean.
 function isDeveloper()    { return currentRole()==='developer'; }
-function canSquashSnags() { return isEditor()||isDeveloper(); }
+function canSquashSnags() { return permCan('snagSquash'); }
+
+// ── PRIVILEGE MATRIX (v177) — admin-configurable, per capability × role ───
+// Each capability has one of three states per role:
+//   edit = can change it, view = can see it read-only, hide = not shown at all.
+// Some capabilities (pure actions/buttons) only offer edit/hide. Admin is
+// locked to 'edit' everywhere (a self-lockout guard, same reasoning as View
+// Access). Overrides are stored in the Config sheet as perm_<capId> =
+// "role=state,role=state" and edited in Settings > Roles; a capability with
+// no override uses the defaults below, which reproduce the pre-v177 rules.
+const PERM_ROLES=['admin','editor','developer','tester','viewer'];
+const PERM_STATE_LABELS={edit:'Can change',view:'Can see (read-only)',hide:'Hidden'};
+const PERM_CAPS=[
+  {id:'snagSeverity',group:'Snags — Project Management',label:'Severity',desc:'S1–S5 defect scale on a snag (not enhancements)',states:['edit','view','hide'],
+    def:{admin:'edit',editor:'edit',developer:'edit',tester:'view',viewer:'view'}},
+  {id:'snagEstimate',group:'Snags — Project Management',label:'Estimate (hours)',desc:'Estimated effort on a snag or enhancement',states:['edit','view','hide'],
+    def:{admin:'edit',editor:'edit',developer:'edit',tester:'view',viewer:'view'}},
+  {id:'snagAssign',group:'Snags — Project Management',label:'Assigned',desc:'Who a snag is assigned to; also the "Only my snags" filter and Group by Assigned',states:['edit','view','hide'],
+    def:{admin:'edit',editor:'edit',developer:'edit',tester:'hide',viewer:'hide'}},
+  {id:'snagPickup',group:'Snags — Project Management',label:'Pick up',desc:'"Pick up" button / "Picked up — up next" tick (the assigned person, or an Editor/Admin, can tick it)',states:['edit','view','hide'],
+    def:{admin:'edit',editor:'edit',developer:'edit',tester:'hide',viewer:'hide'}},
+  {id:'snagSquash',group:'Snags — Actions',label:'Squash / Resolve / Send to Testing',desc:'Mark a snag fixed and send it back to testers',states:['edit','hide'],
+    def:{admin:'edit',editor:'edit',developer:'edit',tester:'hide',viewer:'hide'}},
+  {id:'snagReport',group:'Snags — Actions',label:'Report a snag / suggest an enhancement',desc:'The add-snag and add-enhancement buttons and clarification replies',states:['edit','hide'],
+    def:{admin:'edit',editor:'edit',developer:'edit',tester:'edit',viewer:'hide'}},
+  {id:'snagRelease',group:'Snags — Actions',label:'Release',desc:'Create a release (Can change) or just browse past releases (Can see)',states:['edit','view','hide'],
+    def:{admin:'edit',editor:'edit',developer:'edit',tester:'view',viewer:'view'}},
+  {id:'projectEdit',group:'Projects',label:'Edit projects',desc:'Add projects and change their name, colour, dates and % complete on the Project List (visibility of the view itself is set under View access)',states:['edit','view'],
+    def:{admin:'edit',editor:'edit',developer:'view',tester:'view',viewer:'view'}},
+  {id:'snagImport',group:'Snags — Actions',label:'Import snags',desc:'Bulk-create snags and enhancements from markdown',states:['edit','hide'],
+    def:{admin:'edit',editor:'hide',developer:'hide',tester:'hide',viewer:'hide'}},
+];
+let PERM_OVERRIDES={}; // { capId: { role: state } } — loaded from Config (perm_<capId>)
+function permDefault(capId, role){
+  const c=PERM_CAPS.find(x=>x.id===capId);
+  return (c&&c.def[role])||'hide';
+}
+function permState(capId, role){
+  role=role||currentRole();
+  if(role==='admin') return 'edit';
+  const o=PERM_OVERRIDES[capId];
+  const c=PERM_CAPS.find(x=>x.id===capId);
+  const s=(o&&o[role])||permDefault(capId, role);
+  return (c&&c.states.includes(s))?s:permDefault(capId, role);
+}
+function permCan(capId){ return permState(capId)==='edit'; }
+function permVisible(capId){ return permState(capId)!=='hide'; }
 // Reporting a snag (the "+ Add Snag" manual-entry button, and implicitly the
 // auto-report path when a functional test Fails) is open to anyone who can
 // do EITHER half of the snag lifecycle — testers naturally hit this via
 // Fail already; developers may also spot something outside the formal test
 // flow.
-function canReportSnags() { return isEditor()||isTester()||isDeveloper(); }
-// Snag assignment ("assign this bug to a developer") is deliberately NOT
-// folded into canSquashSnags() — per explicit request this must be invisible
-// to Editors (and everyone else), not just Developer/Admin plus Editor like
-// severity/estimate are. Both the assign control AND the read-only display
-// are gated on this everywhere — an Editor sees nothing about assignment at
-// all, not a disabled/read-only version of it.
-function canAssignSnags() { return isDeveloper()||isAdmin(); }
+function canReportSnags() { return permCan('snagReport'); }
+// Snag assignment ("assign this bug to a developer") and pick-up. As of v177
+// these follow the privilege matrix (Settings > Roles). canAssignSnags() means
+// "may SEE assignment" (edit or view) and gates every display/filter/grouping;
+// canChangeAssign()/canChangePickup() gate the actual changes.
+function canAssignSnags() { return permVisible('snagAssign'); }
+function canChangeAssign() { return permCan('snagAssign'); }
+function canChangePickup() { return permCan('snagPickup'); }
 
 // Apply role restrictions to the UI — called after sign-in
 function applyRoleUI(){
@@ -3534,9 +3787,7 @@ document.addEventListener('click',closeUserMenu);
 // ── RBAC Panel ────────────────────────────────────────────────────────────
 function openRbacPanel(){
   if(!isAdmin()){ showToast('Admin access required'); return; }
-  renderRbacList();
-  renderViewAccessSection();
-  eid('rbacOverlay').classList.remove('hidden');
+  openSettings('roles'); // roles now live in Settings > Roles (admin only)
 }
 
 // ── View Access editor — which VIEW_OPTIONS each role can navigate to.
@@ -3562,7 +3813,7 @@ function renderViewAccessSection(){
       ${['editor','tester','developer','viewer'].map(r=>`<button class="tpl-subtab-btn${role===r?' active':''}" onclick="_viewAccessSelectRole('${r}')">${r.charAt(0).toUpperCase()+r.slice(1)}</button>`).join('')}
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px;background:var(--md-surface-container);border-radius:8px">
-      ${VIEW_OPTIONS.filter(o=>o.id!=='home').map(o=>`
+      ${VIEW_OPTIONS.filter(o=>o.id!=='home'&&!o.alwaysOn).map(o=>`
         <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);cursor:pointer">
           <input type="checkbox" id="va-cb-${o.id}" ${allowed.has(o.id)?'checked':''}>
           ${escH(o.label)}
@@ -3574,7 +3825,7 @@ function renderViewAccessSection(){
 }
 async function saveViewAccess(){
   const role=_viewAccessRole;
-  const allIds=VIEW_OPTIONS.filter(o=>o.id!=='home').map(o=>o.id);
+  const allIds=VIEW_OPTIONS.filter(o=>o.id!=='home'&&!o.alwaysOn).map(o=>o.id);
   const checked=allIds.filter(id=>eid('va-cb-'+id)?.checked);
   // All checked (or none unchecked) = unrestricted, stored as an empty value
   // so "never configured" and "explicitly cleared" both read back the same
@@ -3822,16 +4073,36 @@ async function sheetGet(action, params, timeoutMs) {
 // into "took a couple of seconds longer," with no user action needed. Only
 // retries once; a second failure is real and should surface as an error
 // (see loadFromSheets' catch block) rather than retry forever.
-async function _sheetGetAllWithRetry_(){
+// v178: the sign-in load now uses the POST 'bootstrap' action (token in the
+// body, not the query string) and NO LONGER auto-retries. The 45s client abort
+// does not stop the Apps Script run, so the old silent second attempt started
+// another full server load alongside the first (they stacked, and each slow
+// run made the next one slower). A failure now surfaces straight away and the
+// user retries with the Retry button — which is hidden while a load is in
+// flight. _getAllInFlight also collapses any overlapping callers onto the one
+// request. bootstrap returns the same table keys getAll does (plus roles/
+// names/role/email, ignored here), so the data handling below is unchanged.
+// Only fallback: an OLDER backend with no 'bootstrap' action answers
+// immediately with "Unknown action" — that is a finished answer (nothing is
+// still running server-side), so it falls back to the plain getAll once.
+let _getAllInFlight = null;
+function _sheetGetAllWithRetry_(){
+  if (_getAllInFlight) return _getAllInFlight;
   const TIMEOUT_MS = 45000;
-  try {
-    return await sheetGet('getAll', null, TIMEOUT_MS);
-  } catch(e) {
-    console.warn('getAll failed once, retrying:', e.message);
-    showToast('Still connecting to Sheets — retrying…');
-    await new Promise(r=>setTimeout(r,1500));
-    return await sheetGet('getAll', null, TIMEOUT_MS); // a second failure propagates to loadFromSheets' own catch
-  }
+  _getAllInFlight = (async () => {
+    try {
+      return await sheetPost({ action:'bootstrap' }, TIMEOUT_MS);
+    } catch(e) {
+      if (/unknown action/i.test(e && e.message || '')) {
+        console.warn('Backend has no bootstrap action — falling back to getAll');
+        return await sheetGet('getAll', null, TIMEOUT_MS);
+      }
+      throw e;
+    } finally {
+      _getAllInFlight = null;
+    }
+  })();
+  return _getAllInFlight;
 }
 
 // Guards against two overlapping runs — normally impossible from the header
@@ -3971,6 +4242,12 @@ async function loadFromSheets() {
       PHASES = data.phases.map(r => ({
         id: String(r.id||''), name: r.name||'', desc: r.desc||'',
         colour: r.colour||PH_COLOURS[0], pct: Number(r.pct)||0,
+        // v184: project dates ('yyyy-mm-dd' or ''). Need the startDate/endDate
+        // columns on the Phases sheet (backend v98 + setupSpreadsheet()).
+        startDate: r.startDate?_rptDateKey(r.startDate):'', endDate: r.endDate?_rptDateKey(r.endDate):'',
+        owner: String(r.owner||'').trim(), // v186: needs the Phases 'owner' column (backend v99)
+        followsId: String(r.followsId||'').trim(), lagDays: Number(r.lagDays)||0, // v188: needs followsId/lagDays columns (backend v100)
+        completed: r.completed===true||String(r.completed||'').toUpperCase()==='TRUE', // v191: needs the Phases 'completed' column (backend v101)
       }));
       // Resync selectedPhases: keep valid ones, fall back to first phase
       const validPhIds = new Set(PHASES.map(p=>p.id));
@@ -3998,6 +4275,7 @@ async function loadFromSheets() {
     // — see the Transformation Report's Page Snags panel.
     RELEASES = (data.releases||[]).map(r=>({id:String(r.id||''),code:String(r.code||''),notes:r.notes||'',createdBy:String(r.createdBy||'').trim().toLowerCase(),createdAt:r.createdAt||null,snagCount:Number(r.snagCount)||0}));
     RELEASE_SNAGS = (data.releaseSnags||[]).map(r=>({id:String(r.id||''),releaseId:String(r.releaseId||''),snagId:String(r.snagId||''),snagCode:String(r.snagCode||''),storyId:String(r.storyId||''),productId:String(r.productId||'')}));
+    TASKS = (data.tasks||[]).map(r=>({id:String(r.id||''),code:String(r.code||''),title:r.title||'',description:r.description||'',status:TASK_STATUSES.includes(r.status)?r.status:'New',assignees:_tdSplit(r.assignedTo),productId:String(r.productId||''),projectId:String(r.projectId||''),priority:r.priority||'',dueDate:r.dueDate?_rptDateKey(r.dueDate):'',createdBy:String(r.createdBy||'').trim().toLowerCase(),createdAt:r.createdAt||null,updatedAt:r.updatedAt||null,completedAt:r.completedAt||null,completedBy:String(r.completedBy||'').trim().toLowerCase()}));
     PAGE_SNAGS = (data.pageSnags||[]).map(r=>({id:String(r.id||''),code:String(r.code||''),nodeId:String(r.nodeId||''),componentId:String(r.componentId||''),title:r.title||'',status:r.status||'Open',source:r.source||'manual',reporterEmail:String(r.reporterEmail||'').trim().toLowerCase(),cycleCount:Number(r.cycleCount)||1,createdAt:r.createdAt||null,resolvedBy:String(r.resolvedBy||'').trim().toLowerCase(),resolvedAt:r.resolvedAt||null,updatedAt:r.updatedAt||null}));
     // One row per (day,product), written by the backend's captureProductProgressSnapshot()
     // — see its comment. Only ever tracks forward from whenever that's first
@@ -4046,7 +4324,7 @@ async function loadFromSheets() {
     // Values for cms_ and status_ are JSON: {"fg":"#hex","bg":"#hex"} and optionally "lbl"
     // Values for owner_ are plain hex colour strings
     if (data.config && data.config.length) {
-      const newCMS = {}, newSTATUS = {}, newOWNER = {}, newREQTYPE = {}, newJIRAMAP = {}, newHOMEMETA = {}, newVIEWACCESS = {};
+      const newCMS = {}, newSTATUS = {}, newOWNER = {}, newREQTYPE = {}, newJIRAMAP = {}, newHOMEMETA = {}, newVIEWACCESS = {}, newPERM = {}, newPP = {}, newPT = {};
       DEFAULT_PHASE = ''; // blank rows are skipped below, so reset first — a cleared setting must read as "none"
       TEST_REPORT_CONFIG.TARGET_DATE = ''; TEST_REPORT_CONFIG.PHASE_NAME = '';
       REPORT_STATE = {mgmtNote:'',baseline:null,today:null};
@@ -4098,6 +4376,19 @@ async function loadFromSheets() {
           const id = key.slice(10);
           if (!newHOMEMETA[id]) newHOMEMETA[id] = {};
           newHOMEMETA[id].desc = val;
+        } else if (key.startsWith('ptemplate_')) {
+          try {
+            const o = JSON.parse(val), tid = key.slice(10);
+            newPT[tid] = { id:tid, name:String(o.name||''), desc:String(o.desc||''), owner:String(o.owner||''), days:Number(o.days)||0, text:String(o.text||'') };   // v191: project templates
+          } catch(e) { console.warn('Bad project template', key); }
+        } else if (key.startsWith('prodproj_')) {
+          const ids = String(val||'').split(',').map(x=>x.trim()).filter(Boolean);
+          if (ids.length) newPP[key.slice(9)] = ids;   // v189: projects explicitly added to a product
+        } else if (key.startsWith('perm_')) {
+          const capId = key.slice(5);
+          const m = {};
+          String(val||'').split(',').forEach(p=>{ const [r,s]=p.split('='); if(r&&s) m[r.trim()]=s.trim(); });
+          if (Object.keys(m).length) newPERM[capId] = m;
         } else if (key.startsWith('viewaccess_')) {
           const role = key.slice(11);
           newVIEWACCESS[role] = val.split(',').map(s=>s.trim()).filter(Boolean);
@@ -4125,6 +4416,9 @@ async function loadFromSheets() {
       // viewaccess_ row, a reload should reflect "unrestricted" rather than
       // keep a stale restriction cached from earlier in the session.
       VIEW_ACCESS = newVIEWACCESS;
+      PERM_OVERRIDES = newPERM;
+      PRODUCT_PROJECTS = newPP;
+      PROJECT_TEMPLATES = newPT;
       if (Object.keys(newSTATUS).length) {
         // The Config sheet's row order isn't necessarily the pipeline order the user
         // configured (saving a status updates its existing row in place rather than
@@ -4451,6 +4745,7 @@ async function _rmBackfillVariantRequirements(){
   if(curView==='testplan') renderTestPlan();
   else if(curView==='requirements') renderRequirementsTracker();
   else if(curView==='roadmap') renderRoadmap();
+  else if(curView==='projects') renderProjects();
 }
 
 // ── Component Library → Roadmap/Test Plan auto-tracking ─────────────────────
@@ -5064,6 +5359,9 @@ let PAGE_SNAGS=[];
 // to testing together. Stored in the Releases / ReleaseSnags sheets.
 let RELEASES=[];
 let RELEASE_SNAGS=[];
+// To Do list (v192): [{id,code,title,description,status,assignedTo,productId,projectId,priority,dueDate,createdBy,createdAt,updatedAt,completedAt,completedBy}]
+// projectId is a PHASES id (projects and phases are the same thing). Stored in the Tasks sheet (backend v102).
+let TASKS=[];
 // [{id,date,productId,productName,total,verifiedCount,pct,capturedAt}] — one
 // row per (day,product), captured by the backend's daily snapshot trigger.
 // Feeds the Test Report's Progress by Day chart. See its own comment for why
@@ -5179,6 +5477,18 @@ exact shape.
 (Paste your actual list of requirement codes alongside this prompt so the tool
 references real codes instead of guessing.)`;
 let _tplSubTab='functional';       // 'functional' | 'scenario' | 'snags'
+// ════════════════════════════════════════════════════════════════════════════
+// ██ TEMPORARY (added v183, 2026-10-07) — SCENARIOS ARE ADMIN-ONLY FOR NOW ██
+// To REVERSE this and give Scenarios back to everyone who could use them
+// before: set TEMP_SCENARIOS_ADMIN_ONLY to false. That is the only change
+// needed. Every place this affects is tagged "TEMP_SCENARIOS_ADMIN_ONLY" —
+// search for it: the Scenarios tab (_tpl2TabsHtml), the old left-nav toggle
+// (renderTestPlanNav), _tplSetSubTab, and the guard at the top of
+// renderTestPlan. (Display/navigation only — scenario data and the backend
+// are untouched. Other roles simply can't open the Scenarios tab.)
+// ════════════════════════════════════════════════════════════════════════════
+const TEMP_SCENARIOS_ADMIN_ONLY=true;
+function _tplScenariosAllowed(){ return !TEMP_SCENARIOS_ADMIN_ONLY || isAdmin(); }
 let _tplSearchQuery='';
 // "Hide fully tested" view filter — Functional Tab hides Verified rows,
 // Scenario Tab hides Pass scenarios. View-only: never changes the underlying
@@ -5982,6 +6292,7 @@ async function _cmtToggleResolve(id,resolved){
 // Transformation Report rows (if that view is visible), and the node modal's tab count.
 function _cmtRefreshBadges(){
   if(typeof _deferredRender==='function') _deferredRender(); // refreshes canvas card comment pills
+  if(curView==='todo' && typeof renderTodo==='function') renderTodo();
   const trView=eid('viewTransformation');
   if(trView && trView.offsetParent!==null && typeof renderTransformationReport==='function') renderTransformationReport();
   if(typeof editingNodeId!=='undefined' && editingNodeId && typeof neTab!=='undefined' && neTab==='comments') renderNeTabs();
@@ -10103,9 +10414,11 @@ const VIEW_OPTIONS=[
   {id:'platform',      icon:'dns',           label:'Platform - Systems View'},
   {id:'actionreport',  icon:'report',        label:'Action Report'},
   {id:'transformation',icon:'bar_chart',     label:'Transformation Report'},
+  {id:'projects',      icon:'timeline',      label:'Project List'},
   {id:'roadmap',       icon:'map',           label:'Product Roadmap'},
   {id:'requirements',  icon:'fact_check',    label:'Requirements Tracker'},
   {id:'redirects',     icon:'swap_horiz',    label:'Redirect Tracker'},
+  {id:'todo',          icon:'checklist',     label:'To Do', alwaysOn:true},   // open to every role — not part of the per-role View Access list
   {id:'testplan',      icon:'science',       label:'Test Plan'},
 ];
 
@@ -10120,9 +10433,13 @@ const VIEW_OPTIONS=[
 // get a sane built-in default below) is limited to a subset.
 let VIEW_ACCESS = {};
 function allowedViewIds(role){
-  if(VIEW_ACCESS[role]) return VIEW_ACCESS[role];
-  if(role==='tester'||role==='developer') return ['testplan'];
-  return VIEW_OPTIONS.map(o=>o.id).filter(id=>id!=='home');
+  // Views flagged alwaysOn (To Do) are open to every role regardless of the configured list.
+  const always=VIEW_OPTIONS.filter(o=>o.alwaysOn).map(o=>o.id);
+  let base;
+  if(VIEW_ACCESS[role]) base=VIEW_ACCESS[role];
+  else if(role==='tester'||role==='developer') base=['testplan'];
+  else base=VIEW_OPTIONS.map(o=>o.id).filter(id=>id!=='home');
+  return base.concat(always.filter(id=>!base.includes(id)));
 }
 // Settings isn't in VIEW_OPTIONS (it's opened from the header gear, not the View
 // menu) but it IS a view now: open to every role except the two restricted
@@ -10215,8 +10532,10 @@ const VIEW_CONTAINERS = {
   platform:       'viewPlatform',
   actionreport:   'viewActionReport',
   transformation: 'viewTransformation',
+  projects:       'viewProjects',
   roadmap:        'viewRoadmap',
   requirements:   'viewRequirements',
+  todo:           'viewTodo',
   redirects:      'viewRedirects',
   testplan:       'viewTestPlan',
   settings:       'viewSettings',
@@ -10240,7 +10559,7 @@ function switchView(v){
   const setBtn=eid('hdrSettingsBtn'); if(setBtn) setBtn.classList.toggle('active-icon', v==='settings');
   curView = v;
   const lnEl=eid('leftNav'),arLnEl=eid('arLeftNav'),tplLnEl=eid('tplLeftNav'),stmLnEl=eid('stmLeftNav');
-  const noLeftNav = v==='actionreport'||v==='transformation'||v==='roadmap'||v==='requirements'||v==='redirects'||v==='testplan'||v==='settings'||v==='sitemap';
+  const noLeftNav = v==='actionreport'||v==='transformation'||v==='roadmap'||v==='projects'||v==='requirements'||v==='todo'||v==='redirects'||v==='testplan'||v==='settings'||v==='sitemap';
   if(lnEl)lnEl.style.display=noLeftNav?'none':'';
   if(arLnEl){arLnEl.style.display=v==='actionreport'?'flex':'none';arLnEl.style.flexDirection='column';}
   if(tplLnEl){tplLnEl.style.display=v==='testplan'?'flex':'none';tplLnEl.style.flexDirection='column';}
@@ -10289,8 +10608,10 @@ function switchView(v){
     case 'platform':     renderPlatformView(); break;
     case 'actionreport':   renderActionReport(); break;
     case 'transformation': renderTransformationReport(); break;
+    case 'projects':       renderProjects(); break;
     case 'roadmap':        renderRoadmap(); break;
     case 'requirements':   renderRequirementsTracker(); break;
+    case 'todo':           renderTodo(); break;
     case 'redirects':      renderRedirectTracker(); break;
     case 'testplan':       renderTestPlan(); break;
     case 'settings':       break;   // openSettings() has already rendered the chosen tab
@@ -12884,7 +13205,7 @@ function deleteRmProduct(id){
   ROADMAP_EPICS=ROADMAP_EPICS.filter(e=>e.productId!==id);
   ROADMAP_PRODUCTS=ROADMAP_PRODUCTS.filter(p=>p.id!==id);
   if(_rmActiveProductId===id) _rmActiveProductId=ROADMAP_PRODUCTS[0]?.id||null;
-  closeModal('rmProductModal'); renderRoadmap(); showToast('Product deleted');
+  closeModal('rmProductModal'); renderRoadmap(); _portfolioRefresh(); showToast('Product deleted');
 }
 function deleteRmEpic(id){
   if(!canEdit()){showToast('View-only access — editing is disabled');return;}
@@ -12913,9 +13234,170 @@ function deleteRmFeature(id){
   closeModal('rmFeatureModal'); renderRoadmap(); showToast('Feature deleted');
 }
 
-function _rmSelectProduct(id){
-  _rmActiveProductId=id;
+// ════════════════════════════════════════════════════════════════════════════
+// PRODUCT ROADMAP × PROJECTS (v189)
+// The board's columns are now PROJECTS (phases) rather than every phase:
+//  - all products shown  → every project;
+//  - a subset / one product → the projects that product is involved in, i.e.
+//    it has at least one feature scheduled in the project, OR the project was
+//    explicitly added to the product (PRODUCT_PROJECTS, stored in the Config
+//    sheet as prodproj_<productId> = comma-separated phase ids — no schema
+//    change). A "Backlog" column (phaseId '') always comes first and holds
+//    feature ideas that aren't in any project yet.
+// Features can be dragged between projects within the same functional area.
+// ════════════════════════════════════════════════════════════════════════════
+let PRODUCT_PROJECTS={}, _pjAssocProductId=null, _rmDragId=null;
+const RM_BACKLOG={id:'',name:'Backlog',colour:'#5A6070',backlog:true};
+function _rmShownProducts(){ return _rmSelProds.size?ROADMAP_PRODUCTS.filter(p=>_rmSelProds.has(p.id)):ROADMAP_PRODUCTS; }
+function _rmShowAllProjects(){ return !_rmSelProds.size||_rmSelProds.size>=ROADMAP_PRODUCTS.length; }
+function _rmFeatureCountIn(prods,phaseId){
+  const eps=new Set(ROADMAP_EPICS.filter(e=>prods.some(p=>p.id===e.productId)).map(e=>e.id));
+  return ROADMAP_FEATURES.filter(f=>f.phaseId===phaseId&&eps.has(f.epicId)).length;
+}
+function _rmProjectCols(prods){
+  const all=_rmPhases().filter(ph=>_rmShowCompleted||!ph.completed);   // completed projects hidden unless toggled
+  if(_rmShowAllProjects()) return _pjSorted(all);
+  const ids=new Set(), eps=new Set(ROADMAP_EPICS.filter(e=>prods.some(p=>p.id===e.productId)).map(e=>e.id));
+  ROADMAP_FEATURES.forEach(f=>{ if(f.phaseId&&eps.has(f.epicId)) ids.add(f.phaseId); });
+  prods.forEach(p=>(PRODUCT_PROJECTS[p.id]||[]).forEach(id=>ids.add(id)));
+  return _pjSorted(all.filter(ph=>ids.has(ph.id)));
+}
+function _rmPhaseOptionsHtml(sel){
+  return '<option value=""'+(!sel?' selected':'')+'>Backlog (no project)</option>'
+    +_rmPhases().filter(ph=>!ph.completed||ph.id===sel).map(ph=>'<option value="'+escH(ph.id)+'"'+(ph.id===sel?' selected':'')+'>'+escH(ph.name)+'</option>').join('');
+}
+function _rmCanUnlink(ph,prods){
+  return prods.some(p=>(PRODUCT_PROJECTS[p.id]||[]).includes(ph.id)&&_rmFeatureCountIn([p],ph.id)===0);
+}
+function _rmColHeadHtml(ph,prods){
+  if(ph.backlog) return '<div class="rm-board-header rm-phase-head rm-ph-row" style="border-left:5px solid '+ph.colour+';color:'+ph.colour+'" title="Feature ideas that are not part of a project yet — drag them into a project when they are planned"><span class="rm-ph-name">Backlog</span><small class="rm-ph-sub">ideas, no project yet</small></div>';
+  const dates=(ph.startDate&&ph.endDate)?_rptFmtDate(ph.startDate)+' – '+_rptFmtDate(ph.endDate):'';
+  const sub=[ph.owner,dates].filter(Boolean).join(' · ');
+  const x=(canEdit()&&!_rmShowAllProjects()&&_rmCanUnlink(ph,prods))
+    ?'<button class="rm-ph-x" title="Remove this project from the selected product (it has no features here)" onclick="_rmUnlinkProject(\''+ph.id+'\')">✕</button>':'';
+  return '<div class="rm-board-header rm-phase-head rm-ph-row" style="border-left:5px solid '+ph.colour+';color:'+ph.colour+'" title="'+escH(ph.name+(ph.desc?' — '+ph.desc:'')+(sub?' ('+sub+')':''))+'"><span class="rm-ph-name">'+(ph.completed?'✓ ':'')+escH(ph.name)+'</span>'+(sub?'<small class="rm-ph-sub">'+escH(sub)+'</small>':'')+x+'</div>';
+}
+
+// ── explicit product ↔ project association ──
+function _rmPersistAssoc(pid){
+  dbUpsertConfigBatch([{key:'prodproj_'+pid, value:(PRODUCT_PROJECTS[pid]||[]).join(',')}]);
+}
+function _rmAssociate(pid,phaseId){
+  const arr=PRODUCT_PROJECTS[pid]||(PRODUCT_PROJECTS[pid]=[]);
+  if(!arr.includes(phaseId)) arr.push(phaseId);
+  _rmPersistAssoc(pid);
+  if(_rmSelProds.size&&!_rmSelProds.has(pid)) _rmSelProds.add(pid);   // make sure the new column is visible
+}
+function _rmUnlinkProject(phaseId){
+  if(!canEdit()){ showToast('View-only access — editing is disabled'); return; }
+  if(!confirm('Remove this project from the selected product? It has no features there, so nothing else changes.')) return;
+  _rmShownProducts().forEach(p=>{
+    if((PRODUCT_PROJECTS[p.id]||[]).includes(phaseId)&&_rmFeatureCountIn([p],phaseId)===0){
+      PRODUCT_PROJECTS[p.id]=PRODUCT_PROJECTS[p.id].filter(x=>x!==phaseId); _rmPersistAssoc(p.id);
+    }
+  });
   renderRoadmap();
+}
+function _rmProjectInProduct(pid,phaseId){
+  return (PRODUCT_PROJECTS[pid]||[]).includes(phaseId)||_rmFeatureCountIn([{id:pid}],phaseId)>0;
+}
+function _rmOpenAddProject(){
+  if(!permCan('projectEdit')){ showToast('View-only access — editing is disabled'); return; }
+  const def=_rmShownProducts()[0]||ROADMAP_PRODUCTS[0];
+  eid('rmap-product').innerHTML=ROADMAP_PRODUCTS.map(p=>'<option value="'+escH(p.id)+'"'+(def&&p.id===def.id?' selected':'')+'>'+escH(p.name)+'</option>').join('');
+  _rmApRefresh();
+  openModal('rmAddProjModal');
+}
+function _rmApRefresh(){
+  const pid=eid('rmap-product').value;
+  const avail=_pjSorted(_rmPhases()).filter(ph=>!ph.completed&&!_rmProjectInProduct(pid,ph.id));
+  eid('rmap-project').innerHTML=avail.map(ph=>'<option value="'+escH(ph.id)+'">'+escH(ph.name)+(ph.owner?' ('+escH(ph.owner)+')':'')+'</option>').join('')
+    +'<option value="__new__">＋ Create a new project…</option>';
+}
+function _rmApSave(){
+  const pid=eid('rmap-product').value, v=eid('rmap-project').value;
+  closeModal('rmAddProjModal');
+  if(v==='__new__'){ _pjOpenModal(null,pid); return; }   // new project: the project dialog, then it is linked to this product
+  _rmAssociate(pid,v);
+  renderRoadmap();
+  const pr=ROADMAP_PRODUCTS.find(p=>p.id===pid), ph=PHASES.find(p=>p.id===v);
+  showToast('Added '+(ph?ph.name:'project')+' to '+(pr?pr.name:'product'));
+}
+
+// ── drag a feature to another project (same functional area) ──
+function _rmDragStart(ev,id){
+  _rmDragId=id;
+  ev.dataTransfer.effectAllowed='move';
+  try{ ev.dataTransfer.setData('text/plain',id); }catch(e){}
+  ev.currentTarget.classList.add('rm-dragging');
+}
+function _rmDragClear(){ document.querySelectorAll('.rm-drop-ok,.rm-drop-no').forEach(e=>e.classList.remove('rm-drop-ok','rm-drop-no')); }
+function _rmDragEnd(ev){ _rmDragId=null; _rmDragClear(); ev.currentTarget.classList.remove('rm-dragging'); }
+function _rmDragOver(ev,epicId){
+  if(!_rmDragId) return;
+  const f=ROADMAP_FEATURES.find(x=>x.id===_rmDragId), ok=!!f&&f.epicId===epicId;
+  if(ok){ ev.preventDefault(); ev.dataTransfer.dropEffect='move'; }
+  ev.currentTarget.classList.toggle('rm-drop-ok',ok);
+  ev.currentTarget.classList.toggle('rm-drop-no',!ok);
+}
+function _rmDragLeave(ev){ ev.currentTarget.classList.remove('rm-drop-ok','rm-drop-no'); }
+function _rmDrop(ev,epicId,phaseId){
+  ev.preventDefault(); _rmDragClear();
+  const f=ROADMAP_FEATURES.find(x=>x.id===_rmDragId); _rmDragId=null;
+  if(!f||!canEdit()) return;
+  if(f.epicId!==epicId){ showToast('Features can only be moved between projects within the same functional area'); return; }
+  if(f.phaseId===phaseId) return;
+  const to=phaseId?(PHASES.find(p=>p.id===phaseId)||{}).name:'the Backlog';
+  f.phaseId=phaseId;
+  f.order=ROADMAP_FEATURES.filter(x=>x.epicId===epicId&&x.phaseId===phaseId&&x.id!==f.id).length;
+  dbUpsertFeature(f);
+  renderRoadmap();
+  showToast('Moved "'+f.name+'" to '+(to||'the project'));
+}
+
+// v182: the product tab bar is now a multi-select dropdown. _rmSelProds is the
+// source of truth (empty = every product); _rmActiveProductId is kept in step
+// with it ('ALL', or the product's id when exactly one is selected) so the
+// other code that sets/reads it (add/delete product, load) keeps working. If
+// something outside this block changes _rmActiveProductId, the selection is
+// re-seeded from it on the next render (see _rmSyncSel).
+let _rmSelProds=new Set(), _rmLastActive, _rmProdMenuOpen=false, _rmProdMenuFilter='';
+function _rmSyncSel(){
+  const valid=new Set(ROADMAP_PRODUCTS.map(p=>p.id));
+  if(_rmLastActive!==_rmActiveProductId){
+    _rmSelProds=new Set();
+    if(_rmActiveProductId && _rmActiveProductId!=='ALL' && valid.has(_rmActiveProductId)) _rmSelProds.add(_rmActiveProductId);
+  }
+  [..._rmSelProds].forEach(id=>{ if(!valid.has(id)) _rmSelProds.delete(id); });
+  _rmActiveProductId=_rmSelProds.size===1?[..._rmSelProds][0]:'ALL';
+  _rmLastActive=_rmActiveProductId;
+}
+function _rmSelectProduct(id){ _rmSelProds=new Set(id&&id!=='ALL'?[id]:[]); renderRoadmap(); }
+function _rmToggleProd(id){ if(_rmSelProds.has(id)) _rmSelProds.delete(id); else _rmSelProds.add(id); renderRoadmap(); }
+function _rmSelectAllProds(){ _rmSelProds=new Set(); renderRoadmap(); }
+function _rmToggleProdMenu(ev){ if(ev) ev.stopPropagation(); _rmProdMenuOpen=!_rmProdMenuOpen; _rmProdMenuFilter=''; renderRoadmap(); }
+function _rmSetProdFilter(v){ _rmProdMenuFilter=v; renderRoadmap(); }
+document.addEventListener('click',()=>{ if(_rmProdMenuOpen && curView==='roadmap'){ _rmProdMenuOpen=false; renderRoadmap(); } });
+function _rmProdMenuHtml(){
+  const sel=_rmSelProds;
+  const names=ROADMAP_PRODUCTS.filter(p=>sel.has(p.id)).map(p=>p.name);
+  const label=!sel.size?`All products (${ROADMAP_PRODUCTS.length})`
+    :(names.length<=2?names.join(', '):`${names.length} products`);
+  const q=_rmProdMenuFilter.trim().toLowerCase();
+  const rows=ROADMAP_PRODUCTS.filter(p=>!q||p.name.toLowerCase().includes(q)).map(p=>
+    `<label class="rm-prodmenu-row" title="${escH(p.name)}"><input type="checkbox" ${sel.has(p.id)?'checked':''} onchange="_rmToggleProd('${p.id}')"><span>${escH(p.name)}</span></label>`).join('')
+    ||'<div class="rm-prodmenu-empty">No products match.</div>';
+  return `<div class="rm-prodmenu-wrap" onclick="event.stopPropagation()">
+    <button class="mbtn mbtn-cancel rm-prodbtn" onclick="_rmToggleProdMenu(event)" title="Choose which products to show">
+      <span class="material-icons-round" style="font-size:16px">filter_list</span><span class="rm-prodbtn-label">${escH(label)}</span><span class="material-icons-round" style="font-size:18px">${_rmProdMenuOpen?'expand_less':'expand_more'}</span>
+    </button>
+    ${_rmProdMenuOpen?`<div class="rm-prodmenu">
+      <input id="rmProdFilter" class="rm-prodmenu-search" type="text" placeholder="Search products…" value="${escH(_rmProdMenuFilter)}" oninput="_rmSetProdFilter(this.value)">
+      <label class="rm-prodmenu-row rm-prodmenu-all"><input type="checkbox" ${sel.size?'':'checked'} onchange="_rmSelectAllProds()"><span>All products</span></label>
+      <div class="rm-prodmenu-list">${rows}</div>
+      ${canEdit()?'<div class="rm-prodmenu-add" onclick="_rmProdMenuAdd()">+ Add product</div>':''}
+    </div>`:''}
+  </div>`;
 }
 
 // ── Render ──
@@ -12923,27 +13405,380 @@ function _rmSelectProduct(id){
 // the Roadmap only shows phases actual roadmap work can be scheduled into.
 function _rmPhases(){ return PHASES.filter(ph=>ph.id!=='PH0'); }
 
+// ════════════════════════════════════════════════════════════════════════════
+// PROJECT LIST (v184) — phases ARE projects. A list view and a Gantt view of
+// every project (phase, excluding the Phase 0 baseline — same rule as the
+// Roadmap), cross-referenced to the Product Roadmap: a project "involves" a
+// product (and functional area) when that area has at least one feature
+// scheduled into the project's phase. Dates live on the phase (startDate/
+// endDate, 'yyyy-mm-dd'); needs the Phases sheet columns added by backend v98.
+// ════════════════════════════════════════════════════════════════════════════
+let _pjView='gantt';                // 'list' | 'gantt'
+const PJ_ZOOMS=[1.5,3,5,8];         // Gantt pixels per day
+const PJ_OWNERS=['Marketing','Systems','Operations','Commercial','Safety']; // v186: who owns a project
+let _pjZoom=1, _pjEditId=null, _pjColour=PH_COLOURS[0];
+const _PJ_DAY=86400000;
+function _pjMs(key){ const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(key||'')); return m?Date.UTC(+m[1],+m[2]-1,+m[3]):null; }
+function _pjTodayMs(){ return _pjMs(_RPT_KEY_FMT.format(new Date())); }
+function _pjSetView(v){ _pjView=v; renderProjects(); }
+function _pjZoomBy(d){ _pjZoom=Math.max(0,Math.min(PJ_ZOOMS.length-1,_pjZoom+d)); renderProjects(); }
+function _pjOpenProduct(id){ _rmSelectProduct(id); switchView('roadmap'); }
+
+// Products (and their functional areas) with at least one feature in this phase.
+function _pjProducts(phaseId){
+  const storiesByFeat={};
+  ROADMAP_STORIES.forEach(st=>{ storiesByFeat[st.featureId]=(storiesByFeat[st.featureId]||0)+1; });
+  const byProd=new Map();
+  ROADMAP_FEATURES.filter(f=>f.phaseId===phaseId).forEach(f=>{
+    const ep=ROADMAP_EPICS.find(e=>e.id===f.epicId); if(!ep) return;
+    const prod=ROADMAP_PRODUCTS.find(pr=>pr.id===ep.productId); if(!prod) return;
+    if(!byProd.has(prod.id)) byProd.set(prod.id,{prod,areas:new Map(),features:0,reqs:0});
+    const g=byProd.get(prod.id); g.features++; g.reqs+=storiesByFeat[f.id]||0;
+    if(!g.areas.has(ep.id)) g.areas.set(ep.id,{epic:ep,features:0});
+    g.areas.get(ep.id).features++;
+  });
+  Object.keys(PRODUCT_PROJECTS).forEach(pid=>{
+    if(!(PRODUCT_PROJECTS[pid]||[]).includes(phaseId)) return;
+    const prod=ROADMAP_PRODUCTS.find(pr=>pr.id===pid);
+    if(prod&&!byProd.has(pid)) byProd.set(pid,{prod,areas:new Map(),features:0,reqs:0});   // added to the product, no features yet
+  });
+  const order=new Map(ROADMAP_PRODUCTS.map((pr,i)=>[pr.id,i]));
+  return [...byProd.values()].sort((a,b)=>order.get(a.prod.id)-order.get(b.prod.id))
+    .map(g=>({prod:g.prod,features:g.features,reqs:g.reqs,areas:[...g.areas.values()].sort((a,b)=>(a.epic.order||0)-(b.epic.order||0))}));
+}
+function _pjStatus(ph){
+  const st=_pjMs(ph.startDate), en=_pjMs(ph.endDate), t=_pjTodayMs();
+  const grey={fg:'var(--text3)',bg:'var(--md-surface-container)'};
+  if(ph.completed) return {label:'Complete',fg:'var(--rag-green-fg)',bg:'var(--rag-green-bg)'};
+  if(st===null||en===null) return {label:'Unscheduled',...grey};
+  if((ph.pct||0)>=100) return {label:'Complete',fg:'var(--rag-green-fg)',bg:'var(--rag-green-bg)'};
+  if(t<st) return {label:'Not started',...grey};
+  if(t>en) return {label:'Overdue',fg:'var(--rag-red-fg)',bg:'var(--rag-red-bg)'};
+  return {label:'In progress',fg:'var(--brand-primary)',bg:'var(--brand-primary-light)'};
+}
+function _pjDatesHtml(ph){
+  const st=_pjMs(ph.startDate), en=_pjMs(ph.endDate);
+  if(st===null&&en===null) return '<span class="pj-none">Not scheduled</span>';
+  const f=k=>k?_rptFmtDate(k):'?';
+  const days=(st!==null&&en!==null&&en>=st)?Math.round((en-st)/_PJ_DAY)+1:null;
+  const sub=[days?days+' day'+(days===1?'':'s'):'',_pjFollowLabel(ph).replace(' · ','')].filter(Boolean).join(' · ');
+  return f(ph.startDate)+' → '+f(ph.endDate)+(sub?'<small>'+escH(sub)+'</small>':'');
+}
+function _pjProdTitle(g){ return `${g.prod.name}: ${g.areas.length} functional area${g.areas.length===1?'':'s'}, ${g.features} feature${g.features===1?'':'s'}, ${g.reqs} requirement${g.reqs===1?'':'s'}`; }
+
+// Instant tooltip (the browser's own title tooltip is slow to appear and easy to
+// miss) for anything on the Project List carrying data-pjtip: the product names
+// across the top of the matrix, its dots and the timeline bars.
+(function(){
+  let tip=null;
+  const hide=()=>{ if(tip) tip.style.display='none'; };
+  document.addEventListener('mouseover',e=>{
+    const t=e.target.closest&&e.target.closest('[data-pjtip]');
+    if(!t){ hide(); return; }
+    if(!tip){ tip=document.createElement('div'); tip.className='pj-tip'; document.body.appendChild(tip); }
+    tip.textContent=t.getAttribute('data-pjtip'); tip.style.display='block';
+    const r=t.getBoundingClientRect(), w=tip.offsetWidth, h=tip.offsetHeight;
+    let x=r.left+r.width/2-w/2; x=Math.max(6,Math.min(x,window.innerWidth-w-6));
+    let y=r.bottom+6; if(y+h>window.innerHeight-6) y=r.top-h-6;
+    tip.style.left=x+'px'; tip.style.top=y+'px';
+  });
+  document.addEventListener('scroll',hide,true);
+})();
+function renderProjects(){
+  const wrap=eid('viewProjects'); if(!wrap) return;
+  const prevBody=wrap.querySelector('.pj-body');
+  const prevTop=prevBody?prevBody.scrollTop:0, prevLeft=prevBody?prevBody.scrollLeft:0;
+  const phases=_pjSorted(_rmPhases().filter(ph=>_pjShowDone||!ph.completed));   // earliest end date first; completed hidden unless toggled
+  const canEd=permCan('projectEdit');
+  let html=`<div class="rm-wrap"><div class="rm-header" style="padding-top:8px;padding-bottom:8px"><h1 class="rm-title">Project List</h1>
+    <div class="tpl-subtab-toggle" style="display:inline-flex">
+      <button class="tpl-subtab-btn${_pjView==='list'?' active':''}" onclick="_pjSetView('list')">List</button>
+      <button class="tpl-subtab-btn${_pjView==='gantt'?' active':''}" onclick="_pjSetView('gantt')">Gantt</button>
+    </div>`;
+  if(_pjView==='gantt') html+=`<div style="display:inline-flex;gap:4px;align-items:center">
+      <button class="mbtn mbtn-cancel" style="padding:4px 10px" ${_pjZoom<=0?'disabled':''} onclick="_pjZoomBy(-1)" title="Zoom out">−</button>
+      <button class="mbtn mbtn-cancel" style="padding:4px 10px" ${_pjZoom>=PJ_ZOOMS.length-1?'disabled':''} onclick="_pjZoomBy(1)" title="Zoom in">+</button></div>`;
+  html+=`<div style="flex:1;min-width:0"></div>`;
+  if(PHASES.some(p=>p.completed)) html+=`<label class="rm-showdone"><input type="checkbox" ${_pjShowDone?'checked':''} onchange="_pjToggleShowDone(this.checked)"> Show completed</label>`;
+  if(canEd) html+=`<button class="mbtn mbtn-save" style="flex-shrink:0" onclick="_pjOpenModal()">+ Add project</button>`;
+  html+=`</div><div class="pj-body">`;
+  if(!phases.length) html+='<div class="rm-empty"><div class="rm-empty-title">No projects yet</div><div class="rm-empty-sub">Projects are the phases of your roadmap — add one to get started.</div></div>';
+  else html+=_pjView==='list'?_pjListHtml(phases,canEd):_pjGanttHtml(phases,canEd);
+  html+='</div></div>';
+  wrap.innerHTML=html;
+  const nb=wrap.querySelector('.pj-body'); if(nb){ nb.scrollTop=prevTop; nb.scrollLeft=prevLeft; }
+}
+
+function _pjListHtml(phases,canEd){
+  const rows=phases.map(ph=>{
+    const prods=_pjProducts(ph.id), stt=_pjStatus(ph);
+    const prodHtml=prods.length?prods.map(g=>`<div class="pj-prod">
+        <button class="pj-prod-name" onclick="_pjOpenProduct('${g.prod.id}')" title="${escH(_pjProdTitle(g))} — open on the Product Roadmap">${escH(g.prod.name)}</button><span class="pj-prod-meta">${g.areas.length} area${g.areas.length===1?'':'s'} · ${g.features} feature${g.features===1?'':'s'}</span>
+        <div class="pj-areas">${g.areas.map(a=>`<span class="pj-area" title="${a.features} feature(s)">${escH(a.epic.name)}</span>`).join('')}</div>
+      </div>`).join(''):'<span class="pj-none">No features scheduled in this project yet — add them on the Product Roadmap.</span>';
+    return `<tr>
+      <td><div class="pj-name"><span class="pj-dot" style="background:${ph.colour}"></span><div style="flex:1;min-width:0"><div class="pj-title">${escH(ph.name)}</div>${ph.desc?`<div class="pj-desc">${escH(ph.desc)}</div>`:''}</div>${canEd?`<button class="pj-edit" onclick="_pjToggleComplete('${ph.id}')" title="${ph.completed?'Reopen project':'Mark project complete'}"><span class="material-icons-round" style="font-size:16px">${ph.completed?'undo':'task_alt'}</span></button><button class="pj-edit" onclick="_pjOpenModal('${ph.id}')" title="Edit project"><span class="material-icons-round" style="font-size:16px">edit</span></button>`:''}</div></td>
+      <td>${ph.owner?`<span class="pj-owner">${escH(ph.owner)}</span>`:'<span class="pj-none">—</span>'}</td>
+      <td class="pj-dates">${_pjDatesHtml(ph)}</td>
+      <td><span class="pj-status" style="color:${stt.fg};background:${stt.bg}">${stt.label}</span></td>
+      <td>${prodHtml}</td></tr>`;
+  }).join('');
+  return `<table class="pj-table"><thead><tr><th>Project</th><th>Owner</th><th>Dates</th><th>Status</th><th>Products &amp; functional areas involved</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+// Earliest end date first (then earliest start); unscheduled projects last, in phase order.
+function _pjSorted(phases){
+  const dated=p=>_pjMs(p.startDate)!==null&&_pjMs(p.endDate)!==null;
+  return phases.map((p,i)=>({p,i})).sort((a,b)=>{
+    const da=dated(a.p), db=dated(b.p);
+    if(da!==db) return da?-1:1;
+    if(!da) return a.i-b.i;
+    return (_pjMs(a.p.endDate)-_pjMs(b.p.endDate))||(_pjMs(a.p.startDate)-_pjMs(b.p.startDate))||(a.i-b.i);
+  }).map(x=>x.p);
+}
+function _pjDatesShort(ph){
+  const st=_pjMs(ph.startDate), en=_pjMs(ph.endDate);
+  if(st===null&&en===null) return 'Not scheduled';
+  return (ph.startDate?_rptFmtDate(ph.startDate):'?')+' → '+(ph.endDate?_rptFmtDate(ph.endDate):'?')+_pjFollowLabel(ph);
+}
+
+// One row per project (left: filled bar on a month timeline) and, on the right,
+// a product dependency matrix: a column per product, a dot where a project
+// involves it. A product used by 2+ projects gets a coloured dot joined to the
+// others by a line; a red ring means the dates of two sharing projects overlap
+// (a real cross-project dependency window).
+function _pjGanttHtml(phases,canEd){
+  const isDated=ph=>_pjMs(ph.startDate)!==null&&_pjMs(ph.endDate)!==null;
+  const overlap=(a,b)=>isDated(a)&&isDated(b)&&_pjMs(a.startDate)<=_pjMs(b.endDate)&&_pjMs(b.startDate)<=_pjMs(a.endDate);
+  const dated=phases.filter(isDated);
+  const ppd=PJ_ZOOMS[_pjZoom];
+
+  // ── products involved ──
+  const involve=new Map(), prodSeen=new Map();
+  phases.forEach(ph=>{ const gs=_pjProducts(ph.id); involve.set(ph.id,gs); gs.forEach(g=>prodSeen.set(g.prod.id,g.prod)); });
+  const order=new Map(ROADMAP_PRODUCTS.map((pr,i)=>[pr.id,i]));
+  const prods=[...prodSeen.values()].sort((a,b)=>order.get(a.id)-order.get(b.id));
+  const colOf=new Map(prods.map((pr,i)=>[pr.id,i]));
+  const colour=i=>'hsl('+((i*53+200)%360)+' 55% 42%)';
+  const rowsOf=prods.map(()=>[]);
+  phases.forEach((ph,r)=>involve.get(ph.id).forEach(g=>rowsOf[colOf.get(g.prod.id)].push(r)));
+  const sharedCount=rowsOf.filter(rs=>rs.length>1).length;
+
+  const cell=(ph,r,c)=>{
+    const rs=rowsOf[c], min=rs[0], max=rs[rs.length-1], shared=rs.length>1;
+    let cls='pj-m-cell';
+    if(shared){ if(r>min&&r<=max) cls+=' ln-up'; if(r>=min&&r<max) cls+=' ln-down'; }
+    let dot='';
+    if(rs.includes(r)){
+      const others=rs.filter(x=>x!==r).map(x=>phases[x]);
+      const clash=shared?others.filter(o=>overlap(ph,o)):[];
+      const state=!shared?'solo':(clash.length?'clash':'shared');
+      const tip=prods[c].name+' — '+ph.name+(shared?' · also in: '+others.map(o=>o.name).join(', '):' · only this project')
+        +(clash.length?' · dates overlap with '+clash.map(o=>o.name).join(', '):'');
+      dot='<span class="pj-dot2 '+state+'" data-pjtip="'+escH(tip)+'"></span>';
+    }
+    return '<div class="'+cls+'" style="--pc:'+colour(c)+'">'+dot+'</div>';
+  };
+  const matrixHead=prods.length?'<div class="pj-g-matrix">'+prods.map((pr,c)=>
+    '<div class="pj-m-head" style="--pc:'+colour(c)+'" data-pjtip="'+escH(pr.name+' — in '+rowsOf[c].length+' project'+(rowsOf[c].length===1?'':'s'))+'"><span>'+escH(pr.name)+'</span><b>'+rowsOf[c].length+'</b></div>').join('')+'</div>':'';
+
+  // ── timeline range ──
+  let min,max;
+  if(dated.length){
+    min=Math.min(...dated.map(ph=>_pjMs(ph.startDate))); max=Math.max(...dated.map(ph=>Math.max(_pjMs(ph.startDate),_pjMs(ph.endDate))));
+    min-=14*_PJ_DAY; max+=30*_PJ_DAY;
+  } else { min=_pjTodayMs(); max=min+120*_PJ_DAY; }
+  const md=new Date(min); min=Date.UTC(md.getUTCFullYear(),md.getUTCMonth(),1);
+  if(max-min<90*_PJ_DAY) max=min+90*_PJ_DAY;
+  const W=Math.round((max-min)/_PJ_DAY*ppd), today=_pjTodayMs();
+  let ticks='', grid='', c=min, first=true;
+  while(c<max){
+    const d=new Date(c), next=Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,1);
+    const left=(c-min)/_PJ_DAY*ppd, w=(next-c)/_PJ_DAY*ppd;
+    const lbl=d.toLocaleString('en-GB',{month:'short',timeZone:'UTC'})+((d.getUTCMonth()===0||first)?' '+String(d.getUTCFullYear()).slice(2):'');
+    ticks+='<div class="pj-g-tick" style="left:'+left+'px;width:'+w+'px">'+lbl+'</div>';
+    grid+='<div class="pj-g-tick" style="left:'+left+'px;width:'+w+'px"></div>';
+    first=false; c=next;
+  }
+
+  let html='<div class="pj-legend"><span>Right side: which products each project involves.</span>'
+    +'<span><i class="pj-dot2 solo"></i>only this project</span>'
+    +'<span><i class="pj-dot2 shared" style="--pc:#4a6fa5"></i>shared with another project</span>'
+    +'<span><i class="pj-dot2 clash" style="--pc:#4a6fa5"></i>shared and the dates overlap</span>'
+    +(prods.length?'<span><b>'+sharedCount+'</b> of '+prods.length+' product'+(prods.length===1?' is':'s are')+' shared by 2+ projects</span>':'')+'</div>';
+  html+='<div class="pj-gantt"><div class="pj-g-row pj-g-head"><div class="pj-g-label">Project · earliest end first</div><div class="pj-g-track" style="width:'+W+'px">'+ticks+'</div>'+matrixHead+'</div>';
+  phases.forEach((ph,r)=>{
+    let track;
+    if(isDated(ph)){
+      const st=_pjMs(ph.startDate), en=Math.max(_pjMs(ph.endDate),st);
+      const left=(st-min)/_PJ_DAY*ppd, w=Math.max(((en-st)/_PJ_DAY+1)*ppd,6), pct=Math.max(0,Math.min(100,ph.pct||0));
+      const tip=ph.name+': '+_rptFmtDate(ph.startDate)+' → '+_rptFmtDate(ph.endDate)+' · '+pct+'% complete';
+      track=grid+'<div class="pj-bar'+(canEd?' editable':'')+'" style="left:'+left+'px;width:'+w+'px;background:'+ph.colour+'" data-pjtip="'+escH(tip)+'" '+(canEd?'onclick="_pjOpenModal(\''+ph.id+'\')"':'')+'><span class="pj-bar-txt">'+(w>90?escH(ph.name):'')+'</span></div>';
+    } else {
+      track=grid+'<span class="pj-none" style="position:absolute;left:10px;top:50%;margin-top:-8px">Not scheduled'+(canEd?' — click the pencil to set dates':'')+'</span>';
+    }
+    html+='<div class="pj-g-row"><div class="pj-g-label"><div class="pj-name"><span class="pj-dot" style="background:'+ph.colour+'"></span><div style="flex:1;min-width:0"><div class="pj-title">'+escH(ph.name)+(ph.owner?' <span class="pj-owner">'+escH(ph.owner)+'</span>':'')+'</div><div class="pj-dates" style="margin-top:2px;font-size:10.5px">'+escH(_pjDatesShort(ph))+'</div></div>'
+      +(canEd?'<button class="pj-edit" onclick="_pjToggleComplete(\''+ph.id+'\')" title="'+(ph.completed?'Reopen project':'Mark project complete')+'"><span class="material-icons-round" style="font-size:16px">'+(ph.completed?'undo':'task_alt')+'</span></button><button class="pj-edit" onclick="_pjOpenModal(\''+ph.id+'\')" title="Edit project"><span class="material-icons-round" style="font-size:16px">edit</span></button>':'')+'</div></div>'
+      +'<div class="pj-g-track" style="width:'+W+'px">'+track+'</div>'
+      +(prods.length?'<div class="pj-g-matrix">'+prods.map((pr,cc)=>cell(ph,r,cc)).join('')+'</div>':'')+'</div>';
+  });
+  if(dated.length&&today>=min&&today<=max) html+='<div class="pj-today" style="left:'+(240+Math.round((today-min)/_PJ_DAY*ppd))+'px"><span>Today</span></div>';
+  html+='</div>';
+  if(!dated.length) html+='<div class="pj-none" style="margin-top:10px">No project has dates yet — edit a project to give it a start and end date and it will appear on the timeline.</div>';
+  return html;
+}
+
+// ── Follow-on scheduling (v188) ─────────────────────────────────────────────
+// A project can be set to start AFTER another project: start = that project's
+// end date + 1 day + an optional gap (lagDays). Dates stay stored on every
+// project (startDate/endDate) so everything else just reads them; when a
+// project's dates change, _pjCascade() moves every project that follows it
+// (and the ones following those), keeping each one's duration.
+function _pjKey(ms){ const d=new Date(ms); return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0'); }
+function _pjFollowLabel(ph){
+  const pred=ph.followsId?PHASES.find(x=>x.id===ph.followsId):null;
+  return pred?' · after '+pred.name+(ph.lagDays?' (+'+ph.lagDays+'d)':''):'';
+}
+function _pjDescendants(id){
+  const out=[], seen=new Set([id]), queue=[id];
+  while(queue.length){
+    const cur=queue.shift();
+    PHASES.filter(p=>p.followsId===cur).forEach(p=>{ if(!seen.has(p.id)){ seen.add(p.id); out.push(p.id); queue.push(p.id); } });
+  }
+  return out;
+}
+// Re-derives the dates of everything downstream of rootId. Returns the phases changed.
+function _pjCascade(rootId){
+  const changed=[], guard=new Set([rootId]);
+  const walk=id=>{
+    const pred=PHASES.find(p=>p.id===id); if(!pred) return;
+    const pe=_pjMs(pred.endDate); if(pe===null) return;
+    PHASES.filter(p=>p.followsId===id).forEach(f=>{
+      if(guard.has(f.id)) return; guard.add(f.id);
+      const ns=pe+(1+(f.lagDays||0))*_PJ_DAY, os=_pjMs(f.startDate), oe=_pjMs(f.endDate);
+      if(os===ns) return;                                   // already in the right place
+      const dur=(os!==null&&oe!==null&&oe>=os)?oe-os:null;  // keep the project's length
+      f.startDate=_pjKey(ns);
+      f.endDate=dur!==null?_pjKey(ns+dur):(oe!==null&&oe>=ns?_pjKey(oe):'');
+      changed.push(f); walk(f.id);
+    });
+  };
+  walk(rootId);
+  return changed;
+}
+// Modal: show/hide the gap box, lock the start date while following, and (when
+// recalc) move the start to follow the chosen project, keeping the duration.
+function _pjApplyFollowUI(recalc){
+  const fid=eid('pjm-follow').value, on=!!fid;
+  eid('pjm-lag').style.display=on?'':'none';
+  eid('pjm-start').disabled=on;
+  if(!on||!recalc) return;
+  const pred=PHASES.find(x=>x.id===fid), pe=pred?_pjMs(pred.endDate):null;
+  if(pe===null){ eid('pjm-start').value=''; return; }
+  const os=_pjMs(eid('pjm-start').value), oe=_pjMs(eid('pjm-end').value);
+  const dur=(os!==null&&oe!==null&&oe>=os)?oe-os:null;
+  const ns=pe+(1+(parseInt(eid('pjm-lag').value)||0))*_PJ_DAY;
+  eid('pjm-start').value=_pjKey(ns);
+  if(dur!==null) eid('pjm-end').value=_pjKey(ns+dur);
+}
+
+function _pjOpenModal(id,assocProductId){
+  if(!permCan('projectEdit')){ showToast('View-only access — editing is disabled'); return; }
+  _pjEditId=id||null;
+  _pjAssocProductId=assocProductId||null;   // set when opened from the Roadmap's "Add project" → link the new project to that product
+  const ph=id?PHASES.find(x=>x.id===id):null;
+  eid('pjm-title').textContent=ph?'Edit project':'Add project';
+  eid('pjm-name').value=ph?ph.name:'';
+  eid('pjm-desc').value=ph?(ph.desc||''):'';
+  eid('pjm-start').value=ph?(ph.startDate||''):'';
+  eid('pjm-end').value=ph?(ph.endDate||''):'';
+  eid('pjm-pct').value=ph?(ph.pct||0):0;
+  const _own=ph?(ph.owner||''):'';
+  eid('pjm-owner').innerHTML='<option value="">— None —</option>'+PJ_OWNERS.concat(_own&&!PJ_OWNERS.includes(_own)?[_own]:[]).map(o=>'<option value="'+escH(o)+'"'+(o===_own?' selected':'')+'>'+escH(o)+'</option>').join('');
+  const _bad=new Set([id].concat(id?_pjDescendants(id):[])), _fid=ph?(ph.followsId||''):'';
+  eid('pjm-follow').innerHTML='<option value="">Start on a fixed date</option>'+_rmPhases().filter(x=>!_bad.has(x.id)).map(x=>'<option value="'+escH(x.id)+'"'+(x.id===_fid?' selected':'')+'>Start after: '+escH(x.name)+'</option>').join('');
+  eid('pjm-lag').value=ph?(ph.lagDays||0):0;
+  _pjApplyFollowUI(false);
+  eid('pjm-done').checked=!!(ph&&ph.completed);
+  eid('pjm-delete').style.display=ph?'':'none';
+  _pjTplSetup(!ph);
+  _pjColour=ph?ph.colour:PH_COLOURS[PHASES.length%PH_COLOURS.length];
+  eid('pjColourRow').innerHTML=PH_COLOURS.map(c=>`<div class="pc-opt${c===_pjColour?' sel':''}" style="background:${c}" onclick="_pjPickColour('${c}',this)"></div>`).join('');
+  openModal('projModal');
+}
+function _pjPickColour(c,el){
+  _pjColour=c;
+  eid('pjColourRow').querySelectorAll('.pc-opt').forEach(e=>e.classList.remove('sel'));
+  el.classList.add('sel');
+}
+function _pjSave(){
+  if(!permCan('projectEdit')){ showToast('View-only access — editing is disabled'); return; }
+  const name=eid('pjm-name').value.trim();
+  if(!name){ alert('Enter a project name'); return; }
+  const followsId=eid('pjm-follow').value||'', lagDays=followsId?(parseInt(eid('pjm-lag').value)||0):0;
+  let startDate=eid('pjm-start').value||'';
+  const endDate=eid('pjm-end').value||'';
+  if(followsId){
+    const pr=PHASES.find(x=>x.id===followsId), pe=pr?_pjMs(pr.endDate):null;
+    if(pe===null){ alert('The project you are following needs an end date first.'); return; }
+    startDate=_pjKey(pe+(1+lagDays)*_PJ_DAY);
+  }
+  if(startDate&&endDate&&endDate<startDate){ alert('The end date must not be before the start date.'); return; }
+  const completed=eid('pjm-done').checked;
+  const pct=completed?100:Math.max(0,Math.min(100,parseInt(eid('pjm-pct').value)||0));
+  const tplId=(!_pjEditId&&eid('pjm-tpl'))?eid('pjm-tpl').value:'';
+  const tplProd=tplId?eid('pjm-tpl-prod').value:'';
+  if(tplId&&!tplProd){ alert('Choose the product the template\'s features should be created in.'); return; }
+  let ph=_pjEditId?PHASES.find(x=>x.id===_pjEditId):null;
+  if(!ph){
+    const nums=PHASES.map(x=>/^PH(\d+)$/.exec(x.id)).filter(Boolean).map(m=>+m[1]);
+    ph={id:'PH'+(Math.max(-1,...nums)+1)};
+    PHASES.push(ph);
+  }
+  Object.assign(ph,{name,desc:eid('pjm-desc').value.trim(),colour:_pjColour,pct,startDate,endDate,owner:eid('pjm-owner').value||'',followsId,lagDays,completed});
+  dbUpsertPhase(ph);
+  if(!_pjEditId&&_pjAssocProductId){ _rmAssociate(_pjAssocProductId,ph.id); _pjAssocProductId=null; }
+  let _tplMsg='';
+  if(tplId){
+    const r=_ptApply(tplId,tplProd,eid('pjm-tpl-area').value,ph);
+    if(_rmSelProds.size&&!_rmSelProds.has(tplProd)) _rmSelProds.add(tplProd);   // keep the new project's product visible on the Roadmap
+    _tplMsg=' — created '+r.features+' feature'+(r.features===1?'':'s')+' and '+r.reqs+' requirement'+(r.reqs===1?'':'s')+' from the template';
+  }
+  const _moved=_pjCascade(ph.id);        // move every project that follows this one
+  _moved.forEach(m=>dbUpsertPhase(m));
+  closeModal('projModal');
+  if(typeof renderPhaseBar==='function') renderPhaseBar();
+  renderProjects();
+  if(curView==='roadmap') renderRoadmap();
+  _portfolioRefresh();
+  showToast((_pjEditId?'Project saved':'Project added')+(_moved.length?' — moved '+_moved.length+' following project'+(_moved.length===1?'':'s'):'')+_tplMsg);
+}
+
+
 function renderRoadmap(){
   const wrap=eid('viewRoadmap');
   const prevScrollTop=wrap.querySelector('.rm-content')?.scrollTop||0;
+  const _fEl=document.activeElement;
+  const _hadFilterFocus=!!(_fEl&&_fEl.id==='rmProdFilter');
+  const _fStart=_hadFilterFocus?_fEl.selectionStart:0, _fEnd=_hadFilterFocus?_fEl.selectionEnd:0;
+  _rmSyncSel();
   wrap.innerHTML='';
 
   const isAllMode=_rmActiveProductId==='ALL';
   const activeProduct=ROADMAP_PRODUCTS.find(p=>p.id===_rmActiveProductId);
   let html=`<div class="rm-wrap">`;
 
-  // ── Header: product tabs ──
-  html+=`<div class="rm-header"><div class="rm-tabs">`;
-  if(ROADMAP_PRODUCTS.length) html+=`<div class="rm-tab${isAllMode?' active':''}" onclick="_rmSelectProduct('ALL')">All</div>`;
-  html+=ROADMAP_PRODUCTS.map(p=>`<div class="rm-tab${p.id===_rmActiveProductId?' active':''}" onclick="_rmSelectProduct('${p.id}')">${escH(p.name)}</div>`).join('');
-  html+=`</div>`;
+  // ── Header: page title + product multi-select ──
+  html+=`<div class="rm-header" style="padding-top:8px;padding-bottom:8px"><h1 class="rm-title">Product Roadmap</h1>`;
+  if(ROADMAP_PRODUCTS.length) html+=_rmProdMenuHtml();
+  if(PHASES.some(p=>p.completed)) html+=`<label class="rm-showdone"><input type="checkbox" ${_rmShowCompleted?'checked':''} onchange="_rmToggleCompleted(this.checked)"> Show completed projects</label>`;
+  html+=`<div style="flex:1;min-width:0"></div>`;
   html+=`<button class="mbtn mbtn-cancel" style="flex-shrink:0" onclick="openRmExportModal()" title="Export the whole roadmap (every product, functional area, phase, feature and requirement) as Markdown, to analyse in an AI tool">
     <span class="material-icons-round" style="font-size:14px;vertical-align:-2px;margin-right:4px">description</span>Export Markdown
   </button>`;
-  html+=`<div class="rm-tab-add" data-requires-edit onclick="openAddRmProduct()">+ Add product</div>`;
+  if(ROADMAP_PRODUCTS.length) html+=`<div class="rm-tab-add" data-requires-edit onclick="_rmOpenAddProject()">+ Add project</div>`;
   if(activeProduct){
     html+=`<button class="mbtn mbtn-cancel" data-requires-edit style="flex-shrink:0" onclick="openEditRmProduct('${activeProduct.id}')">Edit product</button>`;
-    html+=`<button class="mbtn mbtn-save" data-requires-edit style="flex-shrink:0" onclick="openAddRmEpic('${activeProduct.id}')">+ Add functional area</button>`;
   }
   html+=`</div>`; // /.rm-header
 
@@ -12970,22 +13805,29 @@ function renderRoadmap(){
     // top-nav phase-pill selection (that filter is for "what am I editing right
     // now" elsewhere in the app, not "what timeline exists"). Phase 0 (the
     // pre-transformation baseline) is excluded entirely — see _rmPhases().
-    const rmPhases=_rmPhases();
+    const _prodsForCols=_rmShownProducts();
+    const rmPhases=[RM_BACKLOG].concat(_rmProjectCols(_prodsForCols));   // v189: Backlog + the relevant projects
     const colTemplate=`200px repeat(${rmPhases.length},minmax(240px,1fr))`;
     html+=`<div class="rm-board" style="grid-template-columns:${colTemplate}">`;
     html+=`<div class="rm-board-corner" id="rm-board-corner">${isAllMode?'':escH(activeProduct.name)}</div>`;
-    html+=rmPhases.map(ph=>`<div class="rm-board-header rm-phase-head" style="border-left:5px solid ${ph.colour};color:${ph.colour}">${escH(ph.name)}</div>`).join('');
+    html+=rmPhases.map(ph=>_rmColHeadHtml(ph,_prodsForCols)).join('');
 
-    const productsToShow=isAllMode?ROADMAP_PRODUCTS:[activeProduct];
+    const productsToShow=isAllMode?(_rmSelProds.size?ROADMAP_PRODUCTS.filter(p=>_rmSelProds.has(p.id)):ROADMAP_PRODUCTS):[activeProduct];
     // The product separator is a plain (non-sticky) divider now — the corner
     // cell handles the "current product" job instead — so the swimlane's own
     // sticky name never has to share the sticky slot with it.
     const swimlaneStickyTop=41;
+    // v190: "+ Add functional area" lives in the left column under a product's last
+    // area, presented like "+ Add feature"; the rest of that grid row is filled blank.
+    const faAddRow=prod=>canEdit()
+      ?`<div class="rm-fa-add-cell"><div class="rm-cell-add" data-requires-edit onclick="openAddRmEpic('${prod.id}')">+ Add functional area</div></div>`+rmPhases.map(()=>'<div class="rm-fa-fill"></div>').join('')
+      :'';
     productsToShow.forEach(prod=>{
       const epics=ROADMAP_EPICS.filter(e=>e.productId===prod.id).sort((a,b)=>a.order-b.order);
       if(isAllMode) html+=`<div class="rm-product-sep" data-product-id="${prod.id}" data-product-name="${escH(prod.name)}" style="grid-column:1/-1">${escH(prod.name)}</div>`;
       if(!epics.length){
-        if(isAllMode) html+=`<div class="rm-product-sep-empty" style="grid-column:1/-1">No functional areas yet — switch to the ${escH(prod.name)} tab to add one.</div>`;
+        if(isAllMode) html+=`<div class="rm-product-sep-empty" style="grid-column:1/-1">No functional areas yet.</div>`;
+        html+=faAddRow(prod);
         return;
       }
       epics.forEach(ep=>{
@@ -13018,7 +13860,7 @@ function renderRoadmap(){
           const allFeats=ROADMAP_FEATURES.filter(f=>f.epicId===ep.id&&f.phaseId===ph.id).sort((a,b)=>a.order-b.order);
           const coreFeats=allFeats.filter(f=>!f.stretch);
           const ffFeats=allFeats.filter(f=>f.stretch);
-          html+=`<div class="rm-phase-cell" style="background:${ep.colour}08">`;
+          html+=`<div class="rm-phase-cell" style="background:${ep.colour}08"${canEdit()?` ondragover="_rmDragOver(event,'${ep.id}')" ondragleave="_rmDragLeave(event)" ondrop="_rmDrop(event,'${ep.id}','${ph.id}')"`:''}>`;
           html+=coreFeats.map(f=>_rmFeatureCardHtml(f,ep)).join('');
           if(ffFeats.length){
             html+=`<div class="rm-fastfollow-divider"><span class="material-icons-round" style="font-size:11px">fast_forward</span>Fast Follow</div>`;
@@ -13028,6 +13870,7 @@ function renderRoadmap(){
           html+=`</div>`;
         });
       });
+      html+=faAddRow(prod);
     });
     html+=`</div>`; // /.rm-board
   }
@@ -13044,6 +13887,10 @@ function renderRoadmap(){
     newContent.onscroll=isAllMode?_rmUpdateCornerLabel:null;
   }
   if(isAllMode) _rmUpdateCornerLabel();
+  if(_hadFilterFocus){
+    const fi=eid('rmProdFilter');
+    if(fi){ fi.focus(); try{ fi.setSelectionRange(_fStart,_fEnd); }catch(e){} }
+  }
   // Full innerHTML rebuild replaces every data-requires-edit element fresh
   // (with default/visible display) — re-apply role gating immediately rather
   // than waiting for the next sign-in-time applyRoleUI() pass.
@@ -13079,7 +13926,7 @@ function _rmBuildMarkdownExport(){
       if(ep.desc) lines.push('', ep.desc);
       lines.push('');
       let epicHadAnyFeature=false;
-      phases.forEach(ph=>{
+      [{id:'',name:'Backlog',desc:'feature ideas not yet in a project'}].concat(phases).forEach(ph=>{
         const feats=ROADMAP_FEATURES.filter(f=>f.epicId===ep.id && f.phaseId===ph.id).sort((a,b)=>(a.order||0)-(b.order||0));
         if(!feats.length) return;
         epicHadAnyFeature=true;
@@ -13171,7 +14018,7 @@ function _rmFeatureCardHtml(f, epic){
   // or more Fast Follow requirements nested inside it — an outlined badge
   // rather than the solid pill so the two meanings don't get confused.
   const ffStoryCount=stories.filter(s=>s.stretch).length;
-  return `<div class="rm-feature-card">
+  return `<div class="rm-feature-card"${canEdit()?` draggable="true" ondragstart="_rmDragStart(event,'${f.id}')" ondragend="_rmDragEnd(event)"`:''}>
     <div class="rm-feature-accent" style="background:${st.fg}"></div>
     <div class="rm-feature-body">
       <div class="rm-feature-hd">
@@ -13293,7 +14140,7 @@ function saveRmProduct(){
     _rmActiveProductId=prod.id;
   }
   if(prod) dbUpsertProduct(prod);
-  closeModal('rmProductModal'); renderRoadmap(); showToast('Product saved');
+  closeModal('rmProductModal'); renderRoadmap(); _portfolioRefresh(); showToast('Product saved');
 }
 
 /* ═══════════════════════════════════════════
@@ -13393,7 +14240,7 @@ function openAddRmFeature(epicId, phaseId){
   const curEpic=ROADMAP_EPICS.find(e=>e.id===epicId);
   eid('rmf-product').innerHTML=ROADMAP_PRODUCTS.map(p=>`<option value="${p.id}"${p.id===curEpic?.productId?' selected':''}>${escH(p.name)}</option>`).join('');
   eid('rmf-epic').innerHTML=_rmFeatureEpicOptionsHtml(curEpic?.productId, epicId);
-  eid('rmf-phase').innerHTML=_rmPhases().map(ph=>`<option value="${ph.id}"${ph.id===phaseId?' selected':''}>${escH(ph.name)}</option>`).join('');
+  eid('rmf-phase').innerHTML=_rmPhaseOptionsHtml(phaseId);
   eid('rmf-status').value='Planned';
   selFeatureStretch=false;
   eid('rmf-stretch-field').innerHTML=_rmStretchSwitchHtml('rmf-stretch-switch',selFeatureStretch,'togRmFeatureStretch()');
@@ -13411,7 +14258,7 @@ function openEditRmFeature(id){
   const curEpic=ROADMAP_EPICS.find(e=>e.id===f.epicId);
   eid('rmf-product').innerHTML=ROADMAP_PRODUCTS.map(p=>`<option value="${p.id}"${p.id===curEpic?.productId?' selected':''}>${escH(p.name)}</option>`).join('');
   eid('rmf-epic').innerHTML=_rmFeatureEpicOptionsHtml(curEpic?.productId, f.epicId);
-  eid('rmf-phase').innerHTML=_rmPhases().map(ph=>`<option value="${ph.id}"${ph.id===f.phaseId?' selected':''}>${escH(ph.name)}</option>`).join('');
+  eid('rmf-phase').innerHTML=_rmPhaseOptionsHtml(f.phaseId);
   eid('rmf-status').value=f.status||'Planned';
   selFeatureStretch=!!f.stretch;
   eid('rmf-stretch-field').innerHTML=_rmStretchSwitchHtml('rmf-stretch-switch',selFeatureStretch,'togRmFeatureStretch()');
@@ -13467,6 +14314,248 @@ let _reqAddFeatureId='';
 // pushes as — configurable in Settings > Jira since "Feature" as a hierarchy
 // level between Epic and Story only exists if the target Jira project has
 // been set up for it, and the exact type names vary per Jira instance.
+// ════════════════════════════════════════════════════════════════════════════
+// TO DO LIST (v192) — the "execution" step: Roadmap = the plan, To Do = the
+// actions needed to deliver it, Test Plan = the checking. A flat list of tasks,
+// each optionally tied to a Product and a Project (= a PHASES row), assigned to
+// a user, with comments (entityType 'task') and a New → In Progress → Complete
+// status. Stored in the Tasks sheet (backend v102). Permissions are enforced
+// server-side in upsertTask()/deleteTask(); the helpers below mirror them so the
+// UI only offers what will be accepted:
+//   Tester/Developer — create tasks for themselves, edit tasks assigned to them
+//   Editor/Admin     — create for anyone, edit/reassign/delete any task
+//   Viewer           — read-only
+// ════════════════════════════════════════════════════════════════════════════
+const TASK_STATUSES=['New','In Progress','Complete'];
+const TASK_PRIORITIES=['High','Medium','Low'];
+const TASK_STATUS_COLOURS={'New':'#1a56c4','In Progress':'#B5852C','Complete':'#2E7D6B'};
+let _tdScope='my', _tdGroup='status', _tdProductF='', _tdProjectF='', _tdShowDone=false, _tdEditId=null;
+const _tdCollapsed=new Set(['status|Complete']);   // the Complete group starts collapsed
+try{
+  const _p=JSON.parse(localStorage.getItem('ssm_todo_prefs')||'{}');
+  if(_p.scope==='my'||_p.scope==='all') _tdScope=_p.scope;
+  if(['status','user','product'].includes(_p.group)) _tdGroup=_p.group;
+}catch(e){}
+function _tdSavePrefs(){ try{ localStorage.setItem('ssm_todo_prefs',JSON.stringify({scope:_tdScope,group:_tdGroup})); }catch(e){} }
+
+function _tdSplit(v){ return [...new Set(String(v||'').split(',').map(x=>x.trim().toLowerCase()).filter(Boolean))]; }
+function _tdMe(){ return String(gCurrentUser?.email||'').trim().toLowerCase(); }
+function canCreateTask(){ return ['tester','developer','editor','admin'].includes(currentRole()); }
+function canEditTask(t){ return isEditor() || (canCreateTask() && !!t && t.assignees.includes(_tdMe())); }
+function _tdUserName(email){ if(!email) return 'Unassigned'; return (NAME_TABLE[email]||'').trim()||email; }
+function _tdShortName(e){ const n=(NAME_TABLE[e]||'').trim(); return n?n.split(/s+/)[0]:e.split('@')[0]; }
+function _tdAssignable(){
+  return Object.keys(ROLE_TABLE).filter(e=>ROLE_TABLE[e]&&ROLE_TABLE[e]!=='viewer').sort((a,b)=>_tdUserName(a).localeCompare(_tdUserName(b)));
+}
+function _tdProducts(){ return ROADMAP_PRODUCTS.slice().sort((a,b)=>(a.order||0)-(b.order||0)||a.name.localeCompare(b.name)); }
+function _tdProductName(id){ const p=ROADMAP_PRODUCTS.find(x=>x.id===id); return p?p.name:''; }
+function _tdProjectOf(id){ return id?(PHASES.find(x=>x.id===id)||null):null; }
+function _tdToday(){ return _rptDateKey(new Date()); }
+function _tdNewId(){ return 'TK'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function _tdCmp(a,b){
+  const PR={High:0,Medium:1,Low:2}, pa=PR[a.priority]??3, pb=PR[b.priority]??3;
+  if(pa!==pb) return pa-pb;
+  const da=a.dueDate||'9999', db=b.dueDate||'9999';
+  if(da!==db) return da<db?-1:1;
+  return String(b.code||'').localeCompare(String(a.code||''));
+}
+function _tdVisible(){
+  let l=TASKS.slice();
+  if(_tdScope==='my') l=l.filter(t=>t.assignees.includes(_tdMe()));
+  if(_tdProductF) l=l.filter(t=>t.productId===_tdProductF);
+  if(_tdProjectF) l=l.filter(t=>t.projectId===_tdProjectF);
+  return l;
+}
+function _tdGroups(list){
+  if(_tdGroup==='status')
+    return TASK_STATUSES.map(s=>({key:'status|'+s,label:s,colour:TASK_STATUS_COLOURS[s],tasks:list.filter(t=>t.status===s).sort(_tdCmp)}));
+  const vis=_tdShowDone?list:list.filter(t=>t.status!=='Complete');
+  const map=new Map();
+  // a task with several assignees appears under each of them
+  vis.forEach(t=>{ const ks=_tdGroup==='user'?(t.assignees.length?t.assignees:['']):[t.productId]; ks.forEach(k=>{ if(!map.has(k)) map.set(k,[]); map.get(k).push(t); }); });
+  const label=k=>_tdGroup==='user'?_tdUserName(k):(k?(_tdProductName(k)||'Unknown product'):'No product');
+  return [...map.keys()].sort((a,b)=>{ if(!a) return 1; if(!b) return -1; return label(a).localeCompare(label(b)); })
+    .map(k=>({key:_tdGroup+'|'+k,label:label(k),colour:null,tasks:map.get(k).sort((a,b)=>((a.status==='Complete')-(b.status==='Complete'))||_tdCmp(a,b))}));
+}
+
+function _tdRowHtml(t){
+  const ed=canEditTask(t), done=t.status==='Complete';
+  const prod=_tdProductName(t.productId), ph=_tdProjectOf(t.projectId);
+  const overdue=!done&&t.dueDate&&t.dueDate<_tdToday();
+  const ic=n=>`<span class="material-icons-round" style="font-size:12px">${n}</span>`;
+  const chips=[];
+  if(_tdGroup!=='user') chips.push(`<span class="td-chip" title="Assigned to ${escH(t.assignees.map(_tdUserName).join(', ')||'nobody')}">${ic(t.assignees.length>1?'group':'person')}${escH(t.assignees.length?t.assignees.map(_tdShortName).join(', '):'Unassigned')}</span>`);
+  if(prod&&_tdGroup!=='product') chips.push(`<span class="td-chip" title="Product">${ic('inventory_2')}${escH(prod)}</span>`);
+  if(ph) chips.push(`<span class="td-chip" title="Project"><i style="background:${escH(ph.colour||'#888')}"></i>${escH(ph.name)}</span>`);
+  if(t.priority) chips.push(`<span class="td-chip p-${escH(t.priority)}" title="Priority">${escH(t.priority)}</span>`);
+  if(t.dueDate) chips.push(`<span class="td-chip${overdue?' overdue':''}" title="${overdue?'Overdue — due ':'Due '}${escH(_rptFmtDate(t.dueDate))}">${ic('event')}${escH(_rptFmtDate(t.dueDate))}</span>`);
+  const stCls=t.status.replace(/\s/g,'');
+  const stCtl=_tdGroup==='status'?'':(ed
+    ? `<select class="td-st ${stCls}" onclick="event.stopPropagation()" onchange="_tdSetStatus('${t.id}',this.value)">${TASK_STATUSES.map(s=>`<option${s===t.status?' selected':''}>${s}</option>`).join('')}</select>`
+    : `<span class="td-st ${stCls}">${escH(t.status)}</span>`);
+  return `<div class="td-row${done?' done':''}" onclick="_tdOpenModal('${t.id}')">
+    <button class="td-check" ${ed?'':'disabled'} onclick="event.stopPropagation();_tdToggleDone('${t.id}')" title="${ed?(done?'Reopen':'Mark complete'):'Only the assignee, an Editor or an Admin can change this task'}">${done?'<span class="material-icons-round">check</span>':''}</button>
+    <div class="td-main"><div class="td-title">${t.code?`<span class="td-code">${escH(t.code)}</span>`:''}${escH(t.title)}</div>${chips.length?`<div class="td-meta">${chips.join('')}</div>`:''}</div>
+    <div class="td-right">${stCtl}${commentBadgeHtml('task',t.id,(t.code?t.code+' — ':'')+t.title)}</div>
+  </div>`;
+}
+
+function renderTodo(){
+  const wrap=eid('viewTodo'); if(!wrap) return;
+  const prev=wrap.querySelector('.td-body'), prevTop=prev?prev.scrollTop:0;
+  const me=_tdMe(), list=_tdVisible(), canAdd=canCreateTask();
+  const open=TASKS.filter(t=>t.assignees.includes(me)&&t.status!=='Complete').length;
+  const opt=(v,l,sel)=>`<option value="${escH(v)}"${sel?' selected':''}>${escH(l)}</option>`;
+  let html=`<div class="rm-wrap"><div class="rm-header" style="padding-top:8px;padding-bottom:8px"><h1 class="rm-title">To Do</h1>
+    <div class="tpl-subtab-toggle" style="display:inline-flex">
+      <button class="tpl-subtab-btn${_tdScope==='my'?' active':''}" onclick="_tdSetScope('my')">My tasks${open?' ('+open+')':''}</button>
+      <button class="tpl-subtab-btn${_tdScope==='all'?' active':''}" onclick="_tdSetScope('all')">All tasks</button>
+    </div>
+    <div class="td-bar">
+      <select class="td-sel" title="Group by" onchange="_tdSetGroup(this.value)">${opt('status','Group: Status',_tdGroup==='status')}${opt('user','Group: User',_tdGroup==='user')}${opt('product','Group: Product',_tdGroup==='product')}</select>
+      <select class="td-sel" title="Filter by product" onchange="_tdProductF=this.value;renderTodo()">${opt('','All products',!_tdProductF)}${_tdProducts().map(p=>opt(p.id,p.name,p.id===_tdProductF)).join('')}</select>
+      <select class="td-sel" title="Filter by project" onchange="_tdProjectF=this.value;renderTodo()">${opt('','All projects',!_tdProjectF)}${_rmPhases().map(p=>opt(p.id,p.name,p.id===_tdProjectF)).join('')}</select>
+      ${_tdGroup!=='status'?`<label class="rm-showdone"><input type="checkbox" ${_tdShowDone?'checked':''} onchange="_tdShowDone=this.checked;renderTodo()"> Show completed</label>`:''}
+    </div>
+    <div style="flex:1;min-width:0"></div>
+    ${canAdd?`<button class="mbtn mbtn-save" style="flex-shrink:0" onclick="_tdOpenModal()">+ New task</button>`:''}
+  </div><div class="td-body">`;
+  if(canAdd) html+=`<div class="td-quick"><input id="td-quick" placeholder="Add a task for yourself and press Enter…" maxlength="200" onkeydown="if(event.key==='Enter')_tdQuickAdd(this)"></div>`;
+  const groups=_tdGroups(list);
+  if(!groups.length) html+=`<div class="rm-empty"><div class="rm-empty-title">${_tdScope==='my'?'Nothing assigned to you':'No tasks yet'}</div><div class="rm-empty-sub">${canAdd?'Add one above to get started.':'Tasks will appear here once they are created.'}</div></div>`;
+  groups.forEach(g=>{
+    const col=_tdCollapsed.has(g.key);
+    html+=`<div class="td-group${col?' collapsed':''}"><div class="td-ghead" data-key="${escH(g.key)}" onclick="_tdToggleGroup(this.dataset.key)">
+      <span class="material-icons-round td-chev">expand_more</span>${g.colour?`<span class="td-gdot" style="background:${g.colour}"></span>`:''}<span>${escH(g.label)}</span><span class="td-gcount">${g.tasks.length}</span></div>
+      <div class="td-list">${g.tasks.length?g.tasks.map(_tdRowHtml).join(''):'<div class="td-empty">No tasks</div>'}</div></div>`;
+  });
+  html+='</div></div>';
+  wrap.innerHTML=html;
+  const nb=wrap.querySelector('.td-body'); if(nb) nb.scrollTop=prevTop;
+}
+function _tdSetScope(s){ _tdScope=s; _tdSavePrefs(); renderTodo(); }
+function _tdSetGroup(g){ _tdGroup=g; _tdSavePrefs(); renderTodo(); }
+function _tdToggleGroup(k){ if(_tdCollapsed.has(k)) _tdCollapsed.delete(k); else _tdCollapsed.add(k); renderTodo(); }
+
+// ── Writes ──────────────────────────────────────────────────────────────────
+async function dbUpsertTask(t){
+  try{
+    const res=await sheetPost({action:'upsertTask',row:{id:t.id,title:t.title,description:t.description||'',status:t.status,assignedTo:(t.assignees||[]).join(','),productId:t.productId||'',projectId:t.projectId||'',priority:t.priority||'',dueDate:t.dueDate||''}});
+    if(res&&res.code) t.code=res.code;
+    const r=res&&res.row;
+    if(r){   // adopt what the server actually stored (it enforces assignee / created* / completed*)
+      t.assignees=_tdSplit(r.assignedTo);
+      t.createdBy=String(r.createdBy||t.createdBy||'').trim().toLowerCase();
+      t.createdAt=r.createdAt||t.createdAt; t.updatedAt=r.updatedAt||t.updatedAt;
+      t.completedAt=r.completedAt||null; t.completedBy=String(r.completedBy||'').trim().toLowerCase();
+    }
+    return true;
+  }catch(e){ console.error('dbUpsertTask:',e); showToast('Sheet write error: '+e.message,6000); return false; }
+}
+// Optimistic: the caller has already changed `t` in place (prev = copy of it beforehand, or null for a new task).
+async function _tdPersist(t,prev){
+  const ok=await dbUpsertTask(t);
+  if(!ok){ if(prev) Object.assign(t,prev); else TASKS=TASKS.filter(x=>x.id!==t.id); }
+  if(curView==='todo') renderTodo();
+  return ok;
+}
+function _tdApplyStatus(t,status){
+  t.status=status; t.updatedAt=new Date().toISOString();
+  if(status==='Complete'){ t.completedAt=t.completedAt||t.updatedAt; t.completedBy=t.completedBy||_tdMe(); }
+  else { t.completedAt=null; t.completedBy=''; }
+}
+function _tdToggleDone(id){
+  const t=TASKS.find(x=>x.id===id); if(!t||!canEditTask(t)) return;
+  const prev={...t};
+  _tdApplyStatus(t,t.status==='Complete'?'In Progress':'Complete');
+  renderTodo(); _tdPersist(t,prev);
+}
+function _tdSetStatus(id,status){
+  const t=TASKS.find(x=>x.id===id); if(!t||!canEditTask(t)||!TASK_STATUSES.includes(status)||t.status===status) return;
+  const prev={...t};
+  _tdApplyStatus(t,status);
+  renderTodo(); _tdPersist(t,prev);
+}
+function _tdBlankTask(title){
+  const now=new Date().toISOString();
+  return {id:_tdNewId(),code:'',title,description:'',status:'New',assignees:[_tdMe()],productId:'',projectId:'',priority:'',dueDate:'',createdBy:_tdMe(),createdAt:now,updatedAt:now,completedAt:null,completedBy:''};
+}
+function _tdQuickAdd(inp){
+  const title=inp.value.trim(); if(!title||!canCreateTask()) return;
+  const t=_tdBlankTask(title);
+  t.productId=_tdProductF; t.projectId=_tdProjectF;   // inherit whatever the list is currently filtered to
+  TASKS.unshift(t);
+  renderTodo();
+  const q=eid('td-quick'); if(q) q.focus();
+  _tdPersist(t,null);
+}
+
+// ── Modal ───────────────────────────────────────────────────────────────────
+function _tdOpenModal(id){
+  const t=id?TASKS.find(x=>x.id===id):null;
+  if(!t&&!canCreateTask()){ showToast('View-only access — you cannot add tasks'); return; }
+  _tdEditId=t?t.id:null;
+  const ed=t?canEditTask(t):true, mgr=isEditor();
+  const opt=(v,l,sel)=>`<option value="${escH(v)}"${sel?' selected':''}>${escH(l)}</option>`;
+  eid('td-modal-title').textContent=t?((t.code?t.code+' · ':'')+'Task'):'New task';
+  eid('td-title').value=t?t.title:'';
+  eid('td-desc').value=t?t.description:'';
+  const asg=t?t.assignees:[_tdMe()];
+  const users=(mgr?_tdAssignable():[_tdMe()]).slice();
+  asg.forEach(e=>{ if(!users.includes(e)) users.push(e); });
+  const lock=!ed||!mgr;   // Tester/Developer tasks keep their assignees; they can't change who it is for
+  eid('td-assignee').innerHTML=users.map(e=>`<label class="td-person"><input type="checkbox" value="${escH(e)}"${asg.includes(e)?' checked':''}${lock?' disabled':''}>${escH(_tdUserName(e))}</label>`).join('')||'<span class="td-empty" style="padding:0">No users</span>';
+  eid('td-status').innerHTML=TASK_STATUSES.map(s=>opt(s,s,s===(t?t.status:'New'))).join('');
+  const pid=t?t.productId:_tdProductF;
+  eid('td-product').innerHTML=opt('','— None —',!pid)+_tdProducts().map(p=>opt(p.id,p.name,p.id===pid)).join('')+(pid&&!ROADMAP_PRODUCTS.some(p=>p.id===pid)?opt(pid,'Unknown product',true):'');
+  const jid=t?t.projectId:_tdProjectF;
+  eid('td-project').innerHTML=opt('','— None —',!jid)+_rmPhases().filter(p=>!p.completed||p.id===jid).map(p=>opt(p.id,p.name,p.id===jid)).join('')+(jid&&!_rmPhases().some(p=>p.id===jid)?opt(jid,'Unknown project',true):'');
+  eid('td-priority').innerHTML=opt('','— None —',!(t&&t.priority))+TASK_PRIORITIES.map(p=>opt(p,p,t&&t.priority===p)).join('');
+  eid('td-due').value=t?t.dueDate:'';
+  ['td-title','td-desc','td-status','td-product','td-project','td-priority','td-due'].forEach(i=>{ eid(i).disabled=!ed; });
+  eid('td-save-btn').style.display=ed?'':'none';
+  eid('td-readonly-note').style.display=ed?'none':'';
+  eid('td-delete-btn').style.display=(t&&mgr)?'':'none';
+  eid('td-comments-btn').style.display=t?'':'none';
+  eid('td-comments-n').textContent=t&&commentCount('task',t.id)?' ('+commentCount('task',t.id)+')':'';
+  openModal('taskModal');
+  if(!t) setTimeout(()=>{ const i=eid('td-title'); if(i) i.focus(); },50);
+}
+function _tdSaveModal(){
+  const title=eid('td-title').value.trim();
+  if(!title){ alert('Enter a task'); return; }
+  const fields={title,description:eid('td-desc').value.trim(),assignees:[...eid('td-assignee').querySelectorAll('input:checked')].map(i=>i.value),productId:eid('td-product').value||'',projectId:eid('td-project').value||'',priority:eid('td-priority').value||'',dueDate:eid('td-due').value||''};
+  const status=eid('td-status').value;
+  let t=_tdEditId?TASKS.find(x=>x.id===_tdEditId):null;
+  if(t){
+    if(!canEditTask(t)){ showToast('You can only edit tasks assigned to you'); return; }
+    const prev={...t};
+    Object.assign(t,fields);
+    if(!isEditor()) t.assignees=prev.assignees;
+    if(status!==t.status) _tdApplyStatus(t,status); else t.updatedAt=new Date().toISOString();
+    closeModal('taskModal'); renderTodo(); _tdPersist(t,prev);
+  } else {
+    if(!canCreateTask()) return;
+    t=_tdBlankTask(title); Object.assign(t,fields);
+    if(!isEditor()) t.assignees=[_tdMe()];
+    _tdApplyStatus(t,status);
+    TASKS.unshift(t);
+    closeModal('taskModal'); renderTodo(); _tdPersist(t,null);
+  }
+}
+async function _tdDelete(){
+  const t=TASKS.find(x=>x.id===_tdEditId); if(!t||!isEditor()) return;
+  if(!confirm('Delete this task'+(t.code?' ('+t.code+')':'')+'? This cannot be undone.')) return;
+  const idx=TASKS.indexOf(t);
+  TASKS.splice(idx,1); closeModal('taskModal'); renderTodo();
+  try{ await sheetPost({action:'deleteTask',id:t.id}); }
+  catch(e){ console.error('deleteTask:',e); TASKS.splice(idx,0,t); showToast('Delete failed: '+e.message,6000); renderTodo(); }
+}
+function _tdOpenComments(){
+  const t=TASKS.find(x=>x.id===_tdEditId); if(!t) return;
+  openCommentsPanel('task',t.id,(t.code?t.code+' — ':'')+t.title);
+}
+
 // ── Homepage / start screen ─────────────────────────────────────────────
 // Which views appear on the Homepage and how they're grouped is fixed here
 // in code (Audit and Action Report are deliberately not curated onto the
@@ -13475,7 +14564,7 @@ let _reqAddFeatureId='';
 // Settings > Homepage — see HOMEPAGE_VIEW_META/WELCOME_NOTE below.
 const HOMEPAGE_GROUPS=[
   {title:'Website Management', views:['ia','sitemap','ecosystem','platform','redirects']},
-  {title:'Project Management', views:['transformation','roadmap','requirements','testplan']},
+  {title:'Project Management', views:['projects','transformation','roadmap','todo','testplan']},   // v192: 'requirements' tile replaced by 'todo' (the Tracker is still on the View menu)
 ];
 let HOMEPAGE_VIEW_META={
   ia:            {icon:'account_tree', desc:'Explore your sitemap as a navigable hierarchy.'},
@@ -13483,8 +14572,10 @@ let HOMEPAGE_VIEW_META={
   ecosystem:     {icon:'hub',          desc:'See how pages and content connect to each other.'},
   platform:      {icon:'dns',          desc:'View pages grouped by system and platform.'},
   transformation:{icon:'bar_chart',    desc:'Track migration progress phase by phase.'},
+  projects:      {icon:'timeline',     desc:'Each project (phase) as a list or a Gantt timeline, with the products involved.'},
   roadmap:       {icon:'map',          desc:'Plan features and requirements across products.'},
   requirements:  {icon:'fact_check',   desc:'Manage detailed requirements and discussion threads.'},
+  todo:          {icon:'checklist',    desc:'The actions to execute — assigned to people, products and projects.'},
   redirects:     {icon:'swap_horiz',   desc:'Track old-to-new URL redirects and decommissions by phase.'},
   testplan:      {icon:'science',      desc:'Run functional and scenario tests, and track coverage.'},
 };
@@ -15324,8 +16415,8 @@ function _tpl2MenuHtml(){
   return `<div class="tpl2-menu" onclick="event.stopPropagation()">
     <button class="tpl2-menu-item" data-requires-snag-report style="display:none" onclick="_tpl2CloseMenu();openAddSnagModal()"><span class="material-icons-round" style="font-size:18px">bug_report</span>Report a snag</button>
     <button class="tpl2-menu-item" data-requires-snag-report style="display:none" onclick="_tpl2CloseMenu();openAddEnhancementModal()"><span class="material-icons-round" style="font-size:18px">lightbulb</span>Suggest an enhancement</button>
-    <button class="tpl2-menu-item" data-requires-admin style="display:none" onclick="_tpl2CloseMenu();dbCaptureProgressSnapshotNow()"><span class="material-icons-round" style="font-size:18px">photo_camera</span>Capture progress snapshot</button>
-    <button class="tpl2-menu-item" onclick="_tpl2CloseMenu();_tplCollapseAllAccordions()"><span class="material-icons-round" style="font-size:18px">unfold_less</span>Collapse all features</button>
+    ${(_tplSubTab==='snags'&&permVisible('snagRelease'))?`<button class="tpl2-menu-item" onclick="_tpl2CloseMenu();_tplToggleRelease()" title="Send squashed snags back to testing as a release, and see past releases"><span class="material-icons-round" style="font-size:18px">rocket_launch</span>Release</button>`:''}
+    ${(_tplSubTab==='snags'&&permCan('snagImport'))?`<button class="tpl2-menu-item" onclick="_tpl2CloseMenu();_tplToggleSnagImport()" title="Admin: bulk-create snags and enhancements from markdown"><span class="material-icons-round" style="font-size:18px">upload_file</span>${_tplSnagImportOpen?'Cancel import':'Import snags'}</button>`:''}
   </div>`;
 }
 
@@ -15357,7 +16448,7 @@ function _tpl2TabsHtml(baseStories){
   return `<div class="tpl2-tabs">
     ${tab('functional','Requirements',st.total-st.verified)}
     ${tab('snags','Snags',snagCount)}
-    ${tab('scenario','Scenarios',scenarioCount)}
+    ${_tplScenariosAllowed()?tab('scenario','Scenarios',scenarioCount):''}<!-- TEMP_SCENARIOS_ADMIN_ONLY -->
   </div>`;
 }
 
@@ -15403,6 +16494,64 @@ function _tpl2ContextBarHtml(baseStories){
   return `<div class="tpl2-ctx"><div class="tpl2-crumbs">${_tpl2CrumbsHtml()}</div>${statsRow}</div>`;
 }
 
+// ── Tester coverage (v179) — what the Browse tree's count + mini bar show.
+// Testers work as a collective, so each requirement (on one product) is either
+// something testers still have to act on, or not:
+//   outstanding — to test, awaiting 2nd pass, a fix sent back for retest, or a
+//                 developer's clarification question waiting for an answer
+//   withDev     — a Fail result or an Open/Squashed snag (incl. open
+//                 enhancements): nothing for a tester to do until it comes back
+//   verified    — two different testers passed it and nobody failed it
+// covered = total - outstanding (verified + with developers), shown as
+// covered/total, e.g. 92/100 when 8 are outstanding. With no productId (the
+// "Everything in this phase" row) a requirement tested on several products is
+// outstanding if ANY of them still needs a tester, else with-developers if any
+// is, else verified. Left menu only — the top ring/stat row/cards are unchanged.
+function _tpl2Coverage(stories,productId){
+  const bucket=v=>{
+    if(v.snagStatus==='Needs Clarification') return 'o';
+    if(v.openFail||v.openSnag||v.openEnhancement) return 'd';
+    return v.verified?'v':'o';
+  };
+  let verified=0,withDev=0,outstanding=0;
+  stories.forEach(s=>{
+    let b;
+    if(productId){
+      b=bucket(_tplStoryVerification(s.id,productId));
+    } else {
+      const prods=_tplStoryTestProductIds(s).filter(pid=>!_tplStoryVerification(s.id,pid).invalid);
+      if(!prods.length) b='o';
+      else { const bs=prods.map(pid=>bucket(_tplStoryVerification(s.id,pid))); b=bs.includes('o')?'o':(bs.includes('d')?'d':'v'); }
+    }
+    if(b==='v') verified++; else if(b==='d') withDev++; else outstanding++;
+  });
+  const total=stories.length;
+  return {total,verified,withDev,outstanding,covered:total-outstanding};
+}
+function _tpl2NavCountHtml(c){
+  const tip=`${c.covered} of ${c.total} covered — ${c.outstanding} outstanding for testers (verified ${c.verified}, with developers ${c.withDev})`;
+  return `<span class="tpl2-nav-count" title="${tip}">${c.covered}/${c.total}</span>`;
+}
+// Snags view (v180): the same Browse tree, but each row counts SNAGS instead of
+// requirement coverage, so developers can see where to focus. Main number =
+// snags currently with development (status Open — bugs and open enhancements);
+// the tooltip adds ready-for-retest and needs-clarification, and a red S1–S2
+// chip flags critical/high severity. Rows with nothing open are muted and the
+// tree is sorted busiest-first at every level.
+function _tpl2SnagNavStats(list){
+  let open=0,retest=0,clarify=0,crit=0;
+  list.forEach(sn=>{
+    if(sn.status==='Open'){ open++; if(sn.kind!=='Enhancement' && (sn.severity==='S1'||sn.severity==='S2')) crit++; }
+    else if(sn.status==='Squashed') retest++;
+    else if(sn.status==='Needs Clarification') clarify++;
+  });
+  return {open,retest,clarify,crit,total:open+retest+clarify};
+}
+function _tpl2SnagNavCountHtml(st){
+  const tip=`${st.open} with development, ${st.retest} ready for retest, ${st.clarify} needs clarification${st.crit?` — ${st.crit} critical/high (S1–S2)`:''}`;
+  return `${st.crit?`<span class="tpl2-nav-crit" title="${tip}">${st.crit} S1–2</span>`:''}<span class="tpl2-nav-snagcount${st.open?' hot':''}" title="${tip}">${st.open}</span>`;
+}
+
 // ── The tree. Replaces renderTestPlanNav's flat two-level list: three
 // levels, expandable independently of what's selected, each row carrying
 // verified/total and a red dot when something in it is failing.
@@ -15411,45 +16560,69 @@ function _tpl2RenderNav(breakdown, baseStories){
   if(!wrap) return;
   _tpl2ValidateSel();
   const sel=_tplSel;
+  const snagMode=_tplSubTab==='snags';
+  // Snags view data: open (non-Resolved) requirement snags in the selected
+  // phases, plus each product's page/component snags — the same scope the
+  // Snags list itself uses (see _tpl2SnagScope / _tplSnagItems).
+  let snagBase=[]; const featOfStory={};
+  if(snagMode){
+    snagBase=SNAGS.filter(sn=>sn.status!=='Resolved' && selectedPhases.has(_tplSnagPhaseId(sn)));
+    ROADMAP_STORIES.forEach(s=>{ featOfStory[s.id]=s.featureId; });
+  }
+  const pageSnagsOf=prod=>_tplPageSnagsForProduct(prod,{phaseScoped:true}).concat(_tplComponentSnagsForProduct(prod,{phaseScoped:true}));
+  const prodSnagStats=prod=>_tpl2SnagNavStats(snagBase.filter(sn=>sn.productId===prod.id).concat(pageSnagsOf(prod)));
+  const quiet=st=>snagMode&&!st.total?' tpl2-nav-quiet':'';
   let html=`<div class="tpl2-nav-hd">
-    <div class="tpl2-nav-hd-eyebrow">Browse</div>
-    <div class="tpl2-nav-hd-sub">Product › Functional area › Feature</div>
+    <div class="tpl2-nav-hd-eyebrow">${snagMode?'Snags':'Browse'}</div>
+    <div class="tpl2-nav-hd-sub">${snagMode?'Busiest first — number = snags with development':'Product › Functional area › Feature'}</div>
   </div><div class="tpl-nav-body">`;
+  const shown=breakdown.filter(b=>b.total>0||b.openSnagCount>0);
+  let rootCount;
+  if(snagMode){
+    const all=snagBase.slice(); shown.forEach(b=>{ pageSnagsOf(b.product).forEach(x=>all.push(x)); });
+    rootCount=_tpl2SnagNavCountHtml(_tpl2SnagNavStats(all));
+  } else rootCount=_tpl2NavCountHtml(_tpl2Coverage(baseStories,null));
   html+=`<button class="tpl2-nav-node tpl2-nav-product${sel.level==='root'?' active':''}" onclick="_tpl2Select('root')">
     <span class="material-icons-round tpl2-nav-chev">layers</span>
-    <span class="tpl2-nav-label">Everything in this phase</span>
-    <span class="tpl2-nav-count">${baseStories.length}</span>
+    <span class="tpl2-nav-label">${snagMode?'All snags in this phase':'Everything in this phase'}</span>
+    ${rootCount}
   </button>`;
-  const shown=breakdown.filter(b=>b.total>0||b.openSnagCount>0);
   if(!shown.length) html+='<div style="padding:16px;font-size:11px;color:var(--text3)">No requirements in the current phase scope.</div>';
-  shown.forEach(b=>{
+  const rows=shown.map(b=>({b,pst:snagMode?prodSnagStats(b.product):null}));
+  if(snagMode) rows.sort((x,y)=>y.pst.open-x.pst.open||y.pst.total-x.pst.total);
+  rows.forEach(({b,pst})=>{
     const pid=b.product.id;
     const pOpen=!!_tpl2NavOpen[pid];
-    html+=`<button class="tpl2-nav-node tpl2-nav-product${sel.level==='product'&&sel.productId===pid?' active':''}" onclick="_tpl2Select('product','${pid}')" title="${escH(b.product.name)}">
+    html+=`<button class="tpl2-nav-node tpl2-nav-product${sel.level==='product'&&sel.productId===pid?' active':''}${quiet(pst||{})}" onclick="_tpl2Select('product','${pid}')" title="${escH(b.product.name)}">
       <span class="material-icons-round tpl2-nav-chev" onclick="_tpl2ToggleNode('${pid}',event)">${pOpen?'expand_more':'chevron_right'}</span>
       <span class="tpl2-nav-label">${escH(b.product.name)}</span>
-      ${b.openFailCount?'<span class="tpl2-nav-fail" title="Failing requirements"></span>':''}
-      <span class="tpl2-nav-count">${b.verifiedCount}/${b.total}</span>
+      ${snagMode?_tpl2SnagNavCountHtml(pst):`${b.openFailCount?'<span class="tpl2-nav-fail" title="Failing requirements"></span>':''}
+      ${_tpl2NavCountHtml(_tpl2Coverage(_tplStoriesInProduct(baseStories,pid),pid))}`}
     </button>`;
     if(!pOpen) return;
     const tree=_tplBuildEpicTree(_tplStoriesInProduct(baseStories,pid));
-    tree.forEach(eEntry=>{
+    const eRows=tree.map(eEntry=>({eEntry,est:snagMode?_tpl2SnagNavStats(snagBase.filter(sn=>sn.productId===pid&&sn.epicId===eEntry.epic.id)):null}));
+    if(snagMode) eRows.sort((x,y)=>y.est.open-x.est.open||y.est.total-x.est.total);
+    eRows.forEach(({eEntry,est})=>{
       const eid2=eEntry.epic.id, eKey=pid+'::'+eid2;
       const eOpen=!!_tpl2NavOpen[eKey];
-      const est=_tpl2Stats(eEntry.stories,pid);
-      html+=`<button class="tpl2-nav-node tpl2-nav-epic${sel.level==='area'&&sel.productId===pid&&sel.epicId===eid2?' active':''}" onclick="_tpl2Select('area','${pid}','${eid2}')" title="${escH(eEntry.epic.name)}">
+      const cst=snagMode?null:_tpl2Stats(eEntry.stories,pid);
+      html+=`<button class="tpl2-nav-node tpl2-nav-epic${sel.level==='area'&&sel.productId===pid&&sel.epicId===eid2?' active':''}${quiet(est||{})}" onclick="_tpl2Select('area','${pid}','${eid2}')" title="${escH(eEntry.epic.name)}">
         <span class="material-icons-round tpl2-nav-chev" onclick="_tpl2ToggleNode('${eKey}',event)">${eOpen?'expand_more':'chevron_right'}</span>
         <span class="tpl2-nav-label">${escH(eEntry.epic.name)}</span>
-        ${est.failing?'<span class="tpl2-nav-fail" title="Failing requirements"></span>':''}
-        <span class="tpl2-nav-count">${est.verified}/${est.total}</span>
+        ${snagMode?_tpl2SnagNavCountHtml(est):`${cst.failing?'<span class="tpl2-nav-fail" title="Failing requirements"></span>':''}
+        ${_tpl2NavCountHtml(_tpl2Coverage(eEntry.stories,pid))}`}
       </button>`;
       if(!eOpen) return;
-      eEntry.features.slice().sort((a,b2)=>(a.feature.order||0)-(b2.feature.order||0)).forEach(fEntry=>{
-        const fst=_tpl2Stats(fEntry.stories,pid);
-        html+=`<button class="tpl2-nav-node tpl2-nav-feature${sel.level==='feature'&&sel.productId===pid&&sel.featureId===fEntry.feature.id?' active':''}" onclick="_tpl2Select('feature','${pid}','${eid2}','${fEntry.feature.id}')" title="${escH(fEntry.feature.name)}">
+      const fRows=eEntry.features.map(fEntry=>({fEntry,fsn:snagMode?_tpl2SnagNavStats(snagBase.filter(sn=>sn.productId===pid&&sn.epicId===eid2&&featOfStory[sn.storyId]===fEntry.feature.id)):null}));
+      if(snagMode) fRows.sort((x,y)=>y.fsn.open-x.fsn.open||y.fsn.total-x.fsn.total);
+      else fRows.sort((x,y)=>(x.fEntry.feature.order||0)-(y.fEntry.feature.order||0));
+      fRows.forEach(({fEntry,fsn})=>{
+        const fst=snagMode?null:_tpl2Stats(fEntry.stories,pid);
+        html+=`<button class="tpl2-nav-node tpl2-nav-feature${sel.level==='feature'&&sel.productId===pid&&sel.featureId===fEntry.feature.id?' active':''}${quiet(fsn||{})}" onclick="_tpl2Select('feature','${pid}','${eid2}','${fEntry.feature.id}')" title="${escH(fEntry.feature.name)}">
           <span class="tpl2-nav-label">${escH(fEntry.feature.name)}</span>
-          ${fst.failing?'<span class="tpl2-nav-fail" title="Failing requirements"></span>':''}
-          <span class="tpl2-nav-count">${fst.verified}/${fst.total}</span>
+          ${snagMode?_tpl2SnagNavCountHtml(fsn):`${fst.failing?'<span class="tpl2-nav-fail" title="Failing requirements"></span>':''}
+          ${_tpl2NavCountHtml(_tpl2Coverage(fEntry.stories,pid))}`}
         </button>`;
       });
     });
@@ -15538,6 +16711,7 @@ function _tpl2RenderFunctional(baseStories){
 }
 
 function renderTestPlan(){
+  if(_tplSubTab==='scenario' && !_tplScenariosAllowed()) _tplSubTab='functional'; // TEMP_SCENARIOS_ADMIN_ONLY
   const wrap=eid('viewTestPlan');
   const prevScrollTop=wrap.querySelector('.tpl-content')?.scrollTop||0;
   // The search box lives inside the header this function rebuilds, so every
@@ -15752,7 +16926,7 @@ function renderTestPlanNav(breakdown, scenarios){
   let html=`<div class="nav-header tpl-nav-toggle-header">
     <div class="tpl-subtab-toggle" style="width:100%">
       <button class="tpl-subtab-btn${_tplSubTab==='functional'?' active':''}" style="flex:1" onclick="_tplSetSubTab('functional')">Functional</button>
-      <button class="tpl-subtab-btn${_tplSubTab==='scenario'?' active':''}" style="flex:1" onclick="_tplSetSubTab('scenario')">Scenario</button>
+      ${_tplScenariosAllowed()?`<button class="tpl-subtab-btn${_tplSubTab==='scenario'?' active':''}" style="flex:1" onclick="_tplSetSubTab('scenario')">Scenario</button>`:''}<!-- TEMP_SCENARIOS_ADMIN_ONLY -->
       <button class="tpl-subtab-btn${_tplSubTab==='snags'?' active':''}" style="flex:1" onclick="_tplSetSubTab('snags')">Snags</button>
     </div>
   </div>`;
@@ -16911,7 +18085,9 @@ function _tplScenarioMarkFormHtml(scenarioId){
   </div>`;
 }
 
-function _tplSetSubTab(v){_tplSubTab=v;_tplMarkingKey=null;_tplMarkingScenarioId=null;_tplSquashingSnagId=null;renderTestPlan();}
+function _tplSetSubTab(v){
+  if(v==='scenario' && !_tplScenariosAllowed()){ showToast('Scenarios are temporarily admin-only'); v='functional'; } // TEMP_SCENARIOS_ADMIN_ONLY
+  _tplSubTab=v;_tplMarkingKey=null;_tplMarkingScenarioId=null;_tplSquashingSnagId=null;renderTestPlan();}
 // Debounced — Test Plan's render is heavier than Requirements Tracker's (per-
 // product/per-epic breakdowns, sticky-header trees), so re-running it on
 // every single keystroke made typing feel laggy. Query updates immediately;
@@ -17532,7 +18708,7 @@ function _tplClarificationBannerHtml(sn){
 // either field can never accidentally reopen a snag sitting at 'Needs
 // Clarification' — see dbUpdateSnagMeta's own comment.
 async function _tplUpdSnagSeverity(id,val){
-  if(!canSquashSnags()){showToast('View-only access — editing is disabled');return;}
+  if(!permCan('snagSeverity')){showToast('View-only access — editing is disabled');return;}
   const sn=SNAGS.find(s=>s.id===id); if(!sn)return;
   const prev={severity:sn.severity,updatedAt:sn.updatedAt};
   sn.severity=val||''; sn.updatedAt=new Date().toISOString();
@@ -17540,7 +18716,7 @@ async function _tplUpdSnagSeverity(id,val){
   await _snagMetaSave(sn, prev, sn.severity, undefined);
 }
 async function _tplUpdSnagEstimate(id,val){
-  if(!canSquashSnags()){showToast('View-only access — editing is disabled');return;}
+  if(!permCan('snagEstimate')){showToast('View-only access — editing is disabled');return;}
   const sn=SNAGS.find(s=>s.id===id); if(!sn)return;
   const raw=(val||'').trim();
   if(raw && (isNaN(Number(raw))||Number(raw)<0)){showToast('Enter a valid number of hours','error');renderTestPlan();return;}
@@ -17553,7 +18729,7 @@ async function _tplUpdSnagEstimate(id,val){
 // narrower than canSquashSnags() used above for severity/estimate — see that
 // function's own comment for why.
 async function _tplUpdSnagAssignee(id,val){
-  if(!canAssignSnags()){showToast('View-only access — editing is disabled');return;}
+  if(!canChangeAssign()){showToast('View-only access — editing is disabled');return;}
   const sn=SNAGS.find(s=>s.id===id); if(!sn)return;
   const newAssignee=(val||'').trim().toLowerCase();
   // A reassignment (or unassignment) invalidates any existing "I'll pick this
@@ -17574,8 +18750,8 @@ async function _tplUpdSnagAssignee(id,val){
 async function _tplTogglePickup(id,checked){
   const sn=SNAGS.find(s=>s.id===id); if(!sn)return;
   const myEmail=(gCurrentUser&&gCurrentUser.email||'').trim().toLowerCase();
-  if(!canAssignSnags() || !sn.assignedTo || (sn.assignedTo!==myEmail && !isAdmin())){
-    showToast('Only the assigned developer (or an admin) can pick this up');renderTestPlan();return;
+  if(!canChangePickup() || !sn.assignedTo || (sn.assignedTo!==myEmail && !isEditor())){
+    showToast('Only the assigned developer (or an editor/admin) can pick this up');renderTestPlan();return;
   }
   const prev={pickedUp:sn.pickedUp,updatedAt:sn.updatedAt};
   sn.pickedUp=!!checked; sn.updatedAt=new Date().toISOString();
@@ -17586,11 +18762,12 @@ async function _tplTogglePickup(id,checked){
 // not a defect, so the S1-S5 defect scale doesn't fit it (see SNAG_SEVERITIES).
 function _tplSnagSeverityControlHtml(sn){
   const def=_snagSeverityDef(sn.severity);
-  if(!canSquashSnags()){
+  if(!permVisible('snagSeverity')) return '';
+  if(!permCan('snagSeverity')){
     return def?`<span class="tpl-verify-pill" style="color:${def.fg};background:${def.bg}" title="${escH(def.label)}">${def.code} ${escH(def.label)}</span>`:'';
   }
   const opts=SNAG_SEVERITIES.map(s=>`<option value="${s.code}"${sn.severity===s.code?' selected':''}>${s.code} — ${s.label}</option>`).join('');
-  return `<div data-requires-squash style="display:inline-flex;align-items:center;gap:2px" onclick="event.stopPropagation()">
+  return `<div style="display:inline-flex;align-items:center;gap:2px" onclick="event.stopPropagation()">
     <select class="req-select" style="height:24px;font-size:10px;padding:0 4px;width:auto${def?`;color:${def.fg};border-color:${def.fg}66`:''}" onchange="_tplUpdSnagSeverity('${sn.id}',this.value)">
       <option value=""${!sn.severity?' selected':''}>Severity —</option>
       ${opts}
@@ -17599,10 +18776,11 @@ function _tplSnagSeverityControlHtml(sn){
   </div>`;
 }
 function _tplSnagEstimateControlHtml(sn){
-  if(!canSquashSnags()){
+  if(!permVisible('snagEstimate')) return '';
+  if(!permCan('snagEstimate')){
     return sn.estimatedHours!=null?`<span class="tpl-req-chip" title="Estimated effort">Est. ${sn.estimatedHours}h</span>`:'';
   }
-  return `<div data-requires-squash style="display:inline-flex;align-items:center;gap:3px" onclick="event.stopPropagation()">
+  return `<div style="display:inline-flex;align-items:center;gap:3px" onclick="event.stopPropagation()">
     <label style="font-size:9px;color:var(--text3)">Est.</label>
     <input type="number" min="0" step="0.25" class="req-select" style="height:24px;font-size:10px;width:56px;padding:0 4px" value="${sn.estimatedHours!=null?sn.estimatedHours:''}" placeholder="h" onchange="_tplUpdSnagEstimate('${sn.id}',this.value)">
     <span style="font-size:9px;color:var(--text3)">h</span>
@@ -17623,6 +18801,9 @@ function _tplDeveloperOptionsHtml(selectedEmail){
 function _tplSnagAssigneeControlHtml(sn){
   if(!canAssignSnags()) return '';
   const label=sn.assignedTo?_tplTesterDisplayName(sn.assignedTo):'Unassigned';
+  if(!canChangeAssign()){
+    return `<span class="tpl-req-chip" title="Assigned to">${escH(label)}</span>`;
+  }
   return `<div style="display:inline-flex;align-items:center;gap:3px" onclick="event.stopPropagation()">
     <label style="font-size:9px;color:var(--text3)">Assigned</label>
     <select class="req-select" style="height:24px;font-size:10px;padding:0 4px;width:auto;max-width:120px" title="${escH(label)}" onchange="_tplUpdSnagAssignee('${sn.id}',this.value)">
@@ -17650,14 +18831,15 @@ function _tplSnagAssigneeControlHtml(sn){
 //    instead — same read-only-fallback pattern as severity/estimate use for
 //    non-Developer roles, see _tplSnagSeverityControlHtml/_tplSnagEstimateControlHtml).
 function _tplSnagPickupControlHtml(sn){
-  if(!canAssignSnags()) return '';
+  if(!permVisible('snagPickup')) return '';
   if(!sn.assignedTo){
+    if(!canChangePickup()||!canChangeAssign()) return '';
     return `<button type="button" class="tpl-copy-btn" style="display:inline-flex;align-items:center;gap:3px;color:var(--brand-primary);border-color:var(--brand-primary)" onclick="event.stopPropagation();_tplClaimSnag('${sn.id}')" title="Assign this to yourself and mark it picked up next">
       <span class="material-icons-round" style="font-size:12px">bolt</span>Pick up
     </button>`;
   }
   const myEmail=(gCurrentUser&&gCurrentUser.email||'').trim().toLowerCase();
-  const mayToggle = sn.assignedTo===myEmail || isAdmin();
+  const mayToggle = canChangePickup() && (sn.assignedTo===myEmail || isEditor());
   if(!mayToggle){
     return sn.pickedUp?`<span class="tpl-req-chip" style="color:var(--brand-primary)" title="${escH(_tplTesterDisplayName(sn.assignedTo))} is picking this up next"><span class="material-icons-round" style="font-size:11px;vertical-align:-2px">bolt</span> Picked up</span>`:'';
   }
@@ -17671,7 +18853,7 @@ function _tplSnagPickupControlHtml(sn){
 // reassignment-clears-pickedUp logic doesn't apply here — this isn't a
 // reassignment, it's a first claim).
 async function _tplClaimSnag(id){
-  if(!canAssignSnags()){showToast('View-only access — editing is disabled');return;}
+  if(!canChangeAssign()||!canChangePickup()){showToast('View-only access — editing is disabled');return;}
   const sn=SNAGS.find(s=>s.id===id); if(!sn)return;
   const myEmail=(gCurrentUser&&gCurrentUser.email||'').trim().toLowerCase();
   if(!myEmail){showToast('Sign-in required');return;}
@@ -18099,7 +19281,7 @@ let _tplReleaseOpen=false;
 const _tplReleaseSel=new Set();
 let _tplReleaseNotes='';
 let _tplReleaseBusy=false;
-function _tplToggleRelease(){ _tplReleaseOpen=!_tplReleaseOpen; renderTestPlan(); }
+function _tplToggleRelease(){ if(!permVisible('snagRelease')){showToast('You do not have permission to view releases');return;} _tplReleaseOpen=!_tplReleaseOpen; renderTestPlan(); }
 function _tplReleaseToggleSnag(id){ if(_tplReleaseSel.has(id)) _tplReleaseSel.delete(id); else _tplReleaseSel.add(id); renderTestPlan(); }
 function _tplReleaseSelectAll(on){ _tplReleaseSquashed().forEach(sn=>{ if(on) _tplReleaseSel.add(sn.id); else _tplReleaseSel.delete(sn.id); }); renderTestPlan(); }
 function _tplReleaseSquashed(){
@@ -18123,7 +19305,7 @@ function _tplReleaseViewHtml(){
     <button class="ds-btn ds-btn-outline ds-btn-sm" onclick="_tplToggleRelease()"><span class="material-icons-round" style="font-size:1.1em">arrow_back</span>Back to snags</button>
     <div style="font-size:16px;font-weight:800;color:var(--navy)">Release</div>
   </div>`;
-  html+=`<div data-requires-squash style="padding:6px 20px 0"><div style="font-size:12px;color:var(--text-muted);margin:8px 0">Tick the squashed snags that are in this release. When you press <b>Release completed</b>, they are sent back to the testers to retest.</div>`;
+  html+=`<div style="padding:6px 20px 0${permCan('snagRelease')?'':';display:none'}"><div style="font-size:12px;color:var(--text-muted);margin:8px 0">Tick the squashed snags that are in this release. When you press <b>Release completed</b>, they are sent back to the testers to retest.</div>`;
   if(!squashed.length){
     html+=`<div class="tr-empty-phase" style="padding:30px 0"><span class="material-icons-round tr-empty-phase-icon">inventory_2</span><div class="tr-empty-phase-title">No squashed snags waiting</div><div class="tr-empty-phase-sub">Snags a developer has squashed will appear here, ready to release.</div></div>`;
   } else {
@@ -18154,7 +19336,7 @@ function _tplReleaseViewHtml(){
   return html+'</div>';
 }
 async function _tplCompleteRelease(){
-  if(!canSquashSnags()){showToast('Developer access or above is required to create a release');return;}
+  if(!permCan('snagRelease')){showToast('You do not have permission to create a release');return;}
   if(!gCurrentUser){showToast('Sign in to create a release');return;}
   if(_tplReleaseBusy) return;
   const picked=_tplReleaseSquashed().filter(sn=>_tplReleaseSel.has(sn.id));
@@ -18186,6 +19368,154 @@ async function _tplCompleteRelease(){
     await _tplPostAutoComment(sn.storyId?'story':'snag', sn.storyId||sn.id, `📮 Sent back to testing in release ${res.code}${product?' on '+product.name:''}`);
   }
 }
+/* ── Bulk snag/enhancement import from markdown (admin only) ───────────────
+   Same idea as the Scenario pack importer: an AI formats the data using the
+   prompt template, the admin pastes it, and each "### heading" block becomes
+   one Snag or Enhancement, created through the same find-or-create scaffolding
+   the Add Snag modal uses (see saveAddSnagModal). */
+const TPL_SNAG_PROMPT_TEMPLATE=`You are converting a raw list of problems and ideas into markdown that can be imported
+directly into our test management tool as Snags (defects) and Enhancements (ideas).
+Follow this structure exactly.
+
+## Structure
+- Each item is its own level-3 heading: ### SN-01 - <short title>   (sequential numbers)
+- Under the heading, one line per field, each starting with a bold label:
+  - **Type:** Snag   (or: Enhancement)
+  - **Product:** <exact product name>
+  - **Area:** <exact functional area name, or "Other" if none fits>
+  - **Function:** <exact function/feature name>   (optional - leave out if unknown)
+  - **Requirement:** <exact requirement code, e.g. BOOK-DATE-004>   (optional)
+  - **Severity:** S1 | S2 | S3 | S4 | S5   (Snags only - omit for Enhancements)
+  - **Estimate:** <hours as a number, e.g. 2.5>   (optional)
+  - **Description:** <what is wrong, or what the idea is - one or more sentences>
+- Leave a blank line and a --- divider between items.
+
+## Rules
+- Product, Area, Function and Requirement must be copied character-for-character from the
+  lists you are given. Never invent or guess them. If unsure, leave Function/Requirement out
+  and use Area "Other".
+- Severity: S1 Critical (core function lost, data loss, security), S2 Major (major function
+  broken, workaround exists), S3 Moderate (incorrect but achievable), S4 Minor (small
+  deviation), S5 Cosmetic (presentation only). Leave it out if you cannot tell.
+- Do not add commentary, headers or sections outside this structure - the importer only
+  reads ###-level blocks.
+
+## Worked example
+
+### SN-01 - Return date accepts a date before departure
+
+**Type:** Snag
+**Product:** IBE
+**Area:** Flight Search
+**Requirement:** FLIG-DATE-004
+**Severity:** S2
+**Estimate:** 3
+**Description:** On the search form, choosing a return date earlier than the departure date is accepted and the search runs, returning no results instead of a validation error.
+
+---
+
+### SN-02 - Show a calendar price heat-map
+
+**Type:** Enhancement
+**Product:** IBE
+**Area:** Other
+**Description:** Colour calendar days by fare price so customers can spot the cheapest dates at a glance.
+
+(Paste your list of products, areas, functions and requirement codes alongside this prompt so the tool uses real names.)`;
+let _tplSnagImportOpen=false;
+let _tplSnagImportedIds=[]; // snags created by imports during this import session, in order
+function _tplToggleSnagImport(){ if(!permCan('snagImport')){showToast('You do not have permission to import snags');return;} _tplSnagImportOpen=!_tplSnagImportOpen; if(!_tplSnagImportOpen) _tplSnagImportedIds=[]; renderTestPlan(); }
+function _tplSnagImportedListHtml(){
+  const rows=_tplSnagImportedIds.map(id=>SNAGS.find(s=>s.id===id)).filter(Boolean);
+  if(!rows.length) return '';
+  const body=rows.map(sn=>{
+    const it=_tplSnagItemOfReq(sn), def=sn.severity?_snagSeverityDef(sn.severity):null;
+    return `<tr><td><b>${escH(sn.code||'(pending)')}</b></td><td>${sn.kind==='Enhancement'?'Enhancement':'Snag'}</td><td>${escH(it.code||'—')}</td><td>${escH(it.text)}</td><td>${escH(it.productName)}</td><td>${escH(it.areaName)}</td><td>${def?def.code:'—'}</td><td>${sn.estimatedHours!=null?sn.estimatedHours+'h':'—'}</td></tr>`;
+  }).join('');
+  return `<div style="margin:18px 20px 40px">
+    <div style="font-size:14px;font-weight:800;color:var(--navy);margin-bottom:8px">Imported snags <span class="tpl4-cnt">${rows.length}</span></div>
+    <div class="req-table-scroll" style="margin:0"><table class="req-table"><thead><tr><th>Snag ID</th><th>Type</th><th>Requirement</th><th>Description</th><th>Product</th><th>Area</th><th>Sev.</th><th>Est.</th></tr></thead><tbody>${body}</tbody></table></div>
+  </div>`;
+}
+function openSnagPromptModal(){ const ta=eid('snagPromptText'); if(ta) ta.value=TPL_SNAG_PROMPT_TEMPLATE; openModal('snagPromptModal'); }
+function _snagCopyPromptTemplate(){
+  if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(TPL_SNAG_PROMPT_TEMPLATE).then(()=>showToast('Prompt template copied')).catch(()=>showToast('Could not copy — select text manually'));
+  else showToast('Clipboard not available — select text manually');
+}
+function _tplSnagImportPanelHtml(){
+  return `<div class="tpl-scenario-form" style="margin:14px 20px 0">
+    <div style="font-size:11px;color:var(--text2);line-height:1.5">Paste markdown in the standard format — each snag or enhancement as a <strong>### heading</strong> with <strong>Type / Product / Area / Function / Requirement / Severity / Estimate / Description</strong> lines. Only Product is essential; an Area that doesn't match goes under "Other". Use the AI prompt to format a raw list for you.</div>
+    <textarea class="tpl-scenario-textarea" id="tpl-snag-import-markdown" style="min-height:200px" placeholder="Paste the markdown here…"></textarea>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="mbtn mbtn-save" onclick="_tplImportSnagsFromMarkdown()">Parse &amp; Import</button>
+      <button class="mbtn mbtn-cancel" onclick="openSnagPromptModal()"><span class="material-icons-round" style="font-size:14px;vertical-align:-2px;margin-right:4px">auto_awesome</span>AI prompt template</button>
+      <button class="mbtn mbtn-cancel" style="margin-left:auto" onclick="_tplToggleSnagImport()"><span class="material-icons-round" style="font-size:14px;vertical-align:-2px;margin-right:4px">arrow_back</span>Back to snag list</button>
+    </div>
+  </div>`;
+}
+function _tplParseSnagMarkdown(text){
+  const out=[];
+  String(text||'').split(/\r?\n(?=###\s)/).forEach(block=>{
+    const lines=block.split(/\r?\n/);
+    const hm=/^###\s+(.+)$/.exec(lines[0]); if(!hm) return;
+    const heading=hm[1].trim();
+    const title=heading.replace(/^(?:SN|SNAG|ENH|EN|SC)-?\s*\d+\s*[—–:\-]\s*/i,'').trim()||heading;
+    const f={}; let cur=null;
+    lines.slice(1).forEach(line=>{
+      const m=/^\s*(?:[-*]\s*)?\*\*([^*:]+?):?\*\*:?\s*(.*)$/.exec(line);
+      if(m){ cur=m[1].trim().toLowerCase(); f[cur]=m[2].trim(); }
+      else if(cur && line.trim() && line.trim()!=='---') f[cur]+=(f[cur]?'\n':'')+line.trim();
+    });
+    const kind=/enhance|idea|^enh/i.test(f.type||f.kind||'')||/^ENH/i.test(heading)?'Enhancement':'Snag';
+    const sevM=/S\s*([1-5])/i.exec(f.severity||'');
+    const est=parseFloat(f.estimate||f['estimated hours']||'');
+    out.push({heading,title,kind,
+      product:(f.product||'').trim(), area:(f.area||f['functional area']||'').trim(), func:(f.function||f.feature||'').trim(),
+      reqCode:(f.requirement||f['requirement code']||'').trim(),
+      severity:(kind==='Snag'&&sevM)?('S'+sevM[1]):'', estimate:isNaN(est)?null:est,
+      description:(f.description||'').trim()});
+  });
+  return out;
+}
+async function _tplImportSnagsFromMarkdown(){
+  if(!isAdmin()){showToast('Admin access required');return;}
+  const parsed=_tplParseSnagMarkdown(eid('tpl-snag-import-markdown')?.value||'');
+  if(!parsed.length){showToast('No items found — expected headings like "### SN-01 - Title"','error');return;}
+  const norm=s=>String(s||'').trim().toLowerCase();
+  const email=(gCurrentUser&&gCurrentUser.email||'').trim().toLowerCase();
+  const skipped=[], warnings=[]; let made=0, snagsN=0, enhN=0;
+  showToast(`Importing ${parsed.length} item(s)…`);
+  for(let i=0;i<parsed.length;i++){
+    const d=parsed[i];
+    let story=d.reqCode?ROADMAP_STORIES.find(s=>norm(s.code)===norm(d.reqCode)):null;
+    if(d.reqCode&&!story) warnings.push(`${d.title}: requirement "${d.reqCode}" not found`);
+    let prod=d.product?ROADMAP_PRODUCTS.find(p=>norm(p.name)===norm(d.product)):null;
+    if(!prod&&story) prod=_reqResolveChain(story).product||null;
+    if(!prod){ skipped.push(`${d.title}: product "${d.product||'(none)'}" not found`); continue; }
+    let epic;
+    if(story){ epic=_reqResolveChain(story).epic; if(!epic){ skipped.push(`${d.title}: requirement has no functional area`); continue; } }
+    else {
+      epic=d.area&&norm(d.area)!=='other'?_snagModalEpicsForProduct(prod.id).find(e=>norm(e.name)===norm(d.area)):null;
+      if(d.area&&norm(d.area)!=='other'&&!epic) warnings.push(`${d.title}: area "${d.area}" not found — used "Other"`);
+      if(!epic) epic=_snagFindOrCreateOtherEpic(prod.id,null);
+      let feature=d.func?ROADMAP_FEATURES.find(f=>f.epicId===epic.id&&norm(f.name)===norm(d.func)):null;
+      if(d.func&&!feature) warnings.push(`${d.title}: function "${d.func}" not found — used the default`);
+      if(!feature) feature=_snagFindOrCreateManualFeature(epic.id,curPhase,d.kind,null);
+      story=_snagCreatePlaceholderStory(feature.id,d.title+(d.description?' — '+d.description:''),d.kind,'',null);
+    }
+    const now=new Date().toISOString();
+    const snag={id:'SNAG'+Date.now()+'_'+Math.floor(Math.random()*1e6), storyId:story.id, productId:prod.id, epicId:epic.id, title:'', kind:d.kind,
+      status:'Open', source:'manual', reporterEmail:email, cycleCount:1, severity:d.severity, estimatedHours:d.estimate, assignedTo:'', pickedUp:false,
+      createdAt:now, resolvedBy:'', resolvedAt:'', updatedAt:now};
+    SNAGS.push(snag);
+    if(await dbUpsertSnag(snag)){ made++; _tplSnagImportedIds.push(snag.id); if(d.kind==='Enhancement') enhN++; else snagsN++; }
+    else { SNAGS=SNAGS.filter(s=>s.id!==snag.id); skipped.push(`${d.title}: save failed`); }
+    await new Promise(r=>setTimeout(r,3)); // keep Date.now()-based ids unique
+  }
+  renderTestPlan(); // stays in import view: panel (cleared) with the imported list below it
+  showToast(`Imported ${made} item(s) (${snagsN} snag${snagsN===1?'':'s'}, ${enhN} enhancement${enhN===1?'':'s'})${skipped.length?` — ${skipped.length} skipped`:''}`,6000);
+  if(skipped.length||warnings.length) alert('Import notes:\n\n'+(skipped.length?'SKIPPED:\n'+skipped.join('\n')+'\n\n':'')+(warnings.length?'WARNINGS:\n'+warnings.join('\n'):''));
+}
 function _tplSnagToolbarHtml(laneCounts){
   const canAsg=canAssignSnags();
   const seg=(cur,val,fn,label)=>`<button class="tpl-subtab-btn${cur===val?' active':''}" onclick="${fn}('${val}')">${label}</button>`;
@@ -18199,7 +19529,6 @@ function _tplSnagToolbarHtml(laneCounts){
         <option value="area"${(_tplSnagGroup==='area'||(!canAsg&&_tplSnagGroup==='assignee'))?' selected':''}>Product</option></select>`)
     : '';
   return `<div style="display:flex;align-items:flex-end;gap:18px;flex-wrap:wrap;padding:14px 20px 0">
-    <button class="ds-btn ds-btn-accent ds-btn-md" onclick="_tplToggleRelease()" title="Send squashed snags back to testing as a release, and see past releases"><span class="material-icons-round" style="font-size:1.1em">rocket_launch</span>Release</button>
     ${ctl('Swim lane',laneSel)}
     ${grp}
     ${ctl('Detail',`<div class="tpl-subtab-toggle">${seg(_tplSnagView,'list','_tplSetSnagView','Less')}${seg(_tplSnagView,'cards','_tplSetSnagView','More')}</div>`)}
@@ -18237,6 +19566,7 @@ function _tplRenderSnagsTab(){
     const showSep=searching || _tplActiveProductId==='ALL';
     body=_tplSnagView==='list'?_tplSnagListHtml(items):_tplSnagsCardsHtml(items,showSep);
   }
+  if(permCan('snagImport')&&_tplSnagImportOpen) return _tplSnagImportPanelHtml()+_tplSnagImportedListHtml();
   return _tplSnagToolbarHtml(laneCounts)+banner+body;
 }
 // ── Manual snag entry — "found and submitted through other means", not
@@ -18362,6 +19692,8 @@ function _renderAddSnagModal(){
         ${SNAG_SEVERITIES.map(s=>`<option value="${s.code}">${s.code} — ${s.label}</option>`).join('')}
       </select>
     </div>`}
+    ${isAdmin()?`<div class="mfield"><label>Reported by <span style="font-weight:400;color:var(--text3)">(admin — attribute this to another user)</span></label>
+      <select class="mselect" id="addSnagReporterSelect">${_snagReporterOptionsHtml()}</select></div>`:''}
   `;
 }
 // Find-or-create a catch-all "Other" Functional Area for this product — one
@@ -18453,7 +19785,7 @@ async function saveAddSnagModal(){
   const severity=isEnhancement?'':(eid('addSnagSeveritySelect')?.value||'');
   const estimateRaw=(eid('addSnagEstimateInput')?.value||'').trim();
   const estimatedHours=estimateRaw?Number(estimateRaw):null;
-  const assignedTo=(!isEnhancement && canAssignSnags())?(eid('addSnagAssigneeSelect')?.value||''):'';
+  const assignedTo=(!isEnhancement && canChangeAssign())?(eid('addSnagAssigneeSelect')?.value||''):'';
   // Only Product and Functional Area are required — Function, Related
   // requirement, and Description are all optional; a snag/enhancement with
   // nothing but those two still gets a placeholder requirement created for
@@ -18488,9 +19820,10 @@ async function saveAddSnagModal(){
   }
   const now=new Date().toISOString();
   const email=(gCurrentUser&&gCurrentUser.email||'').trim().toLowerCase();
+  const reporter=(isAdmin()&&eid('addSnagReporterSelect')&&eid('addSnagReporterSelect').value)||email;   // admins may attribute the snag to someone else
   const snag={id:'SNAG'+Date.now()+'_'+Math.floor(Math.random()*1e6),
     storyId, productId, epicId, title:'', kind,
-    status:'Open', source:'manual', reporterEmail:email, cycleCount:1,
+    status:'Open', source:'manual', reporterEmail:reporter, cycleCount:1,
     severity, estimatedHours, assignedTo, pickedUp:false,
     createdAt:now, resolvedBy:'', resolvedAt:'', updatedAt:now};
   if(pending && (pending.epic||pending.feature||pending.story)){
@@ -19502,7 +20835,14 @@ function _snagsRptByProductArea(D){
   });
   return [...map.values()].map(g=>({product:g.product,area:g.area,count:g.rows.length,
     s12:g.rows.filter(r=>r.sev==='S1'||r.sev==='S2').length, eff:_rptEffort(g.rows)}))
-    .sort((a,b)=>b.count-a.count||a.product.localeCompare(b.product));
+    // v181: A–Z by product, then A–Z by functional area (was: most snags first).
+    // "(no product)" always goes last.
+    .sort((a,b)=>{
+      const an=a.product==='(no product)', bn=b.product==='(no product)';
+      if(an!==bn) return an?1:-1;
+      return a.product.localeCompare(b.product,undefined,{sensitivity:'base',numeric:true})
+          || String(a.area).localeCompare(String(b.area),undefined,{sensitivity:'base',numeric:true});
+    });
 }
 function _snagsRptFmtH(n){ return n===null||n===undefined?'—':(Math.round(n*100)/100)+'h'; }
 function _snagsRptSevChip(sev){
@@ -20776,8 +22116,8 @@ let _jiraSyncing = false;
 let settingsOrigKeys = { cms:[], owner:[], status:[], reqtype:[] };
 
 let _settingsReturnView='ia';   // the view Settings was opened from — where Close goes back to
-const SETTINGS_TITLES={general:'General',home:'Homepage',appblocks:'App Blocks',systems:'Systems',owners:'Owners',statuses:'Statuses',reqtypes:'Requirement types',
-  brand:'Brand',logo:'Logo',layout:'Layout',crawl:'Page Audit',components:'Components',jira:'Jira'};
+const SETTINGS_TITLES={general:'General',home:'Homepage',appblocks:'App Blocks',portfolio:'Products & Projects',ptemplates:'Project templates',systems:'Systems',owners:'Owners',statuses:'Statuses',reqtypes:'Requirement types',
+  brand:'Brand',logo:'Logo',layout:'Layout',crawl:'Page Audit',components:'Components',jira:'Jira',roles:'Roles & Privileges'};
 function openSettings(tab){
   if(curView!=='settings') _settingsReturnView=curView;
   // Deep-copy current live data into working copies
@@ -20804,8 +22144,9 @@ function closeSettings(){
   switchView(back);
 }
 function switchStab(tab){
+  if(tab==='roles' && !isAdmin()){ showToast('Admin access required'); tab='general'; }
   settingsTab = tab;
-  ['general','systems','owners','statuses','reqtypes','brand','logo','layout','crawl','components','jira','home','appblocks'].forEach(t=>{
+  ['general','systems','owners','statuses','reqtypes','brand','logo','layout','crawl','components','jira','home','appblocks','portfolio','ptemplates','roles'].forEach(t=>{
     const el=eid('stab-'+t); if(el) el.classList.toggle('active', t===tab);
   });
   const ttl=eid('settingsPageTitle'); if(ttl) ttl.textContent=SETTINGS_TITLES[tab]||'Settings';
@@ -20827,6 +22168,113 @@ function renderSettingsBody(){
   if(settingsTab === 'jira'){ body.innerHTML = renderJiraTab(); _jiraFetchStatus(); }
   if(settingsTab === 'home')      body.innerHTML = renderHomeTab();
   if(settingsTab === 'appblocks') body.innerHTML = renderAppBlocksTab();
+  if(settingsTab === 'portfolio') body.innerHTML = renderPortfolioTab();
+  if(settingsTab === 'ptemplates') body.innerHTML = renderTemplatesTab();
+  if(settingsTab === 'roles'){ body.innerHTML = renderRolesTab(); renderRbacList(); renderViewAccessSection(); }
+}
+
+// ── ROLES & PRIVILEGES SETTINGS TAB (admin only) ─────────────────────────
+// Moved here from the old "Access & Roles" overlay (v177): users + their role,
+// the per-role View Access editor, and the new privilege matrix. The user
+// list and view-access sections still render into #rbacList / #viewAccessSection
+// via renderRbacList()/renderViewAccessSection(), exactly as before.
+function renderRolesTab(){
+  if(!isAdmin()) return '<div class="settings-section"><div style="font-size:12px;color:var(--text3)">Admin access required.</div></div>';
+  const inp='font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid var(--md-outline-variant);background:var(--md-surface-variant);color:var(--text)';
+  return `<div class="settings-section">
+    <div class="settings-section-title">Users</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Roles are stored in your Google Sheet — only admins can edit.</div>
+    <div id="rbacList"></div>
+    <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--md-outline-variant)">
+      <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px">Add user</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <input id="rbacEmailInput" type="email" placeholder="user@domain.com" style="flex:1;min-width:180px;${inp}">
+        <input id="rbacNameInput" type="text" placeholder="Name (optional)" style="width:140px;${inp}">
+        <select id="rbacRoleInput" style="${inp}">
+          <option value="editor">Editor</option>
+          <option value="tester">Tester</option>
+          <option value="developer">Developer</option>
+          <option value="viewer">Viewer</option>
+          <option value="admin">Admin</option>
+        </select>
+        <button onclick="rbacAddUser()" style="padding:6px 14px;border-radius:8px;border:none;background:var(--brand-primary);color:#fff;font-size:12px;font-weight:600;cursor:pointer">Add</button>
+      </div>
+    </div>
+  </div>
+  <div class="settings-section">
+    <div class="settings-section-title">Privileges</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:12px;line-height:1.6">For each feature, choose what every role can do: <strong>Can change</strong> it, <strong>Can see</strong> it read-only, or have it <strong>Hidden</strong>. Admin is always full access and can't be restricted. Features that are just buttons only offer Can change / Hidden. Saved changes apply the next time each person loads the page.</div>
+    ${renderPermMatrixHtml()}
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="mbtn mbtn-save" onclick="savePermMatrix()">Save privileges</button>
+      <button class="mbtn mbtn-cancel" onclick="resetPermMatrix()">Reset to defaults</button>
+    </div>
+  </div>
+  <div class="settings-section"><div id="viewAccessSection"></div></div>`;
+}
+function renderPermMatrixHtml(){
+  const roles=PERM_ROLES;
+  const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+  const sel='font-size:11px;padding:3px 4px;border-radius:6px;border:1px solid var(--md-outline-variant);background:var(--md-surface-variant);color:var(--text);max-width:150px';
+  let html=`<div style="overflow-x:auto"><table style="border-collapse:collapse;width:100%;font-size:12px">
+    <thead><tr><th style="text-align:left;padding:6px 8px;border-bottom:1px solid var(--md-outline-variant)">Feature</th>${roles.map(r=>`<th style="text-align:left;padding:6px 8px;border-bottom:1px solid var(--md-outline-variant);font-size:11px">${cap(r)}</th>`).join('')}</tr></thead><tbody>`;
+  let lastGroup='';
+  PERM_CAPS.forEach(c=>{
+    if(c.group!==lastGroup){
+      lastGroup=c.group;
+      html+=`<tr><td colspan="${roles.length+1}" style="padding:12px 8px 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3)">${escH(c.group)}</td></tr>`;
+    }
+    html+=`<tr><td style="padding:6px 8px;border-bottom:1px solid var(--md-outline-variant);vertical-align:top"><div style="font-weight:600;color:var(--md-on-surface)">${escH(c.label)}</div><div style="font-size:10px;color:var(--text3);max-width:260px;line-height:1.4">${escH(c.desc)}</div></td>`;
+    roles.forEach(r=>{
+      if(r==='admin'){
+        html+=`<td style="padding:6px 8px;border-bottom:1px solid var(--md-outline-variant);font-size:11px;color:var(--text3)">Can change <span title="Admin is always full access">🔒</span></td>`;
+      } else {
+        const cur=permState(c.id,r);
+        html+=`<td style="padding:6px 8px;border-bottom:1px solid var(--md-outline-variant)"><select id="perm-${c.id}-${r}" style="${sel}">${c.states.map(s=>`<option value="${s}"${cur===s?' selected':''}>${PERM_STATE_LABELS[s]}</option>`).join('')}</select></td>`;
+      }
+    });
+    html+='</tr>';
+  });
+  return html+'</tbody></table></div>';
+}
+function _permCollect(useDefaults){
+  const rows=[];
+  PERM_CAPS.forEach(c=>{
+    const map={}; let isDefault=true;
+    PERM_ROLES.filter(r=>r!=='admin').forEach(r=>{
+      const v=useDefaults?permDefault(c.id,r):(eid(`perm-${c.id}-${r}`)?.value||permDefault(c.id,r));
+      map[r]=v;
+      if(v!==permDefault(c.id,r)) isDefault=false;
+    });
+    rows.push({cap:c.id,map,isDefault});
+  });
+  return rows;
+}
+async function _permPersist(rows){
+  const batch=[];
+  rows.forEach(({cap,map,isDefault})=>{
+    if(isDefault) delete PERM_OVERRIDES[cap]; else PERM_OVERRIDES[cap]=map;
+    // An all-defaults capability is stored as '' (same convention as
+    // viewaccess_<role>) so it reads back as "never configured".
+    batch.push({key:'perm_'+cap, value:isDefault?'':Object.keys(map).map(r=>r+'='+map[r]).join(',')});
+  });
+  return dbUpsertConfigBatch(batch);
+}
+async function savePermMatrix(){
+  if(!isAdmin()){showToast('Admin access required');return;}
+  const ok=await _permPersist(_permCollect(false));
+  applyRoleUI();
+  if(typeof renderTestPlan==='function') try{renderTestPlan();}catch(e){}
+  renderSettingsBody();
+  if(ok!==false) showToast('Saved privileges');
+}
+async function resetPermMatrix(){
+  if(!isAdmin()){showToast('Admin access required');return;}
+  if(!confirm('Reset every privilege to its default?')) return;
+  await _permPersist(_permCollect(true));
+  applyRoleUI();
+  renderSettingsBody();
+  showToast('Privileges reset to defaults');
 }
 
 // ── APP BLOCKS SETTINGS TAB ──────────────────────────────────────────────
@@ -21223,6 +22671,309 @@ function addCMSEntry(){
 }
 
 // ── OWNERS TAB ──────────────────────────────
+// ════════════════════════════════════════════════════════════════════════════
+// SETTINGS > PRODUCTS & PROJECTS (v190)
+// One place to manage the portfolio: products (add / rename / describe /
+// reorder / delete — the same dialogs the Roadmap uses) and projects (the
+// phases: add / edit, and which products each is linked to). Changes save
+// immediately, exactly as they do on the Roadmap; there is nothing to "Save".
+// ════════════════════════════════════════════════════════════════════════════
+function _portfolioRefresh(){ if(curView==='settings'&&settingsTab==='portfolio') renderSettingsBody(); }
+function _pfMoveProduct(id,dir){
+  if(!canEdit()){ showToast('View-only access — editing is disabled'); return; }
+  const a=ROADMAP_PRODUCTS, i=a.findIndex(p=>p.id===id), j=i+dir;
+  if(i<0||j<0||j>=a.length) return;
+  [a[i],a[j]]=[a[j],a[i]];
+  a.forEach((p,k)=>{ if(p.order!==k){ p.order=k; dbUpsertProduct(p); } });
+  renderSettingsBody();
+}
+function _pfAddProduct(phaseId,pid){
+  if(!pid) return;
+  if(!canEdit()){ showToast('View-only access — editing is disabled'); return; }
+  _rmAssociate(pid,phaseId);
+  renderSettingsBody();
+}
+function _pfRemoveProduct(phaseId,pid){
+  if(!canEdit()){ showToast('View-only access — editing is disabled'); return; }
+  PRODUCT_PROJECTS[pid]=(PRODUCT_PROJECTS[pid]||[]).filter(x=>x!==phaseId);
+  _rmPersistAssoc(pid);
+  renderSettingsBody();
+}
+function renderPortfolioTab(){
+  const canEd=canEdit(), canPj=permCan('projectEdit');
+  const btn=(label,fn,extra)=>'<button class="mbtn mbtn-cancel" style="padding:4px 10px;font-size:11px'+((extra||'').indexOf('red')>=0?';color:var(--rag-red-fg)':'')+'" onclick="'+fn+'" '+((extra||'').indexOf('disabled')>=0?'disabled':'')+'>'+label+'</button>';
+  // ── products ──
+  const prodRows=ROADMAP_PRODUCTS.map((p,i)=>{
+    const areas=ROADMAP_EPICS.filter(e=>e.productId===p.id).length;
+    const projs=_rmPhases().filter(ph=>_rmProjectInProduct(p.id,ph.id)).length;
+    return '<tr><td><div class="pj-title">'+escH(p.name)+'</div>'+(p.desc?'<div class="pj-desc">'+escH(p.desc)+'</div>':'')+'</td>'
+      +'<td>'+areas+'</td><td>'+projs+'</td>'
+      +'<td style="white-space:nowrap;text-align:right">'+(canEd
+        ? btn('↑','_pfMoveProduct(\''+p.id+'\',-1)',i===0?'disabled':'')+' '+btn('↓','_pfMoveProduct(\''+p.id+'\',1)',i===ROADMAP_PRODUCTS.length-1?'disabled':'')+' '
+          +btn('Edit','openEditRmProduct(\''+p.id+'\')')+' '+btn('Delete','deleteRmProduct(\''+p.id+'\')','style="color:var(--rag-red-fg)"')
+        : '')+'</td></tr>';
+  }).join('');
+  // ── projects ──
+  const projRows=_pjSorted(_rmPhases()).map(ph=>{
+    const involved=_pjProducts(ph.id);
+    const chips=involved.map(g=>'<span class="pj-chip" style="display:inline-flex;align-items:center;gap:4px" title="'+escH(_pjProdTitle(g))+'">'+escH(g.prod.name)
+      +(canEd&&g.features===0?'<button class="rm-ph-x" style="margin:0" title="Remove from this project" onclick="_pfRemoveProduct(\''+ph.id+'\',\''+g.prod.id+'\')">✕</button>':'')+'</span>').join(' ');
+    const free=ROADMAP_PRODUCTS.filter(p=>!_rmProjectInProduct(p.id,ph.id));
+    const add=(canEd&&free.length)?'<select class="mselect" style="width:auto;font-size:11px;padding:2px 6px;margin-top:4px" onchange="_pfAddProduct(\''+ph.id+'\',this.value)"><option value="">+ Add a product…</option>'+free.map(p=>'<option value="'+escH(p.id)+'">'+escH(p.name)+'</option>').join('')+'</select>':'';
+    return '<tr><td><div class="pj-name"><span class="pj-dot" style="background:'+ph.colour+'"></span><div><div class="pj-title">'+escH(ph.name)+(ph.completed?' <span class="pj-owner">Complete</span>':'')+'</div>'+(ph.desc?'<div class="pj-desc">'+escH(ph.desc)+'</div>':'')+'</div></div></td>'
+      +'<td>'+(ph.owner?'<span class="pj-owner">'+escH(ph.owner)+'</span>':'<span class="pj-none">—</span>')+'</td>'
+      +'<td class="pj-dates">'+_pjDatesHtml(ph)+'</td>'
+      +'<td>'+(chips||'<span class="pj-none">None yet</span>')+(add?'<div>'+add+'</div>':'')+'</td>'
+      +'<td style="text-align:right;white-space:nowrap">'+(canPj?btn(ph.completed?'Reopen':'Complete','_pjToggleComplete(\''+ph.id+'\')')+' '+btn('Edit','_pjOpenModal(\''+ph.id+'\')')+' '+btn('Save as template','_ptFromProject(\''+ph.id+'\')')+' '+btn('Delete','_pjDelete(\''+ph.id+'\')','style="color:var(--rag-red-fg)"'):'')+'</td></tr>';
+  }).join('');
+  return '<div class="settings-section"><div class="settings-section-title">Products</div>'
+    +'<div style="font-size:11px;color:var(--text3);margin-bottom:10px;line-height:1.6">The products on the Product Roadmap. Deleting a product also deletes its functional areas, features and requirements. Use the arrows to change the order they appear in.</div>'
+    +(ROADMAP_PRODUCTS.length?'<table class="pj-table"><thead><tr><th>Product</th><th>Functional areas</th><th>Projects</th><th></th></tr></thead><tbody>'+prodRows+'</tbody></table>':'<div class="pj-none">No products yet.</div>')
+    +(canEd?'<div style="margin-top:10px"><button class="cfg-add-btn" onclick="openAddRmProduct()">+ Add product</button></div>':'')+'</div>'
+    +'<div class="settings-section"><div class="settings-section-title">Projects</div>'
+    +'<div style="font-size:11px;color:var(--text3);margin-bottom:10px;line-height:1.6">Projects are the phases of the roadmap. A product is linked to a project when it has features scheduled in it, or when you add it here (a product added without features can be removed again). Dates, owner and follow-on scheduling are set in the project dialog.</div>'
+    +(projRows?'<table class="pj-table"><thead><tr><th>Project</th><th>Owner</th><th>Dates</th><th>Products involved</th><th></th></tr></thead><tbody>'+projRows+'</tbody></table>':'<div class="pj-none">No projects yet.</div>')
+    +(canPj?'<div style="margin-top:10px"><button class="cfg-add-btn" onclick="_pjOpenModal()">+ Add project</button></div>':'')+'</div>';
+}
+
+function _rmProdMenuAdd(){ _rmProdMenuOpen=false; renderRoadmap(); openAddRmProduct(); }
+
+// ════════════════════════════════════════════════════════════════════════════
+// PROJECTS: COMPLETE · DELETE · TEMPLATES (v191)
+//  - Complete: a project flagged completed is hidden from the Roadmap board and
+//    the Project List (and its dependency dots) unless "Show completed" is on.
+//  - Delete: removes the project; its features move to the Backlog, projects that
+//    followed it become fixed-date, links to products are cleared. Refused while
+//    sitemap pages are still assigned to the phase.
+//  - Templates: repeatable projects (e.g. "Open a new destination airport").
+//    Stored in the Config sheet as ptemplate_<id> = JSON {name,desc,owner,days,text}
+//    where text is the checklist source:
+//        # Feature name | Functional area (area optional)
+//        - a requirement / check
+//    {project} in any text is replaced by the new project's name. Creating a
+//    project from a template creates all those features + requirements in it.
+// ════════════════════════════════════════════════════════════════════════════
+let _pjShowDone=false, _rmShowCompleted=false, PROJECT_TEMPLATES={}, _ptEditId=null;
+function _rmToggleCompleted(v){ _rmShowCompleted=!!v; renderRoadmap(); }
+function _pjToggleShowDone(v){ _pjShowDone=!!v; renderProjects(); }
+function _pjRefreshAll(){
+  renderProjects(); if(curView==='roadmap') renderRoadmap(); _portfolioRefresh();
+  if(typeof renderPhaseBar==='function') renderPhaseBar();
+}
+function _pjToggleComplete(id){
+  if(!permCan('projectEdit')){ showToast('View-only access — editing is disabled'); return; }
+  const ph=PHASES.find(x=>x.id===id); if(!ph) return;
+  ph.completed=!ph.completed;
+  if(ph.completed) ph.pct=100;
+  dbUpsertPhase(ph);
+  _pjRefreshAll();
+  showToast(ph.completed?ph.name+' marked complete — hidden everywhere unless "Show completed" is on':ph.name+' reopened');
+}
+async function dbDeletePhase(id){
+  try{ await sheetPost({action:'deletePhase',id}); return true; }
+  catch(e){ console.error('dbDeletePhase:',e); showToast('Sheet write error: '+e.message+' (deploy backend v101 to enable deleting projects)'); return false; }
+}
+function _pjDelete(id){
+  if(!permCan('projectEdit')||!canEdit()){ showToast('View-only access — editing is disabled'); return; }
+  const ph=PHASES.find(x=>x.id===id); if(!ph) return;
+  if(id==='PH0'){ showToast('The Phase 0 baseline cannot be deleted'); return; }
+  const pages=NODES.filter(n=>n.phase===id).length;
+  if(pages){ alert('"'+ph.name+'" is still used by '+pages+' page'+(pages===1?'':'s')+' in the sitemap. Move those pages to another phase first, then delete the project.'); return; }
+  const feats=ROADMAP_FEATURES.filter(f=>f.phaseId===id), followers=PHASES.filter(p=>p.followsId===id);
+  if(!confirm('Delete project "'+ph.name+'"?\n\n• '+feats.length+' feature'+(feats.length===1?'':'s')+' in it will move to the Backlog (nothing else is deleted)\n'
+    +(followers.length?'• '+followers.length+' project'+(followers.length===1?'':'s')+' that start after it will keep their current dates\n':'')+'\nThis cannot be undone.')) return;
+  feats.forEach(f=>{ f.phaseId=''; dbUpsertFeature(f); });
+  followers.forEach(p=>{ p.followsId=''; p.lagDays=0; dbUpsertPhase(p); });
+  Object.keys(PRODUCT_PROJECTS).forEach(pid=>{
+    if((PRODUCT_PROJECTS[pid]||[]).includes(id)){ PRODUCT_PROJECTS[pid]=PRODUCT_PROJECTS[pid].filter(x=>x!==id); _rmPersistAssoc(pid); }
+  });
+  PHASES.splice(PHASES.findIndex(x=>x.id===id),1);
+  selectedPhases.delete(id);
+  if(![...selectedPhases].filter(p=>p!=='LIVE').length&&PHASES.length) selectedPhases.add(PHASES[0].id);
+  if(curPhase===id) curPhase=[...selectedPhases].filter(p=>p!=='LIVE')[0]||(PHASES[0]&&PHASES[0].id)||'PH0';
+  dbDeletePhase(id);
+  closeModal('projModal');
+  _pjRefreshAll();
+  showToast('Deleted '+ph.name+(feats.length?' — '+feats.length+' feature'+(feats.length===1?'':'s')+' moved to the Backlog':''));
+}
+
+// ── templates: parsing ──
+function _ptParse(text){
+  const feats=[]; let cur=null;
+  String(text||'').split(/\r?\n/).forEach(raw=>{
+    const line=raw.trim(); if(!line) return;
+    let m=/^#{1,6}\s*(.+)$/.exec(line);
+    if(m){
+      const parts=m[1].split('|').map(x=>x.trim());
+      cur={name:parts[0],area:parts[1]||'',reqs:[]};
+      if(cur.name) feats.push(cur); else cur=null;
+      return;
+    }
+    m=/^(?:[-*•]|\d+[.)])\s*(.+)$/.exec(line);
+    const t=(m?m[1]:line).trim(); if(!t) return;
+    if(!cur){ cur={name:'General checks',area:'',reqs:[]}; feats.push(cur); }
+    cur.reqs.push(t);
+  });
+  return feats;
+}
+function _ptCounts(text){ const f=_ptParse(text); return {features:f.length,reqs:f.reduce((n,x)=>n+x.reqs.length,0)}; }
+
+// ── templates: applying one to a project ──
+async function _dbBatch(action,items,toRow,single){
+  if(!items.length) return;
+  try{ await sheetPost({action,rows:items.map(toRow)}); }
+  catch(e){
+    if(/unknown action/i.test(e.message||'')){ for(const it of items) await single(it); }   // older backend: one at a time
+    else { console.error(action,e); showToast('Sheet write error: '+e.message); }
+  }
+}
+async function _ptPersist(epics,feats,stories){
+  await _dbBatch('upsertEpicsBatch',epics,ep=>({id:ep.id,productId:ep.productId,name:ep.name||'',desc:ep.desc||'',colour:ep.colour||EPIC_COLOURS[0],order:ep.order||0,jiraKey:'',testProductIds:''}),dbUpsertEpic);
+  await _dbBatch('upsertFeaturesBatch',feats,f=>({id:f.id,epicId:f.epicId,phaseId:f.phaseId||'',name:f.name||'',desc:f.desc||'',icon:f.icon||ROADMAP_ICONS[0],status:'Planned',stretch:'FALSE',order:f.order||0,jiraKey:''}),dbUpsertFeature);
+  await _dbBatch('upsertStoriesBatch',stories,s=>({id:s.id,code:s.code||'',featureId:s.featureId,text:s.text||'',stretch:'FALSE',type:'',devStatus:'Not Started',testStatus:'Not Started',owner:'',source:s.source||'',order:s.order||0,jiraKey:'',testProductIds:''}),dbUpsertStory);
+}
+function _ptApply(tid,pid,areaChoice,phase){
+  const t=PROJECT_TEMPLATES[tid]; if(!t) return {features:0,reqs:0};
+  const sub=x=>String(x||'').replace(/\{project\}/gi,phase.name);
+  const epicsOf=()=>ROADMAP_EPICS.filter(e=>e.productId===pid);
+  const findEpic=name=>epicsOf().find(e=>e.name.trim().toLowerCase()===String(name).trim().toLowerCase());
+  const newEpics=[], newFeats=[], newStories=[];
+  const uid=()=>Date.now()+'_'+Math.floor(Math.random()*1e6);
+  const makeEpic=name=>{
+    const ep={id:'EP'+uid(),productId:pid,name,desc:'',colour:EPIC_COLOURS[epicsOf().length%EPIC_COLOURS.length],order:epicsOf().length,testProductIds:[]};
+    ROADMAP_EPICS.push(ep); newEpics.push(ep); return ep;
+  };
+  let fallback=null;
+  const fallbackEpic=()=>{
+    if(fallback) return fallback;
+    if(areaChoice&&areaChoice!=='__new__') fallback=ROADMAP_EPICS.find(e=>e.id===areaChoice);
+    if(!fallback) fallback=findEpic(phase.name)||makeEpic(phase.name);
+    return fallback;
+  };
+  _ptParse(t.text).forEach(ft=>{
+    const ep=ft.area?(findEpic(sub(ft.area))||makeEpic(sub(ft.area))):fallbackEpic();
+    const f={id:'FT'+uid(),epicId:ep.id,phaseId:phase.id,name:sub(ft.name),desc:'',icon:'fact_check',status:'Planned',stretch:false,
+      order:ROADMAP_FEATURES.filter(x=>x.epicId===ep.id&&x.phaseId===phase.id).length};
+    ROADMAP_FEATURES.push(f); newFeats.push(f);
+    ft.reqs.forEach((txt,i)=>{
+      const s={id:'ST'+uid(),code:_reqGenerateCode(f.id),featureId:f.id,text:sub(txt),stretch:false,type:'',devStatus:'Not Started',testStatus:'Not Started',owner:'',source:'Template: '+t.name,order:i};
+      ROADMAP_STORIES.push(s); newStories.push(s);
+    });
+  });
+  _ptPersist(newEpics,newFeats,newStories);
+  return {features:newFeats.length,reqs:newStories.length};
+}
+
+// ── project dialog: "start from a template" (new projects only) ──
+function _pjTplSetup(isNew){
+  const tpls=Object.values(PROJECT_TEMPLATES).sort((a,b)=>a.name.localeCompare(b.name));
+  const wrap=eid('pjm-tpl-wrap');
+  if(!isNew||!tpls.length){ wrap.style.display='none'; eid('pjm-tpl').innerHTML=''; eid('pjm-tpl-opts').style.display='none'; return; }
+  wrap.style.display='';
+  eid('pjm-tpl').innerHTML='<option value="">No template — blank project</option>'+tpls.map(t=>'<option value="'+escH(t.id)+'">'+escH(t.name)+'</option>').join('');
+  const def=_pjAssocProductId||(_rmShownProducts()[0]||ROADMAP_PRODUCTS[0]||{}).id;
+  eid('pjm-tpl-prod').innerHTML=ROADMAP_PRODUCTS.map(p=>'<option value="'+escH(p.id)+'"'+(p.id===def?' selected':'')+'>'+escH(p.name)+'</option>').join('');
+  eid('pjm-tpl-opts').style.display='none';
+  _pjTplProdChange();
+}
+function _pjTplProdChange(){
+  const pid=eid('pjm-tpl-prod').value;
+  eid('pjm-tpl-area').innerHTML='<option value="__new__">＋ New area named after the project</option>'
+    +ROADMAP_EPICS.filter(e=>e.productId===pid).map(e=>'<option value="'+escH(e.id)+'">'+escH(e.name)+'</option>').join('');
+}
+function _pjTplChange(){
+  const t=PROJECT_TEMPLATES[eid('pjm-tpl').value];
+  eid('pjm-tpl-opts').style.display=t?'':'none';
+  if(!t) return;
+  const c=_ptCounts(t.text);
+  eid('pjm-tpl-info').textContent=c.features+' feature'+(c.features===1?'':'s')+' and '+c.reqs+' requirement'+(c.reqs===1?'':'s')+' will be created in this project. Features that name their own functional area use it; the rest go in the area chosen above.';
+  if(t.owner&&!eid('pjm-owner').value) eid('pjm-owner').value=t.owner;
+  if(t.days>0){
+    const st=_pjMs(eid('pjm-start').value);
+    if(st!==null&&!eid('pjm-end').value) eid('pjm-end').value=_pjKey(st+(t.days-1)*_PJ_DAY);
+  }
+}
+
+// ── templates: management (Settings > Project templates) ──
+function _ptOpen(id,prefill){
+  if(!canEdit()){ showToast('View-only access — editing is disabled'); return; }
+  _ptEditId=id||null;
+  const t=id?PROJECT_TEMPLATES[id]:(prefill||{});
+  eid('ptm-title').textContent=id?'Edit template':'New project template';
+  eid('ptm-name').value=t.name||''; eid('ptm-desc').value=t.desc||'';
+  eid('ptm-days').value=t.days||'';
+  eid('ptm-owner').innerHTML='<option value="">— None —</option>'+PJ_OWNERS.map(o=>'<option value="'+escH(o)+'"'+(o===t.owner?' selected':'')+'>'+escH(o)+'</option>').join('');
+  eid('ptm-text').value=t.text||'';
+  eid('ptm-delete').style.display=id?'':'none';
+  _ptUpdateCount();
+  openModal('ptplModal');
+}
+function _ptUpdateCount(){
+  const c=_ptCounts(eid('ptm-text').value);
+  eid('ptm-count').textContent=c.features+' feature'+(c.features===1?'':'s')+', '+c.reqs+' requirement'+(c.reqs===1?'':'s');
+}
+function _ptSave(){
+  if(!canEdit()){ showToast('View-only access — editing is disabled'); return; }
+  const name=eid('ptm-name').value.trim(); if(!name){ alert('Enter a template name'); return; }
+  const id=_ptEditId||('T'+Date.now());
+  const t={id,name,desc:eid('ptm-desc').value.trim(),owner:eid('ptm-owner').value||'',days:Math.max(0,parseInt(eid('ptm-days').value)||0),text:eid('ptm-text').value};
+  PROJECT_TEMPLATES[id]=t;
+  dbUpsertConfigBatch([{key:'ptemplate_'+id,value:JSON.stringify({name:t.name,desc:t.desc,owner:t.owner,days:t.days,text:t.text})}]);
+  closeModal('ptplModal'); _portfolioRefresh(); showToast('Template saved');
+}
+function _ptDelete(id){
+  if(!canEdit()){ showToast('View-only access — editing is disabled'); return; }
+  const t=PROJECT_TEMPLATES[id]; if(!t) return;
+  if(!confirm('Delete template "'+t.name+'"? Projects already created from it are not affected.')) return;
+  delete PROJECT_TEMPLATES[id];
+  dbDeleteConfigBatch(['ptemplate_'+id]);
+  closeModal('ptplModal'); _portfolioRefresh(); showToast('Template deleted');
+}
+function _ptDuplicate(id){
+  const t=PROJECT_TEMPLATES[id]; if(!t) return;
+  _ptOpen(null,{name:t.name+' (copy)',desc:t.desc,owner:t.owner,days:t.days,text:t.text});
+}
+// Turn a finished/running project into a template: its features + requirements
+// become the checklist, with the project's name swapped for {project}.
+function _ptFromProject(phaseId){
+  const ph=PHASES.find(x=>x.id===phaseId); if(!ph) return;
+  const feats=ROADMAP_FEATURES.filter(f=>f.phaseId===phaseId).sort((a,b)=>(a.order||0)-(b.order||0));
+  if(!feats.length){ showToast('This project has no features to turn into a template yet'); return; }
+  const re=new RegExp(ph.name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi');
+  const sub=x=>String(x||'').replace(re,'{project}');
+  const lines=[];
+  feats.forEach(f=>{
+    const ep=ROADMAP_EPICS.find(e=>e.id===f.epicId);
+    lines.push('# '+sub(f.name)+(ep?' | '+sub(ep.name):''));
+    ROADMAP_STORIES.filter(s=>s.featureId===f.id).sort((a,b)=>(a.order||0)-(b.order||0)).forEach(s=>lines.push('- '+sub(s.text)));
+    lines.push('');
+  });
+  const st=_pjMs(ph.startDate), en=_pjMs(ph.endDate);
+  _ptOpen(null,{name:ph.name+' template',desc:'Created from '+ph.name,owner:ph.owner||'',days:(st!==null&&en!==null&&en>=st)?Math.round((en-st)/_PJ_DAY)+1:0,text:lines.join('\n')});
+}
+function renderTemplatesTab(){
+  const canEd=canEdit();
+  const btn=(label,fn,extra)=>'<button class="mbtn mbtn-cancel" style="padding:4px 10px;font-size:11px" onclick="'+fn+'" '+(extra||'')+'>'+label+'</button>';
+  const rows=Object.values(PROJECT_TEMPLATES).sort((a,b)=>a.name.localeCompare(b.name)).map(t=>{
+    const c=_ptCounts(t.text);
+    return '<tr><td><div class="pj-title">'+escH(t.name)+'</div>'+(t.desc?'<div class="pj-desc">'+escH(t.desc)+'</div>':'')+'</td>'
+      +'<td>'+(t.owner?'<span class="pj-owner">'+escH(t.owner)+'</span>':'<span class="pj-none">—</span>')+'</td>'
+      +'<td>'+(t.days?t.days+' days':'<span class="pj-none">—</span>')+'</td>'
+      +'<td>'+c.features+' features · '+c.reqs+' requirements</td>'
+      +'<td style="text-align:right;white-space:nowrap">'+(canEd?btn('Edit','_ptOpen(\''+t.id+'\')')+' '+btn('Duplicate','_ptDuplicate(\''+t.id+'\')'):'')+'</td></tr>';
+  }).join('');
+  return '<div class="settings-section"><div class="settings-section-title">Project templates</div>'
+    +'<div style="font-size:11px;color:var(--text3);margin-bottom:10px;line-height:1.6">For projects you repeat — opening a new destination airport, a new flight schedule. A template holds the standard features and checks; when you add a project and pick the template, they are all created for you. You can also turn an existing project into a template from Settings &gt; Products &amp; Projects.</div>'
+    +(rows?'<table class="pj-table"><thead><tr><th>Template</th><th>Default owner</th><th>Typical length</th><th>Contents</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>':'<div class="pj-none">No templates yet.</div>')
+    +(canEd?'<div style="margin-top:10px"><button class="cfg-add-btn" onclick="_ptOpen()">+ New template</button></div>':'')+'</div>';
+}
+
+// Admin: attribute a new snag to another user (v191). Lists everyone in the role table.
+function _snagReporterOptionsHtml(){
+  const me=(gCurrentUser&&gCurrentUser.email||'').trim().toLowerCase();
+  return Object.keys(ROLE_TABLE).sort((a,b)=>_tplTesterDisplayName(a).localeCompare(_tplTesterDisplayName(b))).map(e=>
+    '<option value="'+escH(e)+'"'+(e===me?' selected':'')+'>'+escH(_tplTesterDisplayName(e))+(e===me?' (me)':'')+' — '+escH(e)+'</option>').join('');
+}
 function renderOwnersTab(){
   const rows = Object.entries(settingsOWNER).map(([name,colour],i)=>`
     <div class="cfg-row" id="own-row-${i}">
@@ -21568,6 +23319,8 @@ function _showLoadErrorState_(message){
   if(msgEl) msgEl.textContent = (message||'The Sheets backend didn\'t respond in time.') + ' Your sign-in is still fine — this just needs another try.';
   const retry = eid('loaderRetry');
   if(retry) retry.style.display = 'flex';
+  const retryBtn = document.querySelector('#loaderRetry button');
+  if(retryBtn) retryBtn.disabled = false; // re-enabled now that the failed load has finished
 }
 function _hideLoadErrorState_(){
   const el = eid('appLoader');
@@ -21579,6 +23332,12 @@ function _hideLoadErrorState_(){
   if(retry) retry.style.display = 'none';
 }
 function _retryLoadFromSheets(){
+  // Ignore clicks while a load is already running (also covers a double-click
+  // before the error panel has hidden) — a second getAll would just stack
+  // another server run on top of the first.
+  if (_loadingFromSheets || _getAllInFlight) return;
+  const btn = document.querySelector('#loaderRetry button');
+  if (btn) btn.disabled = true;
   _hideLoadErrorState_();
   loadFromSheets();
 }
